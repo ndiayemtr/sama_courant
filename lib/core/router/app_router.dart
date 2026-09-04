@@ -1,8 +1,9 @@
 import 'package:go_router/go_router.dart';
-
-import '../../app.dart';
+import 'package:sama_courant/features/dashboard/presentation/pages/dashboard_page.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
-  routes: [GoRoute(path: '/', builder: (context, state) => const HomePage())],
+  routes: [
+    GoRoute(path: '/', builder: (context, state) => const DashboardPage()),
+  ],
 );
