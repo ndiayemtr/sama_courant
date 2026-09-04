@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
-import 'package:sama_courant/features/dashboard/presentation/pages/dashboard_page.dart';
+
+import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
