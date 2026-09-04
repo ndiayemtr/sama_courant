@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sama_courant/core/theme/app_theme.dart';
 
 class SamaCourantApp extends StatelessWidget {
   const SamaCourantApp({super.key});
@@ -8,7 +9,7 @@ class SamaCourantApp extends StatelessWidget {
     return MaterialApp(
       title: 'Sama Courant',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true),
+      theme: AppTheme.light(),
       home: const HomePage(),
     );
   }
