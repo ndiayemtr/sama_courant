@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/appliances_provider.dart';
 import '../state/appliances_state.dart';
+import '../widgets/appliance_card.dart';
 
 class AppliancesPage extends ConsumerStatefulWidget {
   const AppliancesPage({super.key});
@@ -74,17 +75,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
       itemBuilder: (context, index) {
         final appliance = state.appliances[index];
 
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            title: Text(appliance.name),
-            subtitle: Text(
-              '${appliance.powerWatts.toStringAsFixed(0)} W • '
-              '${appliance.hoursPerDay.toStringAsFixed(1)} h/jour',
-            ),
-            trailing: Text('x${appliance.quantity}'),
-          ),
-        );
+        return ApplianceCard(appliance: appliance);
       },
     );
   }
