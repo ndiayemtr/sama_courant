@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/appliances_provider.dart';
 import '../state/appliances_state.dart';
 import '../widgets/appliance_card.dart';
+import '../widgets/appliances_error.dart';
 import '../widgets/appliances_loading.dart';
 import '../widgets/empty_appliances.dart';
 
@@ -51,11 +52,11 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     }
 
     if (state.errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(state.errorMessage!, textAlign: TextAlign.center),
-        ),
+      return AppliancesError(
+        message: state.errorMessage!,
+        onRetry: () {
+          ref.read(appliancesProvider.notifier).loadAppliances();
+        },
       );
     }
 
