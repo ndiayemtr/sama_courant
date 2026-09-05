@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/appliances_provider.dart';
 import '../state/appliances_state.dart';
 import '../widgets/appliance_card.dart';
+import '../widgets/appliances_loading.dart';
 import '../widgets/empty_appliances.dart';
 
 class AppliancesPage extends ConsumerStatefulWidget {
@@ -46,7 +47,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     AppliancesState state,
   ) {
     if (state.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const AppliancesLoading();
     }
 
     if (state.errorMessage != null) {
