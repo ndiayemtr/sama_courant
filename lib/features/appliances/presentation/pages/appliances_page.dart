@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/appliances_provider.dart';
 import '../state/appliances_state.dart';
 import '../widgets/appliance_card.dart';
+import '../widgets/empty_appliances.dart';
 
 class AppliancesPage extends ConsumerStatefulWidget {
   const AppliancesPage({super.key});
@@ -58,14 +59,10 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     }
 
     if (state.appliances.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'Aucun appareil enregistré.',
-            textAlign: TextAlign.center,
-          ),
-        ),
+      return EmptyAppliances(
+        onAdd: () {
+          // Le formulaire sera connecté dans une prochaine étape.
+        },
       );
     }
 
