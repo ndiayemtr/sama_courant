@@ -1,14 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../state/appliances_state.dart';
 
 import '../providers/appliances_provider.dart';
+import '../state/appliances_state.dart';
 
-class AppliancesPage extends ConsumerWidget {
+class AppliancesPage extends ConsumerStatefulWidget {
   const AppliancesPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppliancesPage> createState() => _AppliancesPageState();
+}
+
+class _AppliancesPageState extends ConsumerState<AppliancesPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() {
+      ref.read(appliancesProvider.notifier).loadAppliances();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(appliancesProvider);
 
     return Scaffold(
