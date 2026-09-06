@@ -6,13 +6,17 @@ import '../../domain/entities/appliance.dart';
 import '../../domain/providers/appliance_usecase_providers.dart';
 
 class ApplianceFormPage extends ConsumerStatefulWidget {
-  const ApplianceFormPage({super.key});
+  final Appliance? appliance;
+
+  const ApplianceFormPage({super.key, this.appliance});
 
   @override
   ConsumerState<ApplianceFormPage> createState() => _ApplianceFormPageState();
 }
 
 class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
+  bool get _isEditMode => widget.appliance != null;
+
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -37,11 +41,37 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    _initializeForm();
+  }
+
+  void _initializeForm() {
+    final appliance = widget.appliance;
+
+    if (appliance == null) {
+      return;
+    }
+
+    _nameController.text = appliance.name;
+    _selectedCategory = appliance.category;
+    _powerController.text = appliance.powerWatts.toString();
+    _quantityController.text = appliance.quantity.toString();
+    _hoursPerDayController.text = appliance.hoursPerDay.toString();
+    _daysPerMonthController.text = appliance.daysPerMonth.toString();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajouter un appareil')),
+      appBar: AppBar(
+        title: Text(
+          _isEditMode ? 'Modifier un appareil' : 'Ajouter un appareil',
+        ),
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -152,7 +182,11 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
               label: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 child: Text(
-                  _isSaving ? 'Enregistrement...' : 'Enregistrer l’appareil',
+                  _isSaving
+                      ? 'Enregistrement...'
+                      : _isEditMode
+                      ? 'Enregistrer les modifications'
+                      : 'Enregistrer l’appareil',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -259,16 +293,18 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
 
   Appliance _buildAppliance() {
     final now = DateTime.now();
+    final existingAppliance = widget.appliance;
 
     return Appliance(
+      id: existingAppliance?.id,
       name: _nameController.text.trim(),
       category: _selectedCategory!,
       powerWatts: double.parse(_powerController.text.trim()),
       quantity: int.parse(_quantityController.text.trim()),
       hoursPerDay: double.parse(_hoursPerDayController.text.trim()),
       daysPerMonth: int.parse(_daysPerMonthController.text.trim()),
-      isActive: true,
-      createdAt: now,
+      isActive: existingAppliance?.isActive ?? true,
+      createdAt: existingAppliance?.createdAt ?? now,
       updatedAt: now,
     );
   }
@@ -291,20 +327,37 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     try {
       final appliance = _buildAppliance();
 
-      final createAppliance = ref.read(createApplianceProvider);
+      if (_isEditMode) {
+        final updateAppliance = ref.read(updateApplianceProvider);
 
-      final id = await createAppliance(appliance);
+        final updated = await updateAppliance(appliance);
 
-      debugPrint('Appliance enregistré avec succès.');
-      debugPrint('ID: $id');
+        if (!updated) {
+          throw Exception('Impossible de modifier cet appareil.');
+        }
+
+        debugPrint('Appliance modifié avec succès.');
+        debugPrint('ID: ${appliance.id}');
+      } else {
+        final createAppliance = ref.read(createApplianceProvider);
+
+        final id = await createAppliance(appliance);
+
+        debugPrint('Appliance enregistré avec succès.');
+        debugPrint('ID: $id');
+      }
 
       if (!mounted) {
         return;
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Appareil enregistré avec succès.'),
+        SnackBar(
+          content: Text(
+            _isEditMode
+                ? 'Appareil modifié avec succès.'
+                : 'Appareil enregistré avec succès.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -324,11 +377,12 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
-            'Impossible d’enregistrer l’appareil. Veuillez réessayer.',
+          content: Text(
+            _isEditMode
+                ? 'Impossible de modifier l’appareil. Veuillez réessayer.'
+                : 'Impossible d’enregistrer l’appareil. Veuillez réessayer.',
           ),
           behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(label: 'Fermer', onPressed: () {}),
         ),
       );
     }
