@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../providers/appliances_provider.dart';
 import '../state/appliances_state.dart';
@@ -35,6 +36,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           // Le formulaire d'ajout sera ajouté dans une prochaine étape.
+          context.push('/appliances/add');
         },
         icon: const Icon(Icons.add),
         label: const Text('Ajouter'),
@@ -64,6 +66,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
       return EmptyAppliances(
         onAdd: () {
           // Le formulaire sera connecté dans une prochaine étape.
+          context.push('/appliances/add');
         },
       );
     }
