@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../domain/entities/appliance.dart';
 import '../../domain/providers/appliance_usecase_providers.dart';
@@ -21,6 +22,8 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   final _daysPerMonthController = TextEditingController(text: '30');
 
   String? _selectedCategory;
+
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -138,13 +141,22 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
             const SizedBox(height: 24),
 
             FilledButton.icon(
-              onPressed: _onSave,
-              icon: const Icon(Icons.save_outlined),
-              label: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 14),
+              onPressed: _isSaving ? null : _onSave,
+              icon: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.save_outlined),
+              label: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 child: Text(
-                  'Enregistrer l’appareil',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  _isSaving ? 'Enregistrement...' : 'Enregistrer l’appareil',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               style: FilledButton.styleFrom(
@@ -262,30 +274,61 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   }
 
   Future<void> _onSave() async {
+    if (_isSaving) {
+      return;
+    }
+
     final isValid = _formKey.currentState?.validate() ?? false;
 
     if (!isValid) {
       return;
     }
 
-    final appliance = _buildAppliance();
+    setState(() {
+      _isSaving = true;
+    });
 
     try {
+      final appliance = _buildAppliance();
+
       final createAppliance = ref.read(createApplianceProvider);
 
       final id = await createAppliance(appliance);
 
       debugPrint('Appliance enregistré avec succès.');
       debugPrint('ID: $id');
-      debugPrint('Nom: ${appliance.name}');
-      debugPrint('Catégorie: ${appliance.category}');
-      debugPrint('Puissance: ${appliance.powerWatts} W');
-      debugPrint('Quantité: ${appliance.quantity}');
-      debugPrint('Heures/jour: ${appliance.hoursPerDay}');
-      debugPrint('Jours/mois: ${appliance.daysPerMonth}');
-      debugPrint('Actif: ${appliance.isActive}');
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Appareil enregistré avec succès.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      context.pop();
     } catch (error) {
       debugPrint('Erreur lors de l’enregistrement : $error');
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Impossible d’enregistrer l’appareil. Veuillez réessayer.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      setState(() {
+        _isSaving = false;
+      });
     }
   }
 
