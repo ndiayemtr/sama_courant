@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/entities/appliance.dart';
+
 class ApplianceFormPage extends StatefulWidget {
   const ApplianceFormPage({super.key});
 
@@ -241,6 +243,22 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
     return null;
   }
 
+  Appliance _buildAppliance() {
+    final now = DateTime.now();
+
+    return Appliance(
+      name: _nameController.text.trim(),
+      category: _selectedCategory!,
+      powerWatts: double.parse(_powerController.text.trim()),
+      quantity: int.parse(_quantityController.text.trim()),
+      hoursPerDay: double.parse(_hoursPerDayController.text.trim()),
+      daysPerMonth: int.parse(_daysPerMonthController.text.trim()),
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
+
   void _onSave() {
     final isValid = _formKey.currentState?.validate() ?? false;
 
@@ -248,12 +266,16 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
       return;
     }
 
-    debugPrint('Nom: ${_nameController.text}');
-    debugPrint('Catégorie: $_selectedCategory');
-    debugPrint('Puissance: ${_powerController.text}');
-    debugPrint('Quantité: ${_quantityController.text}');
-    debugPrint('Heures/jour: ${_hoursPerDayController.text}');
-    debugPrint('Jours/mois: ${_daysPerMonthController.text}');
+    final appliance = _buildAppliance();
+
+    debugPrint('Appliance créé :');
+    debugPrint('Nom: ${appliance.name}');
+    debugPrint('Catégorie: ${appliance.category}');
+    debugPrint('Puissance: ${appliance.powerWatts} W');
+    debugPrint('Quantité: ${appliance.quantity}');
+    debugPrint('Heures/jour: ${appliance.hoursPerDay}');
+    debugPrint('Jours/mois: ${appliance.daysPerMonth}');
+    debugPrint('Actif: ${appliance.isActive}');
   }
 
   Widget _buildHeader(BuildContext context) {
