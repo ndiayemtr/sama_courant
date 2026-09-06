@@ -10,6 +10,25 @@ class ApplianceFormPage extends StatefulWidget {
 class _ApplianceFormPageState extends State<ApplianceFormPage> {
   final _formKey = GlobalKey<FormState>();
 
+  final _nameController = TextEditingController();
+  final _powerController = TextEditingController();
+  final _quantityController = TextEditingController(text: '1');
+  final _hoursPerDayController = TextEditingController();
+  final _daysPerMonthController = TextEditingController(text: '30');
+
+  String? _selectedCategory;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _powerController.dispose();
+    _quantityController.dispose();
+    _hoursPerDayController.dispose();
+    _daysPerMonthController.dispose();
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -22,6 +41,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
             _buildHeader(context),
+
             const SizedBox(height: 24),
 
             _buildSection(
@@ -31,6 +51,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
               child: Column(
                 children: [
                   _buildTextField(
+                    controller: _nameController,
                     label: 'Nom de l’appareil',
                     hint: 'Ex. Réfrigérateur',
                     icon: Icons.devices_other,
@@ -50,6 +71,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
               child: Column(
                 children: [
                   _buildTextField(
+                    controller: _powerController,
                     label: 'Puissance',
                     hint: 'Ex. 150',
                     icon: Icons.power,
@@ -58,9 +80,11 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
+                    controller: _quantityController,
                     label: 'Quantité',
                     hint: 'Ex. 1',
                     icon: Icons.format_list_numbered,
+                    suffixText: 'appareil(s)',
                     keyboardType: TextInputType.number,
                   ),
                 ],
@@ -77,6 +101,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
                 children: [
                   Expanded(
                     child: _buildTextField(
+                      controller: _hoursPerDayController,
                       label: 'Heures / jour',
                       hint: 'Ex. 8',
                       icon: Icons.access_time,
@@ -89,6 +114,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildTextField(
+                      controller: _daysPerMonthController,
                       label: 'Jours / mois',
                       hint: 'Ex. 30',
                       icon: Icons.calendar_month,
@@ -103,7 +129,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
             const SizedBox(height: 24),
 
             FilledButton.icon(
-              onPressed: () {},
+              onPressed: _onSave,
               icon: const Icon(Icons.save_outlined),
               label: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 14),
@@ -130,6 +156,15 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
         ),
       ),
     );
+  }
+
+  void _onSave() {
+    debugPrint('Nom: ${_nameController.text}');
+    debugPrint('Catégorie: $_selectedCategory');
+    debugPrint('Puissance: ${_powerController.text}');
+    debugPrint('Quantité: ${_quantityController.text}');
+    debugPrint('Heures/jour: ${_hoursPerDayController.text}');
+    debugPrint('Jours/mois: ${_daysPerMonthController.text}');
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -220,6 +255,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
   }
 
   Widget _buildTextField({
+    required TextEditingController controller,
     required String label,
     required String hint,
     required IconData icon,
@@ -227,6 +263,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
     TextInputType? keyboardType,
   }) {
     return TextFormField(
+      controller: controller,
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
@@ -250,6 +287,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
     ];
 
     return DropdownButtonFormField<String>(
+      value: _selectedCategory,
       decoration: const InputDecoration(
         labelText: 'Catégorie',
         prefixIcon: Icon(Icons.category_outlined),
@@ -263,7 +301,11 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
             ),
           )
           .toList(),
-      onChanged: (value) {},
+      onChanged: (value) {
+        setState(() {
+          _selectedCategory = value;
+        });
+      },
     );
   }
 }
