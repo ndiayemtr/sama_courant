@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/appliance.dart';
+import '../../domain/providers/appliance_usecase_providers.dart';
 
-class ApplianceFormPage extends StatefulWidget {
+class ApplianceFormPage extends ConsumerStatefulWidget {
   const ApplianceFormPage({super.key});
 
   @override
-  State<ApplianceFormPage> createState() => _ApplianceFormPageState();
+  ConsumerState<ApplianceFormPage> createState() => _ApplianceFormPageState();
 }
 
-class _ApplianceFormPageState extends State<ApplianceFormPage> {
+class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -259,7 +261,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
     );
   }
 
-  void _onSave() {
+  Future<void> _onSave() async {
     final isValid = _formKey.currentState?.validate() ?? false;
 
     if (!isValid) {
@@ -268,14 +270,23 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
 
     final appliance = _buildAppliance();
 
-    debugPrint('Appliance créé :');
-    debugPrint('Nom: ${appliance.name}');
-    debugPrint('Catégorie: ${appliance.category}');
-    debugPrint('Puissance: ${appliance.powerWatts} W');
-    debugPrint('Quantité: ${appliance.quantity}');
-    debugPrint('Heures/jour: ${appliance.hoursPerDay}');
-    debugPrint('Jours/mois: ${appliance.daysPerMonth}');
-    debugPrint('Actif: ${appliance.isActive}');
+    try {
+      final createAppliance = ref.read(createApplianceProvider);
+
+      final id = await createAppliance(appliance);
+
+      debugPrint('Appliance enregistré avec succès.');
+      debugPrint('ID: $id');
+      debugPrint('Nom: ${appliance.name}');
+      debugPrint('Catégorie: ${appliance.category}');
+      debugPrint('Puissance: ${appliance.powerWatts} W');
+      debugPrint('Quantité: ${appliance.quantity}');
+      debugPrint('Heures/jour: ${appliance.hoursPerDay}');
+      debugPrint('Jours/mois: ${appliance.daysPerMonth}');
+      debugPrint('Actif: ${appliance.isActive}');
+    } catch (error) {
+      debugPrint('Erreur lors de l’enregistrement : $error');
+    }
   }
 
   Widget _buildHeader(BuildContext context) {
