@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sama_courant/features/appliances/data/providers/appliance_repository_provider.dart';
 import 'package:sama_courant/features/appliances/domain/entities/appliance.dart';
 import 'package:sama_courant/features/appliances/domain/repositories/appliance_repository.dart';
@@ -34,10 +35,27 @@ class FakeApplianceRepository implements ApplianceRepository {
   Future<void> delete(int id) async {}
 }
 
-Widget createTestWidget(FakeApplianceRepository repository) {
+GoRouter createTestRouter() {
+  return GoRouter(
+    initialLocation: '/',
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) =>
+            const Scaffold(body: Center(child: Text('Page précédente'))),
+      ),
+      GoRoute(
+        path: '/appliances/add',
+        builder: (context, state) => const ApplianceFormPage(),
+      ),
+    ],
+  );
+}
+
+Widget createTestWidget(FakeApplianceRepository repository, GoRouter router) {
   return ProviderScope(
     overrides: [applianceRepositoryProvider.overrideWithValue(repository)],
-    child: const MaterialApp(home: ApplianceFormPage()),
+    child: MaterialApp.router(routerConfig: router),
   );
 }
 
@@ -66,8 +84,12 @@ void main() {
       tester,
     ) async {
       final repository = FakeApplianceRepository();
+      final router = createTestRouter();
 
-      await tester.pumpWidget(createTestWidget(repository));
+      await tester.pumpWidget(createTestWidget(repository, router));
+
+      router.push('/appliances/add');
+
       await tester.pumpAndSettle();
 
       await tapSave(tester);
@@ -90,8 +112,12 @@ void main() {
 
     testWidgets('refuse une puissance négative', (tester) async {
       final repository = FakeApplianceRepository();
+      final router = createTestRouter();
 
-      await tester.pumpWidget(createTestWidget(repository));
+      await tester.pumpWidget(createTestWidget(repository, router));
+
+      router.push('/appliances/add');
+
       await tester.pumpAndSettle();
 
       await enterField(tester, 'Nom de l’appareil', 'Réfrigérateur');
@@ -111,8 +137,12 @@ void main() {
 
     testWidgets('refuse une durée supérieure à 24 heures', (tester) async {
       final repository = FakeApplianceRepository();
+      final router = createTestRouter();
 
-      await tester.pumpWidget(createTestWidget(repository));
+      await tester.pumpWidget(createTestWidget(repository, router));
+
+      router.push('/appliances/add');
+
       await tester.pumpAndSettle();
 
       await enterField(tester, 'Heures / jour', '25');
@@ -131,8 +161,12 @@ void main() {
 
     testWidgets('refuse un nombre de jours supérieur à 31', (tester) async {
       final repository = FakeApplianceRepository();
+      final router = createTestRouter();
 
-      await tester.pumpWidget(createTestWidget(repository));
+      await tester.pumpWidget(createTestWidget(repository, router));
+
+      router.push('/appliances/add');
+
       await tester.pumpAndSettle();
 
       await enterField(tester, 'Jours / mois', '32');
@@ -151,8 +185,12 @@ void main() {
 
     testWidgets('crée un appareil avec les données saisies', (tester) async {
       final repository = FakeApplianceRepository();
+      final router = createTestRouter();
 
-      await tester.pumpWidget(createTestWidget(repository));
+      await tester.pumpWidget(createTestWidget(repository, router));
+
+      router.push('/appliances/add');
+
       await tester.pumpAndSettle();
 
       await enterField(tester, 'Nom de l’appareil', 'Réfrigérateur');
