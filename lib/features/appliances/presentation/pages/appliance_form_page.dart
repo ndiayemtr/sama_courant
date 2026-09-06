@@ -55,6 +55,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
                     label: 'Nom de l’appareil',
                     hint: 'Ex. Réfrigérateur',
                     icon: Icons.devices_other,
+                    validator: _validateName,
                   ),
                   const SizedBox(height: 16),
                   _buildCategoryField(),
@@ -77,6 +78,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
                     icon: Icons.power,
                     suffixText: 'W',
                     keyboardType: TextInputType.number,
+                    validator: _validatePower,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
@@ -86,6 +88,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
                     icon: Icons.format_list_numbered,
                     suffixText: 'appareil(s)',
                     keyboardType: TextInputType.number,
+                    validator: _validateQuantity,
                   ),
                 ],
               ),
@@ -109,6 +112,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
+                      validator: _validateHoursPerDay,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -120,6 +124,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
                       icon: Icons.calendar_month,
                       suffixText: 'j',
                       keyboardType: TextInputType.number,
+                      validator: _validateDaysPerMonth,
                     ),
                   ),
                 ],
@@ -158,7 +163,91 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
     );
   }
 
+  String? _validateName(String? value) {
+    final name = value?.trim() ?? '';
+
+    if (name.isEmpty) {
+      return 'Le nom de l’appareil est requis.';
+    }
+
+    if (name.length < 2) {
+      return 'Le nom doit contenir au moins 2 caractères.';
+    }
+
+    return null;
+  }
+
+  String? _validatePower(String? value) {
+    final power = double.tryParse(value?.trim() ?? '');
+
+    if (power == null) {
+      return 'La puissance est requise.';
+    }
+
+    if (power <= 0) {
+      return 'La puissance doit être supérieure à 0 W.';
+    }
+
+    return null;
+  }
+
+  String? _validateQuantity(String? value) {
+    final quantity = int.tryParse(value?.trim() ?? '');
+
+    if (quantity == null) {
+      return 'La quantité est requise.';
+    }
+
+    if (quantity < 1) {
+      return 'La quantité doit être au moins égale à 1.';
+    }
+
+    return null;
+  }
+
+  String? _validateHoursPerDay(String? value) {
+    final hours = double.tryParse(value?.trim() ?? '');
+
+    if (hours == null) {
+      return 'Les heures d’utilisation sont requises.';
+    }
+
+    if (hours <= 0 || hours > 24) {
+      return 'Les heures doivent être comprises entre 0 et 24.';
+    }
+
+    return null;
+  }
+
+  String? _validateDaysPerMonth(String? value) {
+    final days = int.tryParse(value?.trim() ?? '');
+
+    if (days == null) {
+      return 'Le nombre de jours est requis.';
+    }
+
+    if (days < 1 || days > 31) {
+      return 'Les jours doivent être compris entre 1 et 31.';
+    }
+
+    return null;
+  }
+
+  String? _validateCategory(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Veuillez sélectionner une catégorie.';
+    }
+
+    return null;
+  }
+
   void _onSave() {
+    final isValid = _formKey.currentState?.validate() ?? false;
+
+    if (!isValid) {
+      return;
+    }
+
     debugPrint('Nom: ${_nameController.text}');
     debugPrint('Catégorie: $_selectedCategory');
     debugPrint('Puissance: ${_powerController.text}');
@@ -261,10 +350,12 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
     required IconData icon,
     String? suffixText,
     TextInputType? keyboardType,
+    String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      validator: validator,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -287,7 +378,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
     ];
 
     return DropdownButtonFormField<String>(
-      value: _selectedCategory,
+      initialValue: _selectedCategory,
       decoration: const InputDecoration(
         labelText: 'Catégorie',
         prefixIcon: Icon(Icons.category_outlined),
@@ -306,6 +397,7 @@ class _ApplianceFormPageState extends State<ApplianceFormPage> {
           _selectedCategory = value;
         });
       },
+      validator: _validateCategory,
     );
   }
 }
