@@ -310,12 +310,17 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
       );
 
       context.pop();
-    } catch (error) {
+    } catch (error, stackTrace) {
       debugPrint('Erreur lors de l’enregistrement : $error');
+      debugPrintStack(stackTrace: stackTrace);
 
       if (!mounted) {
         return;
       }
+
+      setState(() {
+        _isSaving = false;
+      });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -323,12 +328,9 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
             'Impossible d’enregistrer l’appareil. Veuillez réessayer.',
           ),
           behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(label: 'Fermer', onPressed: () {}),
         ),
       );
-
-      setState(() {
-        _isSaving = false;
-      });
     }
   }
 
