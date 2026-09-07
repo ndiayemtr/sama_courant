@@ -42,6 +42,24 @@ class ApplianceCard extends StatelessWidget {
                   'x${appliance.quantity}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                const SizedBox(width: 8),
+                Row(
+                  children: [
+                    Icon(
+                      appliance.isActive
+                          ? Icons.check_circle_outline
+                          : Icons.pause_circle_outline,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      appliance.isActive ? 'Actif' : 'Inactif',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 6),
@@ -50,21 +68,32 @@ class ApplianceCard extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: _InfoItem(
-                    label: 'Puissance',
-                    value: '${appliance.powerWatts.toStringAsFixed(0)} W',
-                  ),
+            Card(
+              margin: EdgeInsets.zero,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.bolt_outlined),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _InfoItem(
+                        label: 'Consommation / jour',
+                        value:
+                            '${appliance.dailyConsumptionKwh.toStringAsFixed(2)} kWh',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _InfoItem(
+                        label: 'Consommation / mois',
+                        value:
+                            '${appliance.monthlyConsumptionKwh.toStringAsFixed(2)} kWh',
+                      ),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: _InfoItem(
-                    label: 'Utilisation',
-                    value: '${appliance.hoursPerDay.toStringAsFixed(1)} h/jour',
-                  ),
-                ),
-              ],
+              ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -89,24 +118,6 @@ class ApplianceCard extends StatelessWidget {
                       minimumSize: const Size.fromHeight(44),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Icon(
-                  appliance.isActive
-                      ? Icons.check_circle_outline
-                      : Icons.pause_circle_outline,
-                  size: 18,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  appliance.isActive ? 'Actif' : 'Inactif',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
             ),

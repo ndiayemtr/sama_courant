@@ -1,3 +1,5 @@
+import '../../../../core/utils/energy_calculator.dart';
+
 class Appliance {
   final int? id;
   final String name;
@@ -22,4 +24,36 @@ class Appliance {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  double get hourlyConsumptionKwh {
+    return EnergyCalculator.calculateHourlyConsumption(
+      powerWatts: powerWatts,
+      quantity: quantity,
+    );
+  }
+
+  double get dailyConsumptionKwh {
+    return EnergyCalculator.calculateDailyConsumption(
+      powerWatts: powerWatts,
+      hoursPerDay: hoursPerDay,
+      quantity: quantity,
+    );
+  }
+
+  double get monthlyConsumptionKwh {
+    return EnergyCalculator.calculateMonthlyConsumption(
+      powerWatts: powerWatts,
+      hoursPerDay: hoursPerDay,
+      daysPerMonth: daysPerMonth,
+      quantity: quantity,
+    );
+  }
+
+  double get yearlyConsumptionKwh {
+    return EnergyCalculator.calculateYearlyConsumption(
+      powerWatts: powerWatts,
+      hoursPerDay: hoursPerDay,
+      quantity: quantity,
+    );
+  }
 }
