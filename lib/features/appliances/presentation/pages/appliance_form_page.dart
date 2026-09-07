@@ -28,6 +28,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   String? _selectedCategory;
 
   bool _isSaving = false;
+  bool _isActive = true;
 
   @override
   void dispose() {
@@ -60,6 +61,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     _quantityController.text = appliance.quantity.toString();
     _hoursPerDayController.text = appliance.hoursPerDay.toString();
     _daysPerMonthController.text = appliance.daysPerMonth.toString();
+    _isActive = appliance.isActive;
   }
 
   @override
@@ -167,6 +169,33 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
                 ],
               ),
             ),
+            if (_isEditMode) ...[
+              const SizedBox(height: 16),
+              Card(
+                child: SwitchListTile(
+                  value: _isActive,
+                  onChanged: (value) {
+                    setState(() {
+                      _isActive = value;
+                    });
+                  },
+                  title: const Text(
+                    'Appareil actif',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    _isActive
+                        ? 'Cet appareil est pris en compte dans votre consommation.'
+                        : 'Cet appareil est exclu de votre consommation.',
+                  ),
+                  secondary: Icon(
+                    _isActive
+                        ? Icons.check_circle_outline
+                        : Icons.pause_circle_outline,
+                  ),
+                ),
+              ),
+            ],
 
             const SizedBox(height: 24),
 
@@ -303,7 +332,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
       quantity: int.parse(_quantityController.text.trim()),
       hoursPerDay: double.parse(_hoursPerDayController.text.trim()),
       daysPerMonth: int.parse(_daysPerMonthController.text.trim()),
-      isActive: existingAppliance?.isActive ?? true,
+      isActive: _isActive,
       createdAt: existingAppliance?.createdAt ?? now,
       updatedAt: now,
     );

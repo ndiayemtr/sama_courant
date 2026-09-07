@@ -7,11 +7,14 @@ class ApplianceCard extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
+  // final VoidCallback? onToggleStatus;
+
   const ApplianceCard({
     super.key,
     required this.appliance,
     this.onEdit,
     this.onDelete,
+    // this.onToggleStatus,
   });
 
   @override
@@ -86,6 +89,24 @@ class ApplianceCard extends StatelessWidget {
                       minimumSize: const Size.fromHeight(44),
                     ),
                   ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(
+                  appliance.isActive
+                      ? Icons.check_circle_outline
+                      : Icons.pause_circle_outline,
+                  size: 18,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  appliance.isActive ? 'Actif' : 'Inactif',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
             ),
