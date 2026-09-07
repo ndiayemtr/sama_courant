@@ -127,7 +127,8 @@ void main() {
 
     expect(find.text('Mes appareils'), findsOneWidget);
     expect(find.text('Réfrigérateur'), findsOneWidget);
-    expect(find.text('150 W'), findsOneWidget);
+    expect(find.text('1.50 kWh'), findsOneWidget);
+    expect(find.text('45.00 kWh'), findsOneWidget);
 
     container.dispose();
   });
