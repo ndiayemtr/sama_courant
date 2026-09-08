@@ -6,6 +6,7 @@ import 'package:sama_courant/features/budget/domain/entities/tariff_calculation_
 import 'package:sama_courant/features/budget/domain/entities/tariff_component.dart';
 import 'package:sama_courant/features/budget/domain/entities/tariff_component_type.dart';
 import 'package:sama_courant/features/budget/domain/entities/tariff_configuration.dart';
+import 'package:sama_courant/features/budget/domain/entities/tariff_taxable_base.dart';
 import 'package:sama_courant/features/budget/domain/entities/tariff_tier.dart';
 
 void main() {
@@ -113,5 +114,54 @@ void main() {
     expect(result.fees, closeTo(70.0, 0.001));
     expect(result.taxes, 0);
     expect(result.totalCost, closeTo(10994.5, 0.001));
+  });
+
+  test('calculates energy, fees, taxes and total cost', () {
+    final configuration = TariffConfiguration(
+      name: 'Configuration complète',
+      customerCategory: 'DPP',
+      billingMode: BillingMode.woyofal,
+      tiers: const [
+        TariffTier(minKwh: 0, maxKwh: 50, pricePerKwh: 82, tierOrder: 1),
+        TariffTier(minKwh: 50, maxKwh: null, pricePerKwh: 136.49, tierOrder: 2),
+      ],
+      components: const [
+        TariffComponent(
+          name: 'Redevance',
+          type: TariffComponentType.fee,
+          calculationMethod: TariffCalculationMethod.perKwh,
+          value: 0.7,
+          unit: 'FCFA/kWh',
+          taxableBase: null,
+          includedInTariff: false,
+        ),
+        TariffComponent(
+          name: 'Taxe test',
+          type: TariffComponentType.tax,
+          calculationMethod: TariffCalculationMethod.percentage,
+          value: 10,
+          unit: '%',
+          taxableBase: TariffTaxableBase.energyAndFees,
+          includedInTariff: false,
+        ),
+      ],
+      effectiveFrom: DateTime(2026, 1, 1),
+      effectiveTo: null,
+      isActive: true,
+    );
+
+    final result = engine.calculate(
+      consumptionKwh: 100,
+      configuration: configuration,
+    );
+
+    expect(result.energyCost, closeTo(10924.5, 0.001));
+    expect(result.fees, closeTo(70.0, 0.001));
+
+    final taxableBase = 10924.5 + 70;
+    final expectedTax = taxableBase * 0.10;
+
+    expect(result.taxes, closeTo(expectedTax, 0.001));
+    expect(result.totalCost, closeTo(10924.5 + 70 + expectedTax, 0.001));
   });
 }
