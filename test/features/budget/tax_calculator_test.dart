@@ -174,4 +174,153 @@ void main() {
       expect(result, 0);
     });
   });
+
+  test('should return breakdown for a percentage tax on energy', () {
+    const calculator = TaxCalculator();
+
+    const components = [
+      TariffComponent(
+        name: 'Taxe énergie',
+        type: TariffComponentType.tax,
+        calculationMethod: TariffCalculationMethod.percentage,
+        value: 10,
+        unit: '%',
+        taxableBase: TariffTaxableBase.energy,
+        includedInTariff: false,
+      ),
+    ];
+
+    final breakdown = calculator.calculateBreakdown(
+      energyCost: 10000,
+      fees: 500,
+      components: components,
+    );
+
+    expect(breakdown.length, 1);
+    expect(breakdown.first.name, 'Taxe énergie');
+    expect(breakdown.first.baseAmount, 10000);
+    expect(breakdown.first.value, 10);
+    expect(breakdown.first.unit, '%');
+    expect(breakdown.first.amount, 1000);
+  });
+
+  test('should return breakdown for a percentage tax on energy and fees', () {
+    const calculator = TaxCalculator();
+
+    const components = [
+      TariffComponent(
+        name: 'Taxe globale',
+        type: TariffComponentType.tax,
+        calculationMethod: TariffCalculationMethod.percentage,
+        value: 10,
+        unit: '%',
+        taxableBase: TariffTaxableBase.energyAndFees,
+        includedInTariff: false,
+      ),
+    ];
+
+    final breakdown = calculator.calculateBreakdown(
+      energyCost: 10000,
+      fees: 500,
+      components: components,
+    );
+
+    expect(breakdown.length, 1);
+    expect(breakdown.first.baseAmount, 10500);
+    expect(breakdown.first.amount, 1050);
+  });
+
+  test('should return breakdown for a fixed tax', () {
+    const calculator = TaxCalculator();
+
+    const components = [
+      TariffComponent(
+        name: 'Taxe fixe',
+        type: TariffComponentType.tax,
+        calculationMethod: TariffCalculationMethod.fixed,
+        value: 250,
+        unit: 'FCFA',
+        taxableBase: null,
+        includedInTariff: false,
+      ),
+    ];
+
+    final breakdown = calculator.calculateBreakdown(
+      energyCost: 10000,
+      fees: 500,
+      components: components,
+    );
+
+    expect(breakdown.length, 1);
+    expect(breakdown.first.baseAmount, isNull);
+    expect(breakdown.first.value, 250);
+    expect(breakdown.first.amount, 250);
+  });
+
+  test('should ignore taxes included in tariff', () {
+    const calculator = TaxCalculator();
+
+    const components = [
+      TariffComponent(
+        name: 'Taxe incluse',
+        type: TariffComponentType.tax,
+        calculationMethod: TariffCalculationMethod.percentage,
+        value: 10,
+        unit: '%',
+        taxableBase: TariffTaxableBase.energy,
+        includedInTariff: true,
+      ),
+    ];
+
+    final breakdown = calculator.calculateBreakdown(
+      energyCost: 10000,
+      fees: 500,
+      components: components,
+    );
+
+    expect(breakdown, isEmpty);
+  });
+
+  test('calculate should remain consistent with breakdown', () {
+    const calculator = TaxCalculator();
+
+    const components = [
+      TariffComponent(
+        name: 'Taxe énergie',
+        type: TariffComponentType.tax,
+        calculationMethod: TariffCalculationMethod.percentage,
+        value: 10,
+        unit: '%',
+        taxableBase: TariffTaxableBase.energy,
+        includedInTariff: false,
+      ),
+      TariffComponent(
+        name: 'Taxe fixe',
+        type: TariffComponentType.tax,
+        calculationMethod: TariffCalculationMethod.fixed,
+        value: 250,
+        unit: 'FCFA',
+        taxableBase: null,
+        includedInTariff: false,
+      ),
+    ];
+
+    final breakdown = calculator.calculateBreakdown(
+      energyCost: 10000,
+      fees: 500,
+      components: components,
+    );
+
+    final total = calculator.calculate(
+      energyCost: 10000,
+      fees: 500,
+      components: components,
+    );
+
+    expect(total, 1250);
+    expect(
+      breakdown.fold<double>(0, (sum, calculation) => sum + calculation.amount),
+      1250,
+    );
+  });
 }
