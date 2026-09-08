@@ -223,4 +223,113 @@ void main() {
 
     expect(result.totalCost, result.energyCost + result.fees + result.taxes);
   });
+
+  test('should keep totals consistent with breakdowns', () {
+    const engine = TariffEngineImpl();
+
+    final configuration = TariffConfiguration(
+      name: 'Configuration test',
+      customerCategory: 'DPP',
+      billingMode: BillingMode.woyofal,
+      tiers: const [
+        TariffTier(minKwh: 0, maxKwh: 50, pricePerKwh: 82, tierOrder: 1),
+        TariffTier(minKwh: 50, maxKwh: null, pricePerKwh: 136.49, tierOrder: 2),
+      ],
+      components: const [
+        TariffComponent(
+          name: 'Redevance',
+          type: TariffComponentType.fee,
+          calculationMethod: TariffCalculationMethod.perKwh,
+          value: 0.7,
+          unit: 'FCFA/kWh',
+          taxableBase: null,
+          includedInTariff: false,
+        ),
+        TariffComponent(
+          name: 'Frais fixe',
+          type: TariffComponentType.fee,
+          calculationMethod: TariffCalculationMethod.fixed,
+          value: 500,
+          unit: 'FCFA',
+          taxableBase: null,
+          includedInTariff: false,
+        ),
+        TariffComponent(
+          name: 'Taxe énergie',
+          type: TariffComponentType.tax,
+          calculationMethod: TariffCalculationMethod.percentage,
+          value: 10,
+          unit: '%',
+          taxableBase: TariffTaxableBase.energy,
+          includedInTariff: false,
+        ),
+        TariffComponent(
+          name: 'Taxe fixe',
+          type: TariffComponentType.tax,
+          calculationMethod: TariffCalculationMethod.fixed,
+          value: 250,
+          unit: 'FCFA',
+          taxableBase: null,
+          includedInTariff: false,
+        ),
+      ],
+      effectiveFrom: DateTime(2026, 1, 1),
+      effectiveTo: null,
+      isActive: true,
+    );
+
+    final result = engine.calculate(
+      consumptionKwh: 100,
+      configuration: configuration,
+    );
+
+    final feeTotal = result.feeCalculations.fold<double>(
+      0,
+      (sum, calculation) => sum + calculation.amount,
+    );
+
+    final taxTotal = result.taxCalculations.fold<double>(
+      0,
+      (sum, calculation) => sum + calculation.amount,
+    );
+
+    final energyTotal = result.tierCalculations.fold<double>(
+      0,
+      (sum, calculation) => sum + calculation.cost,
+    );
+
+    expect(result.energyCost, energyTotal);
+    expect(result.fees, feeTotal);
+    expect(result.taxes, taxTotal);
+    expect(result.totalCost, result.energyCost + result.fees + result.taxes);
+  });
+
+  test('should calculate energy only when there are no fees or taxes', () {
+    const engine = TariffEngineImpl();
+
+    final configuration = TariffConfiguration(
+      name: 'Énergie uniquement',
+      customerCategory: 'DPP',
+      billingMode: BillingMode.woyofal,
+      tiers: const [
+        TariffTier(minKwh: 0, maxKwh: null, pricePerKwh: 82, tierOrder: 1),
+      ],
+      components: const [],
+      effectiveFrom: DateTime(2026, 1, 1),
+      effectiveTo: null,
+      isActive: true,
+    );
+
+    final result = engine.calculate(
+      consumptionKwh: 100,
+      configuration: configuration,
+    );
+
+    expect(result.energyCost, 8200);
+    expect(result.fees, 0);
+    expect(result.taxes, 0);
+    expect(result.totalCost, 8200);
+    expect(result.feeCalculations, isEmpty);
+    expect(result.taxCalculations, isEmpty);
+  });
 }
