@@ -20,6 +20,8 @@ void main() {
         taxes: 0.0,
         totalCost: 8270.0,
         tierCalculations: [tierCalculation],
+        feeCalculations: [],
+        taxCalculations: [],
       );
 
       expect(result.consumptionKwh, 100.0);
@@ -39,6 +41,8 @@ void main() {
         taxes: 0.0,
         totalCost: 4100.0,
         tierCalculations: [],
+        feeCalculations: [],
+        taxCalculations: [],
       );
 
       expect(result.fees, 0.0);

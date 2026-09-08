@@ -1,3 +1,4 @@
+import 'tariff_component_calculation.dart';
 import 'tariff_tier_calculation.dart';
 
 class TariffCalculationResult {
@@ -7,6 +8,8 @@ class TariffCalculationResult {
   final double taxes;
   final double totalCost;
   final List<TariffTierCalculation> tierCalculations;
+  final List<TariffComponentCalculation> feeCalculations;
+  final List<TariffComponentCalculation> taxCalculations;
 
   const TariffCalculationResult({
     required this.consumptionKwh,
@@ -15,5 +18,7 @@ class TariffCalculationResult {
     required this.taxes,
     required this.totalCost,
     required this.tierCalculations,
+    required this.feeCalculations,
+    required this.taxCalculations,
   });
 }

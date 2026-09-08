@@ -31,24 +31,38 @@ class TariffEngineImpl implements TariffEngine {
       (total, calculation) => total + calculation.cost,
     );
 
-    final fees = feeCalculator.calculate(
+    final feeCalculations = feeCalculator.calculateBreakdown(
       consumptionKwh: consumptionKwh,
       components: configuration.components,
     );
 
-    final taxes = taxCalculator.calculate(
+    final fees = feeCalculations.fold<double>(
+      0,
+      (total, calculation) => total + calculation.amount,
+    );
+
+    final taxCalculations = taxCalculator.calculateBreakdown(
       energyCost: energyCost,
       fees: fees,
       components: configuration.components,
     );
+
+    final taxes = taxCalculations.fold<double>(
+      0,
+      (total, calculation) => total + calculation.amount,
+    );
+
+    final totalCost = energyCost + fees + taxes;
 
     return TariffCalculationResult(
       consumptionKwh: consumptionKwh,
       energyCost: energyCost,
       fees: fees,
       taxes: taxes,
-      totalCost: energyCost + fees + taxes,
+      totalCost: totalCost,
       tierCalculations: tierCalculations,
+      feeCalculations: feeCalculations,
+      taxCalculations: taxCalculations,
     );
   }
 }

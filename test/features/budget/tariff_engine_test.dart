@@ -164,4 +164,63 @@ void main() {
     expect(result.taxes, closeTo(expectedTax, 0.001));
     expect(result.totalCost, closeTo(10924.5 + 70 + expectedTax, 0.001));
   });
+
+  test('should return complete tariff breakdown', () {
+    const engine = TariffEngineImpl();
+
+    final configuration = TariffConfiguration(
+      name: 'Configuration test',
+      customerCategory: 'DPP',
+      billingMode: BillingMode.woyofal,
+      tiers: const [
+        TariffTier(minKwh: 0, maxKwh: 50, pricePerKwh: 82, tierOrder: 1),
+        TariffTier(minKwh: 50, maxKwh: null, pricePerKwh: 136.49, tierOrder: 2),
+      ],
+      components: const [
+        TariffComponent(
+          name: 'Redevance',
+          type: TariffComponentType.fee,
+          calculationMethod: TariffCalculationMethod.perKwh,
+          value: 0.7,
+          unit: 'FCFA/kWh',
+          taxableBase: null,
+          includedInTariff: false,
+        ),
+        TariffComponent(
+          name: 'Taxe test',
+          type: TariffComponentType.tax,
+          calculationMethod: TariffCalculationMethod.percentage,
+          value: 10,
+          unit: '%',
+          taxableBase: TariffTaxableBase.energy,
+          includedInTariff: false,
+        ),
+      ],
+      effectiveFrom: DateTime(2026, 1, 1),
+      effectiveTo: null,
+      isActive: true,
+    );
+
+    final result = engine.calculate(
+      consumptionKwh: 100,
+      configuration: configuration,
+    );
+
+    expect(result.consumptionKwh, 100);
+
+    expect(result.tierCalculations.length, 2);
+
+    expect(result.feeCalculations.length, 1);
+    expect(result.feeCalculations.first.name, 'Redevance');
+    expect(result.feeCalculations.first.amount, 70);
+
+    expect(result.taxCalculations.length, 1);
+    expect(result.taxCalculations.first.name, 'Taxe test');
+
+    expect(result.fees, 70);
+
+    expect(result.taxes, result.energyCost * 0.10);
+
+    expect(result.totalCost, result.energyCost + result.fees + result.taxes);
+  });
 }
