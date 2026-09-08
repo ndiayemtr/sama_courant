@@ -23,6 +23,7 @@ void main() {
         effectiveFrom: effectiveFrom,
         effectiveTo: null,
         isActive: true,
+        components: const [],
       );
 
       expect(configuration.name, 'Woyofal DPP 2026');
@@ -43,6 +44,7 @@ void main() {
         effectiveFrom: effectiveFrom,
         effectiveTo: DateTime(2026, 12, 31),
         isActive: true,
+        components: const [],
       );
 
       expect(configuration.billingMode, BillingMode.postpaid);
@@ -59,6 +61,7 @@ void main() {
         effectiveFrom: effectiveFrom,
         effectiveTo: null,
         isActive: true,
+        components: const [],
       );
 
       expect(configuration.tiers[0].pricePerKwh, 82);
