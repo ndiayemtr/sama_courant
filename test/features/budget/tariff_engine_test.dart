@@ -332,4 +332,45 @@ void main() {
     expect(result.feeCalculations, isEmpty);
     expect(result.taxCalculations, isEmpty);
   });
+
+  test('should reject negative consumption', () {
+    final configuration = TariffConfiguration(
+      name: 'Configuration test',
+      customerCategory: 'DPP',
+      billingMode: BillingMode.woyofal,
+      tiers: const [
+        TariffTier(minKwh: 0, maxKwh: null, pricePerKwh: 82, tierOrder: 1),
+      ],
+      components: const [],
+      effectiveFrom: DateTime(2026, 1, 1),
+      effectiveTo: null,
+      isActive: true,
+    );
+
+    expect(
+      () => engine.calculate(consumptionKwh: -1, configuration: configuration),
+      throwsArgumentError,
+    );
+  });
+
+  test('should reject an invalid tariff configuration', () {
+    final configuration = TariffConfiguration(
+      name: 'Configuration invalide',
+      customerCategory: 'DPP',
+      billingMode: BillingMode.woyofal,
+      tiers: const [
+        TariffTier(minKwh: 0, maxKwh: null, pricePerKwh: 82, tierOrder: 1),
+        TariffTier(minKwh: 150, maxKwh: 250, pricePerKwh: 136.49, tierOrder: 2),
+      ],
+      components: const [],
+      effectiveFrom: DateTime(2026, 1, 1),
+      effectiveTo: null,
+      isActive: true,
+    );
+
+    expect(
+      () => engine.calculate(consumptionKwh: 200, configuration: configuration),
+      throwsArgumentError,
+    );
+  });
 }
