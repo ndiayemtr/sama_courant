@@ -14,6 +14,13 @@ class TariffConfigurationValidator {
       errors.add('La catégorie client est obligatoire.');
     }
 
+    if (configuration.effectiveTo != null &&
+        configuration.effectiveTo!.isBefore(configuration.effectiveFrom)) {
+      errors.add(
+        'La date de fin ne peut pas être antérieure à la date de début.',
+      );
+    }
+
     if (configuration.tiers.isEmpty) {
       errors.add('La configuration doit contenir au moins une tranche.');
       return errors;
@@ -39,6 +46,12 @@ class TariffConfigurationValidator {
 
       if (tier.pricePerKwh < 0) {
         errors.add('Le prix par kWh ne peut pas être négatif.');
+      }
+
+      if (tier.maxKwh == null && index != sortedTiers.length - 1) {
+        errors.add(
+          'Seule la dernière tranche peut avoir une limite supérieure illimitée.',
+        );
       }
 
       if (index > 0) {

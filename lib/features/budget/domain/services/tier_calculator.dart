@@ -8,7 +8,11 @@ class TierCalculator {
     required double consumptionKwh,
     required List<TariffTier> tiers,
   }) {
-    if (consumptionKwh <= 0 || tiers.isEmpty) {
+    if (consumptionKwh < 0) {
+      throw ArgumentError('La consommation ne peut pas être négative.');
+    }
+
+    if (consumptionKwh == 0 || tiers.isEmpty) {
       return [];
     }
 
