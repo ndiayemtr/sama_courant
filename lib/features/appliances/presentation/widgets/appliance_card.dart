@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../domain/entities/appliance.dart';
 
@@ -18,6 +19,7 @@ class ApplianceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fcfaFormatter = NumberFormat.decimalPattern('fr_FR');
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -127,7 +129,7 @@ class ApplianceCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${monthlyCostFcfa.toStringAsFixed(0)} FCFA',
+                          '${fcfaFormatter.format(monthlyCostFcfa.round())} FCFA',
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,

@@ -11,6 +11,7 @@ import '../widgets/appliance_card.dart';
 import '../widgets/appliances_error.dart';
 import '../widgets/appliances_loading.dart';
 import '../widgets/empty_appliances.dart';
+import 'package:intl/intl.dart';
 
 class AppliancesPage extends ConsumerStatefulWidget {
   const AppliancesPage({super.key});
@@ -194,6 +195,7 @@ class _MonthlySummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fcfaFormatter = NumberFormat.decimalPattern('fr_FR');
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -236,7 +238,7 @@ class _MonthlySummaryCard extends StatelessWidget {
             _SummaryRow(
               icon: Icons.payments_outlined,
               label: 'Coût mensuel estimé',
-              value: '${totalCostFcfa.toStringAsFixed(0)} FCFA',
+              value: '${fcfaFormatter.format(totalCostFcfa.round())} FCFA',
               emphasize: true,
             ),
           ],
