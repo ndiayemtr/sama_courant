@@ -5,6 +5,7 @@ import 'package:sama_courant/features/budget/data/factories/woyofal_tariff_confi
 import 'package:sama_courant/features/budget/domain/entities/tariff_calculation_result.dart';
 import 'package:sama_courant/features/budget/domain/providers/appliance_tariff_service_provider.dart';
 
+import '../../../budget/domain/entities/tariff_configuration.dart';
 import '../../domain/entities/appliance.dart';
 import '../providers/appliances_provider.dart';
 import '../state/appliances_state.dart';
@@ -172,7 +173,12 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
           appliance: appliance,
           monthlyCostFcfa: tariffResult.totalCost,
           onViewTariffDetails: () {
-            _showTariffDetails(context, appliance, tariffResult);
+            _showTariffDetails(
+              context,
+              appliance,
+              tariffConfiguration,
+              tariffResult,
+            );
           },
           onEdit: () {
             context.push('/appliances/edit', extra: appliance);
@@ -188,9 +194,12 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
   void _showTariffDetails(
     BuildContext context,
     Appliance appliance,
+    TariffConfiguration configuration,
     TariffCalculationResult result,
   ) {
     final fcfaFormatter = NumberFormat.decimalPattern('fr_FR');
+
+    final dateFormatter = DateFormat('dd/MM/yyyy', 'fr_FR');
 
     showModalBottomSheet<void>(
       context: context,
@@ -198,71 +207,176 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
       showDragHandle: true,
       builder: (context) {
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  appliance.name,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Détail du coût mensuel estimé',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 20),
-
-                _TariffDetailRow(
-                  label: 'Consommation',
-                  value: '${result.consumptionKwh.toStringAsFixed(2)} kWh',
-                ),
-
-                const Divider(height: 28),
-
-                ...result.tierCalculations.map(
-                  (tier) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _TariffDetailRow(
-                      label: 'Tranche ${tier.tierOrder}',
-                      value:
-                          '${tier.consumedKwh.toStringAsFixed(2)} kWh × '
-                          '${tier.pricePerKwh.toStringAsFixed(2)} FCFA',
-                      secondaryValue:
-                          '${fcfaFormatter.format(tier.cost.round())} FCFA',
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    appliance.name,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
 
-                if (result.fees > 0) ...[
+                  const SizedBox(height: 4),
+
+                  Text(
+                    'Détail du coût mensuel estimé',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.secondaryContainer.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.receipt_long_outlined, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                configuration.name,
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        Text(
+                          'Catégorie : ${configuration.customerCategory}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+
+                        const SizedBox(height: 4),
+
+                        Text(
+                          configuration.effectiveTo == null
+                              ? 'Applicable depuis le '
+                                    '${dateFormatter.format(configuration.effectiveFrom)}'
+                              : 'Applicable du '
+                                    '${dateFormatter.format(configuration.effectiveFrom)} '
+                                    'au '
+                                    '${dateFormatter.format(configuration.effectiveTo!)}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  _TariffDetailRow(
+                    label: 'Consommation mensuelle',
+                    value: '${result.consumptionKwh.toStringAsFixed(2)} kWh',
+                  ),
+
                   const Divider(height: 28),
-                  _TariffDetailRow(
-                    label: 'Frais',
-                    value: '${fcfaFormatter.format(result.fees.round())} FCFA',
-                  ),
-                ],
 
-                if (result.taxes > 0) ...[
+                  Text(
+                    'Répartition par tranche',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
                   const SizedBox(height: 12),
-                  _TariffDetailRow(
-                    label: 'Taxes',
-                    value: '${fcfaFormatter.format(result.taxes.round())} FCFA',
+
+                  ...result.tierCalculations.map(
+                    (tier) => Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: _TariffDetailRow(
+                        label: 'Tranche ${tier.tierOrder}',
+                        value:
+                            '${tier.consumedKwh.toStringAsFixed(2)} kWh × '
+                            '${tier.pricePerKwh.toStringAsFixed(2)} FCFA/kWh',
+                        secondaryValue:
+                            '${fcfaFormatter.format(tier.cost.round())} FCFA',
+                      ),
+                    ),
+                  ),
+
+                  if (result.fees > 0) ...[
+                    const Divider(height: 28),
+                    _TariffDetailRow(
+                      label: 'Frais',
+                      value:
+                          '${fcfaFormatter.format(result.fees.round())} FCFA',
+                    ),
+                  ],
+
+                  if (result.taxes > 0) ...[
+                    const SizedBox(height: 12),
+                    _TariffDetailRow(
+                      label: 'Taxes',
+                      value:
+                          '${fcfaFormatter.format(result.taxes.round())} FCFA',
+                    ),
+                  ],
+
+                  const Divider(height: 28),
+
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: _TariffDetailRow(
+                      label: 'Total estimé',
+                      value:
+                          '${fcfaFormatter.format(result.totalCost.round())} FCFA',
+                      emphasize: true,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 18,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Cette estimation est calculée à partir de la grille '
+                          'tarifaire configurée dans Sama Courant. '
+                          'Le montant réel peut varier selon les règles '
+                          'appliquées au compteur et à la facturation.',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-
-                const Divider(height: 28),
-
-                _TariffDetailRow(
-                  label: 'Total estimé',
-                  value:
-                      '${fcfaFormatter.format(result.totalCost.round())} FCFA',
-                  emphasize: true,
-                ),
-              ],
+              ),
             ),
           ),
         );
