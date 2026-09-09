@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sama_courant/features/budget/data/factories/woyofal_tariff_configuration_factory.dart';
+import 'package:sama_courant/features/budget/domain/providers/appliance_tariff_service_provider.dart';
 
 import '../../domain/entities/appliance.dart';
 import '../providers/appliances_provider.dart';
@@ -131,13 +133,22 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
       itemBuilder: (context, index) {
         final appliance = state.appliances[index];
 
+        final tariffService = ref.read(applianceTariffServiceProvider);
+
+        final tariffConfiguration = WoyofalTariffConfigurationFactory.dpp2026();
+
+        final tariffResult = tariffService.calculateMonthlyCost(
+          appliance: appliance,
+          configuration: tariffConfiguration,
+        );
+
         return ApplianceCard(
           appliance: appliance,
+          monthlyCostFcfa: tariffResult.totalCost,
           onEdit: () {
             context.push('/appliances/edit', extra: appliance);
           },
           onDelete: () {
-            // Suppression implémentée dans l'étape suivante.
             _confirmDelete(context, ref, appliance);
           },
         );

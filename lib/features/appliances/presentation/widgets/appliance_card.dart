@@ -4,23 +4,22 @@ import '../../domain/entities/appliance.dart';
 
 class ApplianceCard extends StatelessWidget {
   final Appliance appliance;
+  final double monthlyCostFcfa;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
-
-  // final VoidCallback? onToggleStatus;
 
   const ApplianceCard({
     super.key,
     required this.appliance,
+    required this.monthlyCostFcfa,
     this.onEdit,
     this.onDelete,
-    // this.onToggleStatus,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
@@ -62,12 +61,16 @@ class ApplianceCard extends StatelessWidget {
                 ),
               ],
             ),
+
             const SizedBox(height: 6),
+
             Text(
               appliance.category,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const SizedBox(height: 10),
+
+            const SizedBox(height: 12),
+
             Card(
               margin: EdgeInsets.zero,
               child: Padding(
@@ -78,7 +81,7 @@ class ApplianceCard extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: _InfoItem(
-                        label: 'Consommation / jour',
+                        label: 'Conso / jour',
                         value:
                             '${appliance.dailyConsumptionKwh.toStringAsFixed(2)} kWh',
                       ),
@@ -86,7 +89,7 @@ class ApplianceCard extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _InfoItem(
-                        label: 'Consommation / mois',
+                        label: 'Conso / mois',
                         value:
                             '${appliance.monthlyConsumptionKwh.toStringAsFixed(2)} kWh',
                       ),
@@ -95,7 +98,51 @@ class ApplianceCard extends StatelessWidget {
                 ),
               ),
             ),
+
+            const SizedBox(height: 10),
+
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primaryContainer.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.payments_outlined,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Coût mensuel estimé',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${monthlyCostFcfa.toStringAsFixed(0)} FCFA',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 12),
+
             Row(
               children: [
                 Expanded(
@@ -139,8 +186,18 @@ class _InfoItem extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 2),
+        SizedBox(
+          height: 34,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: Text(
+              label,
+              maxLines: 2,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
         Text(
           value,
           style: Theme.of(
