@@ -127,15 +127,39 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
       );
     }
 
+    final tariffService = ref.read(applianceTariffServiceProvider);
+    final tariffConfiguration = WoyofalTariffConfigurationFactory.dpp2026();
+
+    final activeAppliances = state.appliances
+        .where((appliance) => appliance.isActive)
+        .toList();
+
+    final totalMonthlyConsumptionKwh = activeAppliances.fold<double>(
+      0,
+      (total, appliance) => total + appliance.monthlyConsumptionKwh,
+    );
+
+    final totalTariffResult = tariffService.tariffEngine.calculate(
+      consumptionKwh: totalMonthlyConsumptionKwh,
+      configuration: tariffConfiguration,
+    );
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: state.appliances.length,
+      itemCount: state.appliances.length + 1,
       itemBuilder: (context, index) {
-        final appliance = state.appliances[index];
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _MonthlySummaryCard(
+              activeAppliancesCount: activeAppliances.length,
+              totalConsumptionKwh: totalMonthlyConsumptionKwh,
+              totalCostFcfa: totalTariffResult.totalCost,
+            ),
+          );
+        }
 
-        final tariffService = ref.read(applianceTariffServiceProvider);
-
-        final tariffConfiguration = WoyofalTariffConfigurationFactory.dpp2026();
+        final appliance = state.appliances[index - 1];
 
         final tariffResult = tariffService.calculateMonthlyCost(
           appliance: appliance,
@@ -153,6 +177,105 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
           },
         );
       },
+    );
+  }
+}
+
+class _MonthlySummaryCard extends StatelessWidget {
+  final int activeAppliancesCount;
+  final double totalConsumptionKwh;
+  final double totalCostFcfa;
+
+  const _MonthlySummaryCard({
+    required this.activeAppliancesCount,
+    required this.totalConsumptionKwh,
+    required this.totalCostFcfa,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.analytics_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Résumé mensuel',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            _SummaryRow(
+              icon: Icons.power_outlined,
+              label: 'Appareils actifs',
+              value: '$activeAppliancesCount',
+            ),
+
+            const SizedBox(height: 12),
+
+            _SummaryRow(
+              icon: Icons.bolt_outlined,
+              label: 'Consommation totale',
+              value: '${totalConsumptionKwh.toStringAsFixed(2)} kWh',
+            ),
+
+            const SizedBox(height: 12),
+
+            _SummaryRow(
+              icon: Icons.payments_outlined,
+              label: 'Coût mensuel estimé',
+              value: '${totalCostFcfa.toStringAsFixed(0)} FCFA',
+              emphasize: true,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool emphasize;
+
+  const _SummaryRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.emphasize = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 20),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        ),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: emphasize ? FontWeight.bold : FontWeight.w600,
+            color: emphasize ? Theme.of(context).colorScheme.primary : null,
+          ),
+        ),
+      ],
     );
   }
 }

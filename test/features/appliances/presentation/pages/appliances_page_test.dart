@@ -12,6 +12,7 @@ import 'package:sama_courant/features/appliances/domain/usecases/delete_applianc
 import 'package:sama_courant/features/appliances/domain/usecases/get_appliances.dart';
 import 'package:sama_courant/features/appliances/domain/usecases/update_appliance.dart';
 import 'package:sama_courant/features/appliances/presentation/pages/appliances_page.dart';
+import 'package:sama_courant/features/appliances/presentation/widgets/appliance_card.dart';
 
 class TestApplianceRepository implements ApplianceRepository {
   List<Appliance> appliances;
@@ -128,7 +129,13 @@ void main() {
     expect(find.text('Mes appareils'), findsOneWidget);
     expect(find.text('Réfrigérateur'), findsOneWidget);
     expect(find.text('1.50 kWh'), findsOneWidget);
-    expect(find.text('45.00 kWh'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(ApplianceCard),
+        matching: find.text('45.00 kWh'),
+      ),
+      findsOneWidget,
+    );
 
     container.dispose();
   });

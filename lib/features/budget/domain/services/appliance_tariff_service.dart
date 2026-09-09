@@ -19,4 +19,14 @@ class ApplianceTariffService {
       configuration: configuration,
     );
   }
+
+  TariffCalculationResult calculateCost({
+    required double consumptionKwh,
+    required TariffConfiguration configuration,
+  }) {
+    return tariffEngine.calculate(
+      consumptionKwh: consumptionKwh,
+      configuration: configuration,
+    );
+  }
 }
