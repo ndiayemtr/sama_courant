@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../services/dashboard_recommendation_service.dart';
 
 import '../../../appliances/domain/entities/appliance.dart';
 import '../../../appliances/presentation/providers/appliances_provider.dart';
@@ -72,6 +73,10 @@ final dashboardProvider = Provider<DashboardSummary>((ref) {
     costFcfa: result.totalCost,
     mostConsuming: mostConsuming,
     consumptionShares: List.unmodifiable(shares),
+    recommendations: const DashboardRecommendationService().generate(
+      appliances: active,
+      totalConsumptionKwh: consumption,
+    ),
   );
 });
 
@@ -81,6 +86,7 @@ class DashboardSummary {
   final double costFcfa;
   final Appliance? mostConsuming;
   final List<ApplianceConsumptionShare> consumptionShares;
+  final List<DashboardRecommendation> recommendations;
 
   String get analysisSummary {
     if (activeCount == 0) {
@@ -115,6 +121,7 @@ class DashboardSummary {
     required this.costFcfa,
     required this.mostConsuming,
     required this.consumptionShares,
+    required this.recommendations,
   });
 }
 

@@ -45,6 +45,35 @@ Future<void> openDashboard(
 }
 
 void main() {
+  testWidgets('recommendations are separate from analysis and fit on mobile', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await openDashboard(tester, [
+      appliance('Réfrigérateur de la cuisine', 900),
+      appliance('Petit', 100),
+    ]);
+    final card = find.byKey(const ValueKey('dashboard-recommendations'));
+    expect(
+      find.descendant(of: card, matching: find.text('Conseils')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: card, matching: find.text('Analyse rapide')),
+      findsNothing,
+    );
+    final message = find.descendant(
+      of: card,
+      matching: find.textContaining('Vérifiez sa durée'),
+    );
+    await tester.ensureVisible(message);
+    expect(message, findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('analysis summary remains readable on a narrow screen', (
     tester,
   ) async {
@@ -333,10 +362,10 @@ void main() {
         find.text('${NumberFormat.decimalPattern('fr_FR').format(32774)} FCFA'),
         findsOneWidget,
       );
-      expect(find.text('Climatiseur'), findsNWidgets(3));
+      expect(find.text('Climatiseur'), findsNWidgets(4));
       expect(find.text('270,00 kWh/mois'), findsOneWidget);
       expect(find.text('≈ 90,0 % du total'), findsOneWidget);
-      expect(find.byType(Card), findsNWidgets(5));
+      expect(find.byType(Card), findsNWidgets(6));
       expect(find.text('90,0 %'), findsOneWidget);
       expect(find.text('10,0 %'), findsOneWidget);
       final chart = tester.widget<PieChart>(find.byType(PieChart));

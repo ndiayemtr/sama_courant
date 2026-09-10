@@ -202,6 +202,53 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 ),
               ),
             ],
+            if (!state.isLoading && state.errorMessage == null) ...[
+              const SizedBox(height: 10),
+              Card.filled(
+                key: const ValueKey('dashboard-recommendations'),
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Conseils', style: theme.textTheme.titleSmall),
+                      for (final recommendation in summary.recommendations)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.lightbulb_outline,
+                                size: 20,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      recommendation.title,
+                                      style: theme.textTheme.labelLarge,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      recommendation.message,
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,

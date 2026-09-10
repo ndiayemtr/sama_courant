@@ -7,18 +7,23 @@ import 'package:sama_courant/features/appliances/presentation/providers/applianc
 import 'package:sama_courant/features/dashboard/presentation/providers/dashboard_provider.dart';
 import '../../../appliances/fakes/fake_appliance_repository.dart';
 
-Appliance appliance(String name, double watts, {bool active = true}) =>
-    Appliance(
-      name: name,
-      category: 'Maison',
-      powerWatts: watts,
-      quantity: 1,
-      hoursPerDay: 10,
-      daysPerMonth: 30,
-      isActive: active,
-      createdAt: DateTime(2026),
-      updatedAt: DateTime(2026),
-    );
+Appliance appliance(
+  String name,
+  double watts, {
+  bool active = true,
+  int quantity = 1,
+  double hours = 10,
+}) => Appliance(
+  name: name,
+  category: 'Maison',
+  powerWatts: watts,
+  quantity: quantity,
+  hoursPerDay: hours,
+  daysPerMonth: 30,
+  isActive: active,
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
 
 Future<DashboardSummary> summaryFor(List<Appliance> appliances) async {
   final repository = FakeApplianceRepository();
@@ -36,6 +41,86 @@ Future<DashboardSummary> summaryFor(List<Appliance> appliances) async {
 }
 
 void main() {
+  test('recommendations cover empty and zero consumption safely', () async {
+    expect(
+      (await summaryFor([])).recommendations.single.message,
+      'Activez ou ajoutez des appareils pour obtenir des conseils personnalisés.',
+    );
+    expect(
+      (await summaryFor([appliance('Zéro', 0)])).recommendations.single.title,
+      'Consommation nulle',
+    );
+  });
+  test(
+    'recommendations identify dominance at 70 percent and exclude inactive appliances',
+    () async {
+      final summary = await summaryFor([
+        appliance('Grand', 700),
+        appliance('Petit', 300),
+        appliance('Inactif', 9999, active: false),
+      ]);
+      expect(summary.recommendations.single.message, contains('70,0 %'));
+      expect(summary.recommendations.single.title, 'Grand');
+    },
+  );
+  test('recommendations cover twelve hours per day', () async {
+    final summary = await summaryFor([
+      appliance('Long', 100, hours: 12),
+      appliance('B', 120),
+      appliance('C', 120),
+    ]);
+    expect(summary.recommendations.single.message, contains('12 h par jour'));
+  });
+  test('recommendations cover multiple units at thirty percent', () async {
+    final summary = await summaryFor([
+      appliance('Lampes', 100, quantity: 3),
+      appliance('B', 350),
+      appliance('C', 350),
+    ]);
+    expect(summary.recommendations.single.message, contains('3 unités'));
+    expect(summary.recommendations.single.message, contains('30,0 %'));
+  });
+  test('recommendations cover top two at eighty percent', () async {
+    final summary = await summaryFor([
+      appliance('A', 500),
+      appliance('B', 300),
+      appliance('C', 200),
+    ]);
+    expect(
+      summary.recommendations.single.message,
+      contains('A et B représentent 80,0 %'),
+    );
+  });
+  test(
+    'recommendations describe balanced consumption below thresholds',
+    () async {
+      final summary = await summaryFor([
+        appliance('A', 100),
+        appliance('B', 100),
+        appliance('C', 100),
+      ]);
+      expect(summary.recommendations.single.title, 'Répartition équilibrée');
+    },
+  );
+  test('recommendations have stable priority and a maximum of three', () async {
+    final appliances = [
+      appliance('A', 700, quantity: 2, hours: 12),
+      appliance('B', 100, hours: 12),
+      appliance('C', 100, hours: 12),
+    ];
+    final first = (await summaryFor(appliances)).recommendations;
+    final second = (await summaryFor(appliances)).recommendations;
+    expect(first, hasLength(3));
+    expect(first.map((r) => r.priority.name), ['high', 'medium', 'low']);
+    expect(first.map((r) => r.message), second.map((r) => r.message));
+  });
+  test('recommendations retain input order for equal consumption', () async {
+    final summary = await summaryFor([
+      for (final name in ['Z', 'A', 'B', 'C']) appliance(name, 100, hours: 12),
+    ]);
+    expect(summary.recommendations.map((r) => r.title), ['Z', 'A', 'B']);
+  });
+
   test('analysis handles no active appliances and zero consumption', () async {
     expect(
       (await summaryFor([])).analysisSummary,
