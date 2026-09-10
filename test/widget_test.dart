@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -43,6 +44,30 @@ Future<void> openDashboard(
 }
 
 void main() {
+  testWidgets('single appliance donut remains readable on mobile', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await openDashboard(tester, [
+      appliance('Réfrigérateur de la cuisine', 100),
+    ]);
+    expect(find.text('100,0 %'), findsOneWidget);
+    expect(find.text('30,00'), findsOneWidget);
+    expect(
+      tester.widget<PieChart>(find.byType(PieChart)).data.sections,
+      hasLength(1),
+    );
+    await tester.ensureVisible(find.text('100,0 %'));
+    expect(tester.takeException(), isNull);
+    await tester.ensureVisible(find.text('Mes appareils'));
+    await tester.tap(find.text('Mes appareils'));
+    await tester.pumpAndSettle();
+    expect(find.text('Modifier'), findsOneWidget);
+  });
+
   testWidgets('Dashboard with no appliances shows zero KPI and navigation', (
     tester,
   ) async {
@@ -53,6 +78,8 @@ void main() {
     expect(find.text('0,00 kWh'), findsOneWidget);
     expect(find.text('0 FCFA'), findsOneWidget);
     expect(find.text('—'), findsOneWidget);
+    expect(find.text('Aucune consommation à afficher.'), findsOneWidget);
+    expect(find.byType(PieChart), findsNothing);
     await tester.ensureVisible(find.text('Mes appareils'));
     await tester.tap(find.text('Mes appareils'));
     await tester.pumpAndSettle();
@@ -74,10 +101,14 @@ void main() {
         find.text('${NumberFormat.decimalPattern('fr_FR').format(32774)} FCFA'),
         findsOneWidget,
       );
-      expect(find.text('Climatiseur'), findsOneWidget);
+      expect(find.text('Climatiseur'), findsNWidgets(2));
       expect(find.text('270,00 kWh/mois'), findsOneWidget);
       expect(find.text('≈ 90,0 % du total'), findsOneWidget);
-      expect(find.byType(Card), findsNWidgets(2));
+      expect(find.byType(Card), findsNWidgets(3));
+      expect(find.text('90,0 %'), findsOneWidget);
+      expect(find.text('10,0 %'), findsOneWidget);
+      final chart = tester.widget<PieChart>(find.byType(PieChart));
+      expect(chart.data.sections.map((section) => section.value), [270, 30]);
       expect(find.text('Chauffage inactif'), findsNothing);
     },
   );
@@ -93,6 +124,8 @@ void main() {
     expect(find.text('0'), findsOneWidget);
     expect(find.text('0,00 kWh'), findsOneWidget);
     expect(find.text('0 FCFA'), findsOneWidget);
+    expect(find.text('Aucune consommation à afficher.'), findsOneWidget);
+    expect(find.byType(PieChart), findsNothing);
     expect(find.text('—'), findsOneWidget);
     await tester.ensureVisible(find.text('Mes appareils'));
     expect(tester.takeException(), isNull);
@@ -103,6 +136,8 @@ void main() {
   ) async {
     await openDashboard(tester, [appliance('Lampe', 0)]);
     expect(find.text('≈ 0,0 % du total'), findsOneWidget);
+    expect(find.text('Aucune consommation à afficher.'), findsOneWidget);
+    expect(find.byType(PieChart), findsNothing);
     expect(find.text('0 FCFA'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
