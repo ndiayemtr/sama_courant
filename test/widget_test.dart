@@ -44,6 +44,89 @@ Future<void> openDashboard(
 }
 
 void main() {
+  testWidgets('donut tap and legend tap select consumption details', (
+    tester,
+  ) async {
+    await openDashboard(tester, [
+      appliance('Grand', 900),
+      appliance('Petit', 100),
+    ]);
+    final chartFinder = find.byType(PieChart);
+    final details = find.byKey(const ValueKey('consumption-selection'));
+    expect(details, findsNothing);
+    expect(find.text('300,00'), findsOneWidget);
+    final initial = tester.widget<PieChart>(chartFinder).data.sections;
+    expect(initial.map((section) => section.radius), [20, 20]);
+    await tester.ensureVisible(chartFinder);
+    await tester.tapAt(tester.getCenter(chartFinder) + const Offset(54, 0));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: details, matching: find.text('Grand')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: details, matching: find.text('270,00 kWh/mois')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: details, matching: find.text('90,0 %')),
+      findsOneWidget,
+    );
+    expect(tester.widget<PieChart>(chartFinder).data.sections.first.radius, 26);
+    final legend = find.byKey(const ValueKey('consumption-legend-1'));
+    await tester.ensureVisible(legend);
+    expect(tester.getSize(legend).height, greaterThanOrEqualTo(48));
+    await tester.tap(legend);
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: details, matching: find.text('Petit')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: details, matching: find.text('30,00 kWh/mois')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: details, matching: find.text('10,0 %')),
+      findsOneWidget,
+    );
+    final selected = tester.widget<PieChart>(chartFinder).data.sections;
+    expect(selected.map((section) => section.radius), [20, 26]);
+    expect(
+      selected.map((section) => section.color),
+      initial.map((section) => section.color),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Others legend selects the grouped consumption', (tester) async {
+    await openDashboard(tester, [
+      for (var i = 1; i <= 8; i++) appliance('Appareil $i', i * 100),
+    ]);
+    final legend = find.byKey(const ValueKey('consumption-legend-5'));
+    await tester.ensureVisible(legend);
+    await tester.tap(legend);
+    await tester.pumpAndSettle();
+    final details = find.byKey(const ValueKey('consumption-selection'));
+    expect(
+      find.descendant(of: details, matching: find.text('Autres')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: details, matching: find.text('180,00 kWh/mois')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: details, matching: find.text('16,7 %')),
+      findsOneWidget,
+    );
+    expect(
+      tester.widget<PieChart>(find.byType(PieChart)).data.sections.last.radius,
+      26,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('single appliance donut remains readable on mobile', (
     tester,
   ) async {

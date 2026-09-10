@@ -4,10 +4,35 @@ import 'package:intl/intl.dart';
 
 import '../providers/dashboard_provider.dart';
 
-class ConsumptionDistributionCard extends StatelessWidget {
+class ConsumptionDistributionCard extends StatefulWidget {
   final DashboardSummary summary;
 
   const ConsumptionDistributionCard({super.key, required this.summary});
+
+  @override
+  State<ConsumptionDistributionCard> createState() =>
+      _ConsumptionDistributionCardState();
+}
+
+class _ConsumptionDistributionCardState
+    extends State<ConsumptionDistributionCard> {
+  int? _selectedIndex;
+
+  @override
+  void didUpdateWidget(covariant ConsumptionDistributionCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A refreshed distribution can reorder or remove the selected appliance.
+    if (oldWidget.summary.consumptionShares !=
+        widget.summary.consumptionShares) {
+      _selectedIndex = null;
+    }
+  }
+
+  void _select(int index) {
+    if (_selectedIndex != index) {
+      setState(() => _selectedIndex = index);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +48,13 @@ class ConsumptionDistributionCard extends StatelessWidget {
     ];
     final percentage = NumberFormat('0.0', 'fr_FR');
     final decimal = NumberFormat('0.00', 'fr_FR');
-    final shares = summary.consumptionShares;
+    final shares = widget.summary.consumptionShares;
+    final selected = _selectedIndex == null ? null : shares[_selectedIndex!];
+    // fl_chart indexes only the rendered (positive) sections.
+    final visibleIndices = [
+      for (var i = 0; i < shares.length; i++)
+        if (shares[i].consumptionKwh > 0) i,
+    ];
     return Card.filled(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -47,81 +78,138 @@ class ConsumptionDistributionCard extends StatelessWidget {
             ] else ...[
               const SizedBox(height: 4),
               SizedBox(
-                height: 130,
+                height: 144,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     ExcludeSemantics(
                       child: PieChart(
                         PieChartData(
-                          centerSpaceRadius: 56,
+                          centerSpaceRadius: 44,
                           sectionsSpace: 0,
                           startDegreeOffset: -90,
-                          pieTouchData: PieTouchData(enabled: false),
+                          pieTouchData: PieTouchData(
+                            touchCallback: (event, response) {
+                              if (event is! FlTapUpEvent) return;
+                              final index =
+                                  response?.touchedSection?.touchedSectionIndex;
+                              if (index != null &&
+                                  index >= 0 &&
+                                  index < visibleIndices.length) {
+                                _select(visibleIndices[index]);
+                              }
+                            },
+                          ),
                           sections: [
-                            for (var i = 0; i < shares.length; i++)
-                              if (shares[i].consumptionKwh > 0)
-                                PieChartSectionData(
-                                  value: shares[i].consumptionKwh,
-                                  color: palette[i],
-                                  radius: 28,
-                                  showTitle: false,
-                                ),
+                            for (final i in visibleIndices)
+                              PieChartSectionData(
+                                value: shares[i].consumptionKwh,
+                                color: palette[i],
+                                radius: _selectedIndex == i ? 26 : 20,
+                                showTitle: false,
+                              ),
                           ],
                         ),
+                        duration: const Duration(milliseconds: 120),
                       ),
                     ),
-                    SizedBox(
-                      width: 100,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              decimal.format(summary.consumptionKwh),
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
+                    IgnorePointer(
+                      child: SizedBox(
+                        width: 80,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                decimal.format(widget.summary.consumptionKwh),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
-                          Text('kWh/mois', style: theme.textTheme.bodySmall),
-                        ],
+                            Text('kWh/mois', style: theme.textTheme.bodySmall),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
+              if (selected != null)
+                Semantics(
+                  liveRegion: true,
+                  child: Padding(
+                    key: const ValueKey('consumption-selection'),
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(selected.name, style: theme.textTheme.titleSmall),
+                        Wrap(
+                          spacing: 12,
+                          children: [
+                            Text(
+                              '${decimal.format(selected.consumptionKwh)} kWh/mois',
+                            ),
+                            Text('${percentage.format(selected.percentage)} %'),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               for (var i = 0; i < shares.length; i++)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: palette[i],
-                          shape: BoxShape.circle,
-                          border: Border.all(color: colors.outlineVariant),
+                Semantics(
+                  button: true,
+                  selected: _selectedIndex == i,
+                  child: InkWell(
+                    key: ValueKey('consumption-legend-$i'),
+                    onTap: () => _select(i),
+                    borderRadius: BorderRadius.circular(8),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 48),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: palette[i],
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: colors.outlineVariant,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                shares[i].name,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: _selectedIndex == i
+                                      ? FontWeight.bold
+                                      : null,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${percentage.format(shares[i].percentage)} %',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (_selectedIndex == i) ...[
+                              const SizedBox(width: 6),
+                              const Icon(Icons.check, size: 18),
+                            ],
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          shares[i].name,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${percentage.format(shares[i].percentage)} %',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
             ],
