@@ -19,7 +19,7 @@ class AppliancesState {
     return AppliancesState(
       appliances: appliances ?? this.appliances,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage ?? this.errorMessage,
+      errorMessage: errorMessage,
     );
   }
 }

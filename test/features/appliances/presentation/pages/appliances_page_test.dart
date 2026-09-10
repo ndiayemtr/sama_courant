@@ -81,6 +81,19 @@ class PendingApplianceRepository extends TestApplianceRepository {
   Future<List<Appliance>> getAll() => loadCompleter.future;
 }
 
+class RetryApplianceRepository extends TestApplianceRepository {
+  bool failed = false;
+
+  @override
+  Future<List<Appliance>> getAll() async {
+    if (!failed) {
+      failed = true;
+      throw Exception('Erreur temporaire');
+    }
+    return [createTestAppliance()];
+  }
+}
+
 Appliance createTestAppliance() {
   final now = DateTime.now();
 
@@ -110,6 +123,59 @@ ProviderContainer createContainer(ApplianceRepository repository) {
 }
 
 void main() {
+  testWidgets('retry clears loading error after successful reload', (
+    tester,
+  ) async {
+    final container = createContainer(RetryApplianceRepository());
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: AppliancesPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Réessayer'));
+    await tester.pumpAndSettle();
+    expect(find.text('Réfrigérateur'), findsOneWidget);
+    expect(find.text('Une erreur est survenue'), findsNothing);
+  });
+
+  testWidgets('appliance card keeps actions and French values on mobile', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    var details = false;
+    var edited = false;
+    var deleted = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: ApplianceCard(
+              appliance: createTestAppliance(),
+              monthlyCostFcfa: 3690,
+              onViewTariffDetails: () => details = true,
+              onEdit: () => edited = true,
+              onDelete: () => deleted = true,
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Actif'), findsOneWidget);
+    expect(find.text('1,50 kWh'), findsOneWidget);
+    expect(find.text('45,00 kWh'), findsOneWidget);
+    await tester.tap(find.text('Part mensuelle estimée'));
+    await tester.tap(find.text('Modifier'));
+    await tester.tap(find.text('Supprimer'));
+    expect(details && edited && deleted, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('displays appliances when data is available', (tester) async {
     final repository = TestApplianceRepository(
       appliances: [createTestAppliance()],
@@ -128,11 +194,11 @@ void main() {
 
     expect(find.text('Mes appareils'), findsOneWidget);
     expect(find.text('Réfrigérateur'), findsOneWidget);
-    expect(find.text('1.50 kWh'), findsOneWidget);
+    expect(find.text('1,50 kWh'), findsOneWidget);
     expect(
       find.descendant(
         of: find.byType(ApplianceCard),
-        matching: find.text('45.00 kWh'),
+        matching: find.text('45,00 kWh'),
       ),
       findsOneWidget,
     );

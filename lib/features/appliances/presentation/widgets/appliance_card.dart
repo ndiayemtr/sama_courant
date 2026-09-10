@@ -22,6 +22,7 @@ class ApplianceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fcfaFormatter = NumberFormat.decimalPattern('fr_FR');
+    final decimalFormatter = NumberFormat('0.00', 'fr_FR');
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -45,34 +46,36 @@ class ApplianceCard extends StatelessWidget {
                   'x${appliance.quantity}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                const SizedBox(width: 8),
-                Row(
-                  children: [
-                    Icon(
-                      appliance.isActive
-                          ? Icons.check_circle_outline
-                          : Icons.pause_circle_outline,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      appliance.isActive ? 'Actif' : 'Inactif',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  appliance.category,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Chip(
+                  avatar: Icon(
+                    appliance.isActive
+                        ? Icons.check_circle
+                        : Icons.pause_circle,
+                    size: 18,
+                    color: appliance.isActive
+                        ? Theme.of(context).colorScheme.onSecondaryContainer
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  label: Text(appliance.isActive ? 'Actif' : 'Inactif'),
+                  backgroundColor: appliance.isActive
+                      ? Theme.of(context).colorScheme.secondaryContainer
+                      : Theme.of(context).colorScheme.surfaceContainerHighest,
+                  side: BorderSide.none,
                 ),
               ],
             ),
-
-            const SizedBox(height: 6),
-
-            Text(
-              appliance.category,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-
             const SizedBox(height: 12),
 
             Card(
@@ -87,7 +90,7 @@ class ApplianceCard extends StatelessWidget {
                       child: _InfoItem(
                         label: 'Conso / jour',
                         value:
-                            '${appliance.dailyConsumptionKwh.toStringAsFixed(2)} kWh',
+                            '${decimalFormatter.format(appliance.dailyConsumptionKwh)} kWh',
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -95,7 +98,7 @@ class ApplianceCard extends StatelessWidget {
                       child: _InfoItem(
                         label: 'Conso / mois',
                         value:
-                            '${appliance.monthlyConsumptionKwh.toStringAsFixed(2)} kWh',
+                            '${decimalFormatter.format(appliance.monthlyConsumptionKwh)} kWh',
                       ),
                     ),
                   ],
@@ -132,7 +135,7 @@ class ApplianceCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Coût mensuel estimé',
+                            'Part mensuelle estimée',
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                           const SizedBox(height: 2),

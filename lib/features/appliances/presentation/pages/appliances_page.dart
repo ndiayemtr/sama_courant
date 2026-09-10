@@ -435,10 +435,13 @@ class _MonthlySummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final fcfaFormatter = NumberFormat.decimalPattern('fr_FR');
-    return Card(
+    final decimalFormatter = NumberFormat('0.00', 'fr_FR');
+    return Card.filled(
+      margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -446,40 +449,48 @@ class _MonthlySummaryCard extends StatelessWidget {
               children: [
                 Icon(
                   Icons.analytics_outlined,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: theme.colorScheme.primary,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Résumé mensuel',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Résumé mensuel',
+                    style: theme.textTheme.titleLarge,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-
-            _SummaryRow(
-              icon: Icons.power_outlined,
-              label: 'Appareils actifs',
-              value: '$activeAppliancesCount',
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 24,
+              runSpacing: 16,
+              children: [
+                _SummaryMetric(
+                  icon: Icons.power_outlined,
+                  label: 'Appareils actifs',
+                  value: '$activeAppliancesCount',
+                ),
+                _SummaryMetric(
+                  icon: Icons.bolt_outlined,
+                  label: 'Consommation totale',
+                  value: '${decimalFormatter.format(totalConsumptionKwh)} kWh',
+                ),
+              ],
             ),
-
-            const SizedBox(height: 12),
-
-            _SummaryRow(
-              icon: Icons.bolt_outlined,
-              label: 'Consommation totale',
-              value: '${totalConsumptionKwh.toStringAsFixed(2)} kWh',
-            ),
-
-            const SizedBox(height: 12),
-
-            _SummaryRow(
-              icon: Icons.payments_outlined,
-              label: 'Part mensuelle estimée',
-              value: '${fcfaFormatter.format(totalCostFcfa.round())} FCFA',
-              emphasize: true,
+            const SizedBox(height: 20),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: _SummaryMetric(
+                icon: Icons.payments_outlined,
+                label: 'Coût mensuel estimé',
+                value: '${fcfaFormatter.format(totalCostFcfa.round())} FCFA',
+                emphasize: true,
+              ),
             ),
           ],
         ),
@@ -488,13 +499,13 @@ class _MonthlySummaryCard extends StatelessWidget {
   }
 }
 
-class _SummaryRow extends StatelessWidget {
+class _SummaryMetric extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
   final bool emphasize;
 
-  const _SummaryRow({
+  const _SummaryMetric({
     required this.icon,
     required this.label,
     required this.value,
@@ -503,19 +514,26 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        Wrap(
+          spacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Icon(icon, size: 20),
+            Text(label, style: theme.textTheme.bodyMedium),
+          ],
         ),
+        const SizedBox(height: 8),
         Text(
           value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: emphasize ? FontWeight.bold : FontWeight.w600,
-            color: emphasize ? Theme.of(context).colorScheme.primary : null,
-          ),
+          style:
+              (emphasize
+                      ? theme.textTheme.headlineSmall
+                      : theme.textTheme.titleLarge)
+                  ?.copyWith(fontWeight: FontWeight.bold),
         ),
       ],
     );
