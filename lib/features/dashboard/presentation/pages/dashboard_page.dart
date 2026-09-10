@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../appliances/presentation/providers/appliances_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/consumption_distribution_card.dart';
+import '../widgets/top_consumers_card.dart';
 
 class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
@@ -164,6 +165,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             if (!state.isLoading && state.errorMessage == null) ...[
               const SizedBox(height: 10),
               ConsumptionDistributionCard(summary: summary),
+              const SizedBox(height: 10),
+              TopConsumersCard(summary: summary),
             ],
             const SizedBox(height: 12),
             SizedBox(

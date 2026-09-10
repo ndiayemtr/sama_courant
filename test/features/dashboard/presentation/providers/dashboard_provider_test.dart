@@ -67,6 +67,22 @@ void main() {
       10,
     ]);
     expect(summary.consumptionKwh, 300);
+    expect(summary.costFcfa, closeTo(32773.5, 1e-9));
+    expect(
+      summary.consumptionShares.first.allocatedCostFcfa,
+      closeTo(29496.15, 1e-9),
+    );
+    expect(
+      summary.consumptionShares.last.allocatedCostFcfa,
+      closeTo(3277.35, 1e-9),
+    );
+    expect(
+      summary.consumptionShares.fold<double>(
+        0,
+        (total, share) => total + share.allocatedCostFcfa,
+      ),
+      closeTo(summary.costFcfa, 1e-9),
+    );
   });
 
   test(
@@ -112,6 +128,7 @@ void main() {
   test('zero total produces empty shares without division by zero', () async {
     final summary = await summaryFor([appliance('Zéro', 0)]);
     expect(summary.consumptionKwh, 0);
+    expect(summary.costFcfa, 0);
     expect(summary.consumptionShares, isEmpty);
   });
 }

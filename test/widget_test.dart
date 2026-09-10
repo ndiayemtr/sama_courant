@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:sama_courant/app.dart';
 import 'package:sama_courant/core/router/app_router.dart';
+import 'package:sama_courant/features/dashboard/presentation/widgets/top_consumers_card.dart';
 import 'package:sama_courant/features/appliances/domain/entities/appliance.dart';
 import 'package:sama_courant/features/appliances/domain/providers/appliance_usecase_providers.dart';
 import 'package:sama_courant/features/appliances/domain/usecases/get_appliances.dart';
@@ -44,6 +45,97 @@ Future<void> openDashboard(
 }
 
 void main() {
+  for (final width in [320.0, 800.0]) {
+    testWidgets('top consumers displays allocated FCFA at width $width', (
+      tester,
+    ) async {
+      tester.view.physicalSize = Size(width, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await openDashboard(tester, [
+        appliance('Réfrigérateur', 150),
+        appliance('Ventilateur', 30),
+        appliance('Inactif', 9999, active: false),
+      ]);
+      final first = find.byKey(const ValueKey('top-consumer-0'));
+      final second = find.byKey(const ValueKey('top-consumer-1'));
+      final separator = width == 320 ? '•' : '/';
+      final fcfa = NumberFormat.decimalPattern('fr_FR');
+      expect(
+        find.descendant(
+          of: first,
+          matching: find.text('45,00 kWh $separator ${fcfa.format(3690)} FCFA'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: second,
+          matching: find.text('9,00 kWh $separator ${fcfa.format(738)} FCFA'),
+        ),
+        findsOneWidget,
+      );
+      await tester.ensureVisible(second);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets(
+    'top consumers ranks five active appliances with relative bars on mobile',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await openDashboard(tester, [
+        for (var i = 1; i <= 7; i++) appliance('Appareil $i', i * 100),
+        appliance('Inactif', 9999, active: false),
+      ]);
+      final card = find.byType(TopConsumersCard);
+      expect(
+        find.descendant(
+          of: card,
+          matching: find.byType(LinearProgressIndicator),
+        ),
+        findsNWidgets(5),
+      );
+      for (var i = 0; i < 5; i++) {
+        final row = find.byKey(ValueKey('top-consumer-$i'));
+        expect(
+          find.descendant(of: row, matching: find.text('Appareil ${7 - i}')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: row,
+            matching: find.textContaining(
+              '${NumberFormat('0.00', 'fr_FR').format((7 - i) * 30)} kWh',
+            ),
+          ),
+          findsOneWidget,
+        );
+        final bar = tester.widget<LinearProgressIndicator>(
+          find.descendant(
+            of: row,
+            matching: find.byType(LinearProgressIndicator),
+          ),
+        );
+        expect(bar.value, closeTo((7 - i) / 7, 1e-9));
+      }
+      expect(
+        find.descendant(of: card, matching: find.text('Autres')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: card, matching: find.text('Inactif')),
+        findsNothing,
+      );
+      await tester.ensureVisible(find.byKey(const ValueKey('top-consumer-4')));
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   for (final watts in [100.0, 999999.0]) {
     testWidgets('Dashboard values share the right edge on mobile ($watts W)', (
       tester,
@@ -196,6 +288,7 @@ void main() {
     expect(find.text('0 FCFA'), findsOneWidget);
     expect(find.text('—'), findsOneWidget);
     expect(find.text('Aucune consommation à afficher.'), findsOneWidget);
+    expect(find.text('Aucun appareil actif à comparer.'), findsOneWidget);
     expect(find.byType(PieChart), findsNothing);
     await tester.ensureVisible(find.text('Mes appareils'));
     await tester.tap(find.text('Mes appareils'));
@@ -218,10 +311,10 @@ void main() {
         find.text('${NumberFormat.decimalPattern('fr_FR').format(32774)} FCFA'),
         findsOneWidget,
       );
-      expect(find.text('Climatiseur'), findsNWidgets(2));
+      expect(find.text('Climatiseur'), findsNWidgets(3));
       expect(find.text('270,00 kWh/mois'), findsOneWidget);
       expect(find.text('≈ 90,0 % du total'), findsOneWidget);
-      expect(find.byType(Card), findsNWidgets(3));
+      expect(find.byType(Card), findsNWidgets(4));
       expect(find.text('90,0 %'), findsOneWidget);
       expect(find.text('10,0 %'), findsOneWidget);
       final chart = tester.widget<PieChart>(find.byType(PieChart));
@@ -253,6 +346,7 @@ void main() {
   ) async {
     await openDashboard(tester, [appliance('Lampe', 0)]);
     expect(find.text('≈ 0,0 % du total'), findsOneWidget);
+    expect(find.text('Aucune consommation à comparer.'), findsOneWidget);
     expect(find.text('Aucune consommation à afficher.'), findsOneWidget);
     expect(find.byType(PieChart), findsNothing);
     expect(find.text('0 FCFA'), findsOneWidget);

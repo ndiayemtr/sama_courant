@@ -42,6 +42,8 @@ final dashboardProvider = Provider<DashboardSummary>((ref) {
           name: appliance.name,
           consumptionKwh: appliance.monthlyConsumptionKwh,
           percentage: appliance.monthlyConsumptionKwh / consumption * 100,
+          allocatedCostFcfa:
+              appliance.monthlyConsumptionKwh / consumption * result.totalCost,
         ),
       );
     }
@@ -57,6 +59,7 @@ final dashboardProvider = Provider<DashboardSummary>((ref) {
           name: 'Autres',
           consumptionKwh: others,
           percentage: others / consumption * 100,
+          allocatedCostFcfa: others / consumption * result.totalCost,
         ),
       );
     }
@@ -91,10 +94,12 @@ class ApplianceConsumptionShare {
   final String name;
   final double consumptionKwh;
   final double percentage;
+  final double allocatedCostFcfa;
 
   const ApplianceConsumptionShare({
     required this.name,
     required this.consumptionKwh,
     required this.percentage,
+    required this.allocatedCostFcfa,
   });
 }
