@@ -45,9 +45,9 @@ class ConsumptionDistributionCard extends StatelessWidget {
                 'Ajoutez ou activez un appareil pour voir sa répartition.',
               ),
             ] else ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               SizedBox(
-                height: 180,
+                height: 130,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
