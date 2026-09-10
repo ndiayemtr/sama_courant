@@ -204,7 +204,8 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     double totalMonthlyConsumptionKwh,
   ) {
     final fcfaFormatter = NumberFormat.decimalPattern('fr_FR');
-
+    final decimalFormatter = NumberFormat('0.00', 'fr_FR');
+    final percentageFormatter = NumberFormat('0.0', 'fr_FR');
     final dateFormatter = DateFormat('dd/MM/yyyy', 'fr_FR');
 
     final contributionPercentage = totalMonthlyConsumptionKwh <= 0
@@ -294,7 +295,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
                   _TariffDetailRow(
                     label: 'Consommation de l’appareil',
                     value:
-                        '${appliance.monthlyConsumptionKwh.toStringAsFixed(2)} kWh',
+                        '${decimalFormatter.format(appliance.monthlyConsumptionKwh)} kWh',
                   ),
 
                   const SizedBox(height: 12),
@@ -302,14 +303,15 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
                   _TariffDetailRow(
                     label: 'Consommation du foyer',
                     value:
-                        '${totalMonthlyConsumptionKwh.toStringAsFixed(2)} kWh',
+                        '${decimalFormatter.format(totalMonthlyConsumptionKwh)} kWh',
                   ),
 
                   const SizedBox(height: 12),
 
                   _TariffDetailRow(
                     label: 'Part de consommation',
-                    value: '${contributionPercentage.toStringAsFixed(1)} %',
+                    value:
+                        '${percentageFormatter.format(contributionPercentage)} %',
                   ),
 
                   const Divider(height: 28),
@@ -329,8 +331,8 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
                       child: _TariffDetailRow(
                         label: 'Tranche ${tier.tierOrder}',
                         value:
-                            '${tier.consumedKwh.toStringAsFixed(2)} kWh × '
-                            '${tier.pricePerKwh.toStringAsFixed(2)} FCFA/kWh',
+                            '${decimalFormatter.format(tier.consumedKwh)} kWh × '
+                            '${decimalFormatter.format(tier.pricePerKwh)} FCFA/kWh',
                         secondaryValue:
                             '${fcfaFormatter.format(tier.cost.round())} FCFA',
                       ),
@@ -356,6 +358,14 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
                   ],
 
                   const Divider(height: 28),
+
+                  _TariffDetailRow(
+                    label: 'Coût total estimé du foyer',
+                    value:
+                        '${fcfaFormatter.format(householdResult.totalCost.round())} FCFA',
+                  ),
+
+                  const SizedBox(height: 12),
 
                   Container(
                     width: double.infinity,
