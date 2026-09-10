@@ -29,4 +29,35 @@ class ApplianceTariffService {
       configuration: configuration,
     );
   }
+
+  double calculateAllocatedMonthlyCost({
+    required Appliance appliance,
+    required List<Appliance> appliances,
+    required TariffConfiguration configuration,
+  }) {
+    if (!appliance.isActive) {
+      return 0;
+    }
+
+    final activeAppliances = appliances.where((item) => item.isActive).toList();
+
+    final totalConsumptionKwh = activeAppliances.fold<double>(
+      0,
+      (total, item) => total + item.monthlyConsumptionKwh,
+    );
+
+    if (totalConsumptionKwh <= 0) {
+      return 0;
+    }
+
+    final totalResult = tariffEngine.calculate(
+      consumptionKwh: totalConsumptionKwh,
+      configuration: configuration,
+    );
+
+    final consumptionShare =
+        appliance.monthlyConsumptionKwh / totalConsumptionKwh;
+
+    return totalResult.totalCost * consumptionShare;
+  }
 }

@@ -164,20 +164,24 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
 
         final appliance = state.appliances[index - 1];
 
-        final tariffResult = tariffService.calculateMonthlyCost(
-          appliance: appliance,
-          configuration: tariffConfiguration,
-        );
+        final allocatedMonthlyCost = tariffService
+            .calculateAllocatedMonthlyCost(
+              appliance: appliance,
+              appliances: state.appliances,
+              configuration: tariffConfiguration,
+            );
 
         return ApplianceCard(
           appliance: appliance,
-          monthlyCostFcfa: tariffResult.totalCost,
+          monthlyCostFcfa: allocatedMonthlyCost,
           onViewTariffDetails: () {
             _showTariffDetails(
               context,
               appliance,
               tariffConfiguration,
-              tariffResult,
+              totalTariffResult,
+              allocatedMonthlyCost,
+              totalMonthlyConsumptionKwh,
             );
           },
           onEdit: () {
@@ -195,11 +199,17 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     BuildContext context,
     Appliance appliance,
     TariffConfiguration configuration,
-    TariffCalculationResult result,
+    TariffCalculationResult householdResult,
+    double allocatedCost,
+    double totalMonthlyConsumptionKwh,
   ) {
     final fcfaFormatter = NumberFormat.decimalPattern('fr_FR');
 
     final dateFormatter = DateFormat('dd/MM/yyyy', 'fr_FR');
+
+    final contributionPercentage = totalMonthlyConsumptionKwh <= 0
+        ? 0.0
+        : appliance.monthlyConsumptionKwh / totalMonthlyConsumptionKwh * 100;
 
     showModalBottomSheet<void>(
       context: context,
@@ -224,7 +234,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
                   const SizedBox(height: 4),
 
                   Text(
-                    'Détail du coût mensuel estimé',
+                    'Détail de la part mensuelle estimée',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
 
@@ -282,14 +292,30 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
                   const SizedBox(height: 20),
 
                   _TariffDetailRow(
-                    label: 'Consommation mensuelle',
-                    value: '${result.consumptionKwh.toStringAsFixed(2)} kWh',
+                    label: 'Consommation de l’appareil',
+                    value:
+                        '${appliance.monthlyConsumptionKwh.toStringAsFixed(2)} kWh',
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  _TariffDetailRow(
+                    label: 'Consommation du foyer',
+                    value:
+                        '${totalMonthlyConsumptionKwh.toStringAsFixed(2)} kWh',
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  _TariffDetailRow(
+                    label: 'Part de consommation',
+                    value: '${contributionPercentage.toStringAsFixed(1)} %',
                   ),
 
                   const Divider(height: 28),
 
                   Text(
-                    'Répartition par tranche',
+                    'Tarification globale du foyer',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -297,7 +323,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
 
                   const SizedBox(height: 12),
 
-                  ...result.tierCalculations.map(
+                  ...householdResult.tierCalculations.map(
                     (tier) => Padding(
                       padding: const EdgeInsets.only(bottom: 14),
                       child: _TariffDetailRow(
@@ -311,21 +337,21 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
                     ),
                   ),
 
-                  if (result.fees > 0) ...[
+                  if (householdResult.fees > 0) ...[
                     const Divider(height: 28),
                     _TariffDetailRow(
                       label: 'Frais',
                       value:
-                          '${fcfaFormatter.format(result.fees.round())} FCFA',
+                          '${fcfaFormatter.format(householdResult.fees.round())} FCFA',
                     ),
                   ],
 
-                  if (result.taxes > 0) ...[
+                  if (householdResult.taxes > 0) ...[
                     const SizedBox(height: 12),
                     _TariffDetailRow(
                       label: 'Taxes',
                       value:
-                          '${fcfaFormatter.format(result.taxes.round())} FCFA',
+                          '${fcfaFormatter.format(householdResult.taxes.round())} FCFA',
                     ),
                   ],
 
@@ -341,9 +367,9 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: _TariffDetailRow(
-                      label: 'Total estimé',
+                      label: 'Part estimée de cet appareil',
                       value:
-                          '${fcfaFormatter.format(result.totalCost.round())} FCFA',
+                          '${fcfaFormatter.format(allocatedCost.round())} FCFA',
                       emphasize: true,
                     ),
                   ),
@@ -361,10 +387,11 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Cette estimation est calculée à partir de la grille '
-                          'tarifaire configurée dans Sama Courant. '
-                          'Le montant réel peut varier selon les règles '
-                          'appliquées au compteur et à la facturation.',
+                          'Le coût de cet appareil correspond à sa part de la '
+                          'consommation mensuelle totale du foyer. La grille '
+                          'tarifaire progressive est appliquée une seule fois à '
+                          'la consommation globale, puis le coût est réparti '
+                          'proportionnellement entre les appareils actifs.',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(
@@ -440,7 +467,7 @@ class _MonthlySummaryCard extends StatelessWidget {
 
             _SummaryRow(
               icon: Icons.payments_outlined,
-              label: 'Coût mensuel estimé',
+              label: 'Part mensuelle estimée',
               value: '${fcfaFormatter.format(totalCostFcfa.round())} FCFA',
               emphasize: true,
             ),
