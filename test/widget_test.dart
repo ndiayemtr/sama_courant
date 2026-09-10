@@ -45,6 +45,35 @@ Future<void> openDashboard(
 }
 
 void main() {
+  testWidgets('compact donut selection wraps on a narrow screen', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await openDashboard(tester, [
+      appliance('Réfrigérateur de la grande cuisine', 100),
+    ]);
+    expect(tester.getSize(find.byType(PieChart)).height, 128);
+    final legend = find.byKey(const ValueKey('consumption-legend-0'));
+    await tester.ensureVisible(legend);
+    await tester.tap(legend);
+    await tester.pumpAndSettle();
+    final details = find.byKey(const ValueKey('consumption-selection'));
+    await tester.ensureVisible(details);
+    expect(
+      find.descendant(of: details, matching: find.text('30,00 kWh/mois')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: details, matching: find.text('100,0 %')),
+      findsOneWidget,
+    );
+    expect(tester.getRect(details).right, lessThanOrEqualTo(320));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('recommendations are separate from analysis and fit on mobile', (
     tester,
   ) async {
@@ -233,9 +262,9 @@ void main() {
     expect(details, findsNothing);
     expect(find.text('300,00'), findsOneWidget);
     final initial = tester.widget<PieChart>(chartFinder).data.sections;
-    expect(initial.map((section) => section.radius), [20, 20]);
+    expect(initial.map((section) => section.radius), [16, 16]);
     await tester.ensureVisible(chartFinder);
-    await tester.tapAt(tester.getCenter(chartFinder) + const Offset(54, 0));
+    await tester.tapAt(tester.getCenter(chartFinder) + const Offset(48, 0));
     await tester.pumpAndSettle();
     expect(
       find.descendant(of: details, matching: find.text('Grand')),
@@ -249,10 +278,10 @@ void main() {
       find.descendant(of: details, matching: find.text('90,0 %')),
       findsOneWidget,
     );
-    expect(tester.widget<PieChart>(chartFinder).data.sections.first.radius, 26);
+    expect(tester.widget<PieChart>(chartFinder).data.sections.first.radius, 22);
     final legend = find.byKey(const ValueKey('consumption-legend-1'));
     await tester.ensureVisible(legend);
-    expect(tester.getSize(legend).height, greaterThanOrEqualTo(48));
+    expect(tester.getSize(legend).height, greaterThanOrEqualTo(44));
     await tester.tap(legend);
     await tester.pumpAndSettle();
     expect(
@@ -268,7 +297,7 @@ void main() {
       findsOneWidget,
     );
     final selected = tester.widget<PieChart>(chartFinder).data.sections;
-    expect(selected.map((section) => section.radius), [20, 26]);
+    expect(selected.map((section) => section.radius), [16, 22]);
     expect(
       selected.map((section) => section.color),
       initial.map((section) => section.color),
@@ -299,7 +328,7 @@ void main() {
     );
     expect(
       tester.widget<PieChart>(find.byType(PieChart)).data.sections.last.radius,
-      26,
+      22,
     );
     expect(tester.takeException(), isNull);
   });

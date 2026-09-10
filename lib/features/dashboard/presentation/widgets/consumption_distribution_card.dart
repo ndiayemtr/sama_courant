@@ -58,7 +58,7 @@ class _ConsumptionDistributionCardState
     return Card.filled(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -78,14 +78,14 @@ class _ConsumptionDistributionCardState
             ] else ...[
               const SizedBox(height: 4),
               SizedBox(
-                height: 144,
+                height: 128,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     ExcludeSemantics(
                       child: PieChart(
                         PieChartData(
-                          centerSpaceRadius: 44,
+                          centerSpaceRadius: 40,
                           sectionsSpace: 0,
                           startDegreeOffset: -90,
                           pieTouchData: PieTouchData(
@@ -105,7 +105,7 @@ class _ConsumptionDistributionCardState
                               PieChartSectionData(
                                 value: shares[i].consumptionKwh,
                                 color: palette[i],
-                                radius: _selectedIndex == i ? 26 : 20,
+                                radius: _selectedIndex == i ? 22 : 16,
                                 showTitle: false,
                               ),
                           ],
@@ -115,7 +115,7 @@ class _ConsumptionDistributionCardState
                     ),
                     IgnorePointer(
                       child: SizedBox(
-                        width: 80,
+                        width: 72,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -141,21 +141,27 @@ class _ConsumptionDistributionCardState
                   liveRegion: true,
                   child: Padding(
                     key: const ValueKey('consumption-selection'),
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(selected.name, style: theme.textTheme.titleSmall),
-                        Wrap(
-                          spacing: 12,
-                          children: [
-                            Text(
-                              '${decimal.format(selected.consumptionKwh)} kWh/mois',
-                            ),
-                            Text('${percentage.format(selected.percentage)} %'),
-                          ],
-                        ),
-                      ],
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: DefaultTextStyle(
+                      style: theme.textTheme.bodySmall!,
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 1,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          const Text('Sélection :'),
+                          Text(
+                            selected.name,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          const Text('•'),
+                          Text(
+                            '${decimal.format(selected.consumptionKwh)} kWh/mois',
+                          ),
+                          const Text('•'),
+                          Text('${percentage.format(selected.percentage)} %'),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -168,9 +174,9 @@ class _ConsumptionDistributionCardState
                     onTap: () => _select(i),
                     borderRadius: BorderRadius.circular(8),
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 48),
+                      constraints: const BoxConstraints(minHeight: 44),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        padding: const EdgeInsets.symmetric(vertical: 2),
                         child: Row(
                           children: [
                             Container(
