@@ -45,6 +45,28 @@ Future<void> openDashboard(
 }
 
 void main() {
+  testWidgets('analysis summary remains readable on a narrow screen', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await openDashboard(tester, [
+      appliance('Réfrigérateur de la cuisine', 500),
+      appliance('Ventilateur', 100),
+    ]);
+    final text = find.byKey(const ValueKey('analysis-summary'));
+    expect(find.text('Analyse rapide'), findsOneWidget);
+    expect(
+      tester.widget<Text>(text).data,
+      'Votre consommation est très concentrée sur Réfrigérateur de la cuisine, qui représente 83,3 % du total.',
+    );
+    await tester.ensureVisible(text);
+    expect(tester.getRect(text).right, lessThanOrEqualTo(320));
+    expect(tester.takeException(), isNull);
+  });
+
   for (final width in [320.0, 800.0]) {
     testWidgets('top consumers displays allocated FCFA at width $width', (
       tester,
@@ -314,7 +336,7 @@ void main() {
       expect(find.text('Climatiseur'), findsNWidgets(3));
       expect(find.text('270,00 kWh/mois'), findsOneWidget);
       expect(find.text('≈ 90,0 % du total'), findsOneWidget);
-      expect(find.byType(Card), findsNWidgets(4));
+      expect(find.byType(Card), findsNWidgets(5));
       expect(find.text('90,0 %'), findsOneWidget);
       expect(find.text('10,0 %'), findsOneWidget);
       final chart = tester.widget<PieChart>(find.byType(PieChart));

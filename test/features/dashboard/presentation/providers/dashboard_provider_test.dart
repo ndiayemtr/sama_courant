@@ -36,6 +36,82 @@ Future<DashboardSummary> summaryFor(List<Appliance> appliances) async {
 }
 
 void main() {
+  test('analysis handles no active appliances and zero consumption', () async {
+    expect(
+      (await summaryFor([])).analysisSummary,
+      'Aucun appareil actif pour analyser la consommation.',
+    );
+    expect(
+      (await summaryFor([
+        appliance('Inactif', 900, active: false),
+      ])).analysisSummary,
+      'Aucun appareil actif pour analyser la consommation.',
+    );
+    expect(
+      (await summaryFor([appliance('Zéro', 0)])).analysisSummary,
+      'La consommation actuelle des appareils actifs est nulle.',
+    );
+  });
+
+  test(
+    'analysis describes the single active appliance and ignores inactive ones',
+    () async {
+      expect(
+        (await summaryFor([
+          appliance('Réfrigérateur', 150),
+          appliance('Inactif', 900, active: false),
+        ])).analysisSummary,
+        'Réfrigérateur représente 100 % de votre consommation actuelle.',
+      );
+    },
+  );
+
+  test(
+    'analysis prioritizes the largest share at the 70 percent threshold',
+    () async {
+      expect(
+        (await summaryFor([
+          appliance('Petit', 300),
+          appliance('Grand', 700),
+        ])).analysisSummary,
+        'Votre consommation est très concentrée sur Grand, qui représente 70,0 % du total.',
+      );
+      expect(
+        (await summaryFor([
+          appliance('Grand', 500),
+          appliance('Petit', 100),
+        ])).analysisSummary,
+        'Votre consommation est très concentrée sur Grand, qui représente 83,3 % du total.',
+      );
+    },
+  );
+
+  test(
+    'analysis combines the first two shares at the 80 percent threshold',
+    () async {
+      expect(
+        (await summaryFor([
+          appliance('Petit', 200),
+          appliance('Deuxième', 300),
+          appliance('Premier', 500),
+        ])).analysisSummary,
+        'Premier et Deuxième représentent ensemble 80,0 % de votre consommation.',
+      );
+    },
+  );
+
+  test(
+    'analysis describes distributed consumption below the thresholds',
+    () async {
+      expect(
+        (await summaryFor([
+          for (var i = 0; i < 6; i++) appliance('Appareil $i', 100),
+        ])).analysisSummary,
+        'Votre consommation est répartie entre plusieurs appareils.',
+      );
+    },
+  );
+
   test('empty or inactive household has no shares', () async {
     expect((await summaryFor([])).consumptionShares, isEmpty);
     expect(

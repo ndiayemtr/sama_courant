@@ -167,6 +167,40 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               ConsumptionDistributionCard(summary: summary),
               const SizedBox(height: 10),
               TopConsumersCard(summary: summary),
+              const SizedBox(height: 10),
+              Card.filled(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.insights_outlined,
+                            size: 20,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Analyse rapide',
+                              style: theme.textTheme.titleSmall,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        summary.analysisSummary,
+                        key: const ValueKey('analysis-summary'),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
             const SizedBox(height: 12),
             SizedBox(

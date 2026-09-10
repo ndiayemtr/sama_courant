@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../appliances/domain/entities/appliance.dart';
 import '../../../appliances/presentation/providers/appliances_provider.dart';
@@ -80,6 +81,33 @@ class DashboardSummary {
   final double costFcfa;
   final Appliance? mostConsuming;
   final List<ApplianceConsumptionShare> consumptionShares;
+
+  String get analysisSummary {
+    if (activeCount == 0) {
+      return 'Aucun appareil actif pour analyser la consommation.';
+    }
+    if (consumptionKwh <= 0 || consumptionShares.isEmpty) {
+      return 'La consommation actuelle des appareils actifs est nulle.';
+    }
+    final first = consumptionShares.first;
+    if (activeCount == 1) {
+      return '${first.name} représente 100 % de votre consommation actuelle.';
+    }
+    final percentage = NumberFormat('0.0', 'fr_FR');
+    if (first.percentage >= 70) {
+      return 'Votre consommation est très concentrée sur ${first.name}, '
+          'qui représente ${percentage.format(first.percentage)} % du total.';
+    }
+    if (consumptionShares.length >= 2) {
+      final second = consumptionShares[1];
+      final combined = first.percentage + second.percentage;
+      if (combined >= 80) {
+        return '${first.name} et ${second.name} représentent ensemble '
+            '${percentage.format(combined)} % de votre consommation.';
+      }
+    }
+    return 'Votre consommation est répartie entre plusieurs appareils.';
+  }
 
   const DashboardSummary({
     required this.activeCount,
