@@ -26,7 +26,7 @@ class ApplianceCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -48,10 +48,10 @@ class ApplianceCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Wrap(
               spacing: 12,
-              runSpacing: 8,
+              runSpacing: 4,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
@@ -59,6 +59,8 @@ class ApplianceCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Chip(
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   avatar: Icon(
                     appliance.isActive
                         ? Icons.check_circle
@@ -76,12 +78,12 @@ class ApplianceCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
 
             Card(
               margin: EdgeInsets.zero,
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 child: Row(
                   children: [
                     const Icon(Icons.bolt_outlined),
@@ -106,17 +108,15 @@ class ApplianceCard extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
 
             InkWell(
               onTap: onViewTariffDetails,
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
+                constraints: const BoxConstraints(minHeight: 48),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 decoration: BoxDecoration(
                   color: Theme.of(
                     context,
@@ -131,31 +131,31 @@ class ApplianceCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Part mensuelle estimée',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${fcfaFormatter.format(monthlyCostFcfa.round())} FCFA',
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                          ),
-                        ],
+                      flex: 3,
+                      child: Text(
+                        'Part mensuelle estimée',
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      flex: 2,
+                      child: Text(
+                        '${fcfaFormatter.format(monthlyCostFcfa.round())} FCFA',
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, size: 20),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
 
             Row(
               children: [
@@ -165,7 +165,9 @@ class ApplianceCard extends StatelessWidget {
                     icon: const Icon(Icons.edit_outlined),
                     label: const Text('Modifier'),
                     style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(44),
+                      minimumSize: const Size.fromHeight(40),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      tapTargetSize: MaterialTapTargetSize.padded,
                     ),
                   ),
                 ),
@@ -176,7 +178,9 @@ class ApplianceCard extends StatelessWidget {
                     icon: const Icon(Icons.delete_outline),
                     label: const Text('Supprimer'),
                     style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(44),
+                      minimumSize: const Size.fromHeight(40),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      tapTargetSize: MaterialTapTargetSize.padded,
                     ),
                   ),
                 ),
@@ -200,17 +204,7 @@ class _InfoItem extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          height: 34,
-          child: Align(
-            alignment: Alignment.topLeft,
-            child: Text(
-              label,
-              maxLines: 2,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
         const SizedBox(height: 4),
         Text(
           value,

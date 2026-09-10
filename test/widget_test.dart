@@ -76,6 +76,8 @@ void main() {
       );
       expect(find.text('Climatiseur'), findsOneWidget);
       expect(find.text('270,00 kWh/mois'), findsOneWidget);
+      expect(find.text('≈ 90,0 % du total'), findsOneWidget);
+      expect(find.byType(Card), findsNWidgets(2));
       expect(find.text('Chauffage inactif'), findsNothing);
     },
   );
@@ -93,6 +95,15 @@ void main() {
     expect(find.text('0 FCFA'), findsOneWidget);
     expect(find.text('—'), findsOneWidget);
     await tester.ensureVisible(find.text('Mes appareils'));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Dashboard handles an active appliance with zero consumption', (
+    tester,
+  ) async {
+    await openDashboard(tester, [appliance('Lampe', 0)]);
+    expect(find.text('≈ 0,0 % du total'), findsOneWidget);
+    expect(find.text('0 FCFA'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

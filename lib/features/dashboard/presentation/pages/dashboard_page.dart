@@ -36,17 +36,17 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Sama Courant')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Bienvenue ⚡', style: theme.textTheme.headlineSmall),
+            Text('Bienvenue ⚡', style: theme.textTheme.titleLarge),
             const SizedBox(height: 4),
             Text(
               'Suivez votre consommation électrique.',
               style: theme.textTheme.bodyMedium,
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 16),
             Text('Vue d’ensemble', style: theme.textTheme.titleLarge),
             const SizedBox(height: 16),
             if (state.isLoading)
@@ -65,48 +65,98 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 ],
               )
             else
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final columns = constraints.maxWidth >= 600 ? 2 : 1;
-                  final width =
-                      (constraints.maxWidth - (columns - 1) * 12) / columns;
-                  return Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      _KpiCard(
-                        width: width,
-                        icon: Icons.electrical_services,
-                        label: 'Appareils actifs',
-                        value: '${summary.activeCount}',
+              Column(
+                children: [
+                  Card.filled(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Résumé mensuel',
+                            style: theme.textTheme.titleSmall,
+                          ),
+                          const SizedBox(height: 4),
+                          _SummaryRow(
+                            icon: Icons.electrical_services,
+                            label: 'Appareils actifs',
+                            value: '${summary.activeCount}',
+                          ),
+                          _SummaryRow(
+                            icon: Icons.bolt_outlined,
+                            label: 'Consommation mensuelle',
+                            value:
+                                '${decimal.format(summary.consumptionKwh)} kWh',
+                          ),
+                          _SummaryRow(
+                            icon: Icons.payments_outlined,
+                            label: 'Coût mensuel estimé',
+                            value:
+                                '${fcfa.format(summary.costFcfa.round())} FCFA',
+                            emphasize: true,
+                          ),
+                        ],
                       ),
-                      _KpiCard(
-                        width: width,
-                        icon: Icons.bolt_outlined,
-                        label: 'Consommation mensuelle',
-                        value: '${decimal.format(summary.consumptionKwh)} kWh',
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Card.filled(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.insights_outlined,
+                                size: 20,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Plus énergivore',
+                                  style: theme.textTheme.titleSmall,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            mostConsuming?.name ?? '—',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (mostConsuming != null) ...[
+                            const SizedBox(height: 4),
+                            Wrap(
+                              spacing: 12,
+                              runSpacing: 2,
+                              children: [
+                                Text(
+                                  '${decimal.format(mostConsuming.monthlyConsumptionKwh)} kWh/mois',
+                                ),
+                                Text(
+                                  '≈ ${NumberFormat('0.0', 'fr_FR').format(summary.consumptionKwh <= 0 ? 0 : mostConsuming.monthlyConsumptionKwh / summary.consumptionKwh * 100)} % du total',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
                       ),
-                      _KpiCard(
-                        width: width,
-                        icon: Icons.payments_outlined,
-                        label: 'Coût mensuel estimé',
-                        value: '${fcfa.format(summary.costFcfa.round())} FCFA',
-                        emphasize: true,
-                      ),
-                      _KpiCard(
-                        width: width,
-                        icon: Icons.insights_outlined,
-                        label: 'Appareil le plus énergivore',
-                        value: mostConsuming?.name ?? '—',
-                        subtitle: mostConsuming == null
-                            ? null
-                            : '${decimal.format(mostConsuming.monthlyConsumptionKwh)} kWh/mois',
-                      ),
-                    ],
-                  );
-                },
+                    ),
+                  ),
+                ],
               ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
@@ -122,58 +172,39 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   }
 }
 
-class _KpiCard extends StatelessWidget {
-  final double width;
+class _SummaryRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  final String? subtitle;
   final bool emphasize;
-
-  const _KpiCard({
-    required this.width,
+  const _SummaryRow({
     required this.icon,
     required this.label,
     required this.value,
-    this.subtitle,
     this.emphasize = false,
   });
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SizedBox(
-      width: width,
-      child: Card.filled(
-        margin: EdgeInsets.zero,
-        color: emphasize ? theme.colorScheme.primaryContainer : null,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                icon,
-                color: emphasize
-                    ? theme.colorScheme.onPrimaryContainer
-                    : theme.colorScheme.primary,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: theme.colorScheme.primary),
+          const SizedBox(width: 8),
+          Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: emphasize ? theme.colorScheme.primary : null,
               ),
-              const SizedBox(height: 12),
-              Text(label, style: theme.textTheme.labelLarge),
-              const SizedBox(height: 8),
-              Text(
-                value,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (subtitle != null) ...[
-                const SizedBox(height: 4),
-                Text(subtitle!, style: theme.textTheme.bodyMedium),
-              ],
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
