@@ -135,17 +135,21 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                           ),
                           if (mostConsuming != null) ...[
                             const SizedBox(height: 4),
-                            Wrap(
-                              spacing: 12,
-                              runSpacing: 2,
+                            Row(
                               children: [
-                                Text(
-                                  '${decimal.format(mostConsuming.monthlyConsumptionKwh)} kWh/mois',
+                                Expanded(
+                                  child: Text(
+                                    '${decimal.format(mostConsuming.monthlyConsumptionKwh)} kWh/mois',
+                                  ),
                                 ),
-                                Text(
-                                  '≈ ${NumberFormat('0.0', 'fr_FR').format(summary.consumptionKwh <= 0 ? 0 : mostConsuming.monthlyConsumptionKwh / summary.consumptionKwh * 100)} % du total',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    '≈ ${NumberFormat('0.0', 'fr_FR').format(summary.consumptionKwh <= 0 ? 0 : mostConsuming.monthlyConsumptionKwh / summary.consumptionKwh * 100)} % du total',
+                                    textAlign: TextAlign.right,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -199,7 +203,7 @@ class _SummaryRow extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
           const SizedBox(width: 8),
-          Flexible(
+          Expanded(
             child: Text(
               value,
               textAlign: TextAlign.right,

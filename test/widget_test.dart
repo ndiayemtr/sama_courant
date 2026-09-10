@@ -44,6 +44,40 @@ Future<void> openDashboard(
 }
 
 void main() {
+  for (final watts in [100.0, 999999.0]) {
+    testWidgets('Dashboard values share the right edge on mobile ($watts W)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await openDashboard(tester, [
+        appliance('Appareil avec un nom long', watts),
+      ]);
+      final summary = find.byWidgetPredicate((widget) => widget is Card).at(0);
+      final texts = find.descendant(of: summary, matching: find.byType(Text));
+      final valueTexts = texts.evaluate().where(
+        (element) =>
+            [
+              '1',
+              '${NumberFormat('0.00', 'fr_FR').format(watts * 0.3)} kWh',
+            ].contains((element.widget as Text).data) ||
+            ((element.widget as Text).data?.endsWith(' FCFA') ?? false),
+      );
+      final rightEdge = tester.getRect(summary).right - 12;
+      expect(valueTexts.length, 3);
+      for (final element in valueTexts) {
+        final finder = find.byWidget(element.widget);
+        expect(tester.getRect(finder).right, closeTo(rightEdge, 0.1));
+        expect((element.widget as Text).textAlign, TextAlign.right);
+      }
+      final percentage = find.text('≈ 100,0 % du total');
+      expect(tester.getRect(percentage).right, closeTo(rightEdge, 0.1));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('donut tap and legend tap select consumption details', (
     tester,
   ) async {
