@@ -304,6 +304,14 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 label: const Text('Enregistrer l’état actuel'),
               ),
             ),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton.icon(
+                onPressed: () => context.push('/history'),
+                icon: const Icon(Icons.history),
+                label: const Text('Voir l’historique'),
+              ),
+            ),
             const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,

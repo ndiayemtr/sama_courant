@@ -5,11 +5,16 @@ import '../../features/appliances/domain/entities/appliance.dart';
 import '../../features/appliances/presentation/pages/appliance_form_page.dart';
 import '../../features/appliances/presentation/pages/appliances_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../../features/consumption_history/presentation/pages/consumption_history_page.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(path: '/', builder: (context, state) => const DashboardPage()),
+    GoRoute(
+      path: '/history',
+      builder: (context, state) => const ConsumptionHistoryPage(),
+    ),
     GoRoute(
       path: '/appliances/add',
       builder: (context, state) => const ApplianceFormPage(),
