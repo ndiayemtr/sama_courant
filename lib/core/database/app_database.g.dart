@@ -1601,6 +1601,517 @@ class TariffTiersCompanion extends UpdateCompanion<TariffTier> {
   }
 }
 
+class $ConsumptionSnapshotsTable extends ConsumptionSnapshots
+    with TableInfo<$ConsumptionSnapshotsTable, ConsumptionSnapshot> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ConsumptionSnapshotsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _capturedAtMeta = const VerificationMeta(
+    'capturedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> capturedAt = GeneratedColumn<DateTime>(
+    'captured_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalMonthlyConsumptionKwhMeta =
+      const VerificationMeta('totalMonthlyConsumptionKwh');
+  @override
+  late final GeneratedColumn<double> totalMonthlyConsumptionKwh =
+      GeneratedColumn<double>(
+        'total_monthly_consumption_kwh',
+        aliasedName,
+        false,
+        type: DriftSqlType.double,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _totalMonthlyCostFcfaMeta =
+      const VerificationMeta('totalMonthlyCostFcfa');
+  @override
+  late final GeneratedColumn<double> totalMonthlyCostFcfa =
+      GeneratedColumn<double>(
+        'total_monthly_cost_fcfa',
+        aliasedName,
+        false,
+        type: DriftSqlType.double,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _activeAppliancesCountMeta =
+      const VerificationMeta('activeAppliancesCount');
+  @override
+  late final GeneratedColumn<int> activeAppliancesCount = GeneratedColumn<int>(
+    'active_appliances_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tariffConfigurationNameMeta =
+      const VerificationMeta('tariffConfigurationName');
+  @override
+  late final GeneratedColumn<String> tariffConfigurationName =
+      GeneratedColumn<String>(
+        'tariff_configuration_name',
+        aliasedName,
+        false,
+        additionalChecks: GeneratedColumn.checkTextLength(minTextLength: 1),
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    capturedAt,
+    totalMonthlyConsumptionKwh,
+    totalMonthlyCostFcfa,
+    activeAppliancesCount,
+    tariffConfigurationName,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'consumption_snapshots';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ConsumptionSnapshot> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('captured_at')) {
+      context.handle(
+        _capturedAtMeta,
+        capturedAt.isAcceptableOrUnknown(data['captured_at']!, _capturedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_capturedAtMeta);
+    }
+    if (data.containsKey('total_monthly_consumption_kwh')) {
+      context.handle(
+        _totalMonthlyConsumptionKwhMeta,
+        totalMonthlyConsumptionKwh.isAcceptableOrUnknown(
+          data['total_monthly_consumption_kwh']!,
+          _totalMonthlyConsumptionKwhMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_totalMonthlyConsumptionKwhMeta);
+    }
+    if (data.containsKey('total_monthly_cost_fcfa')) {
+      context.handle(
+        _totalMonthlyCostFcfaMeta,
+        totalMonthlyCostFcfa.isAcceptableOrUnknown(
+          data['total_monthly_cost_fcfa']!,
+          _totalMonthlyCostFcfaMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_totalMonthlyCostFcfaMeta);
+    }
+    if (data.containsKey('active_appliances_count')) {
+      context.handle(
+        _activeAppliancesCountMeta,
+        activeAppliancesCount.isAcceptableOrUnknown(
+          data['active_appliances_count']!,
+          _activeAppliancesCountMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_activeAppliancesCountMeta);
+    }
+    if (data.containsKey('tariff_configuration_name')) {
+      context.handle(
+        _tariffConfigurationNameMeta,
+        tariffConfigurationName.isAcceptableOrUnknown(
+          data['tariff_configuration_name']!,
+          _tariffConfigurationNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_tariffConfigurationNameMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ConsumptionSnapshot map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ConsumptionSnapshot(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      capturedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}captured_at'],
+      )!,
+      totalMonthlyConsumptionKwh: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total_monthly_consumption_kwh'],
+      )!,
+      totalMonthlyCostFcfa: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total_monthly_cost_fcfa'],
+      )!,
+      activeAppliancesCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}active_appliances_count'],
+      )!,
+      tariffConfigurationName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tariff_configuration_name'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ConsumptionSnapshotsTable createAlias(String alias) {
+    return $ConsumptionSnapshotsTable(attachedDatabase, alias);
+  }
+}
+
+class ConsumptionSnapshot extends DataClass
+    implements Insertable<ConsumptionSnapshot> {
+  final int id;
+  final DateTime capturedAt;
+  final double totalMonthlyConsumptionKwh;
+  final double totalMonthlyCostFcfa;
+  final int activeAppliancesCount;
+  final String tariffConfigurationName;
+  final DateTime createdAt;
+  const ConsumptionSnapshot({
+    required this.id,
+    required this.capturedAt,
+    required this.totalMonthlyConsumptionKwh,
+    required this.totalMonthlyCostFcfa,
+    required this.activeAppliancesCount,
+    required this.tariffConfigurationName,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['captured_at'] = Variable<DateTime>(capturedAt);
+    map['total_monthly_consumption_kwh'] = Variable<double>(
+      totalMonthlyConsumptionKwh,
+    );
+    map['total_monthly_cost_fcfa'] = Variable<double>(totalMonthlyCostFcfa);
+    map['active_appliances_count'] = Variable<int>(activeAppliancesCount);
+    map['tariff_configuration_name'] = Variable<String>(
+      tariffConfigurationName,
+    );
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ConsumptionSnapshotsCompanion toCompanion(bool nullToAbsent) {
+    return ConsumptionSnapshotsCompanion(
+      id: Value(id),
+      capturedAt: Value(capturedAt),
+      totalMonthlyConsumptionKwh: Value(totalMonthlyConsumptionKwh),
+      totalMonthlyCostFcfa: Value(totalMonthlyCostFcfa),
+      activeAppliancesCount: Value(activeAppliancesCount),
+      tariffConfigurationName: Value(tariffConfigurationName),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ConsumptionSnapshot.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ConsumptionSnapshot(
+      id: serializer.fromJson<int>(json['id']),
+      capturedAt: serializer.fromJson<DateTime>(json['capturedAt']),
+      totalMonthlyConsumptionKwh: serializer.fromJson<double>(
+        json['totalMonthlyConsumptionKwh'],
+      ),
+      totalMonthlyCostFcfa: serializer.fromJson<double>(
+        json['totalMonthlyCostFcfa'],
+      ),
+      activeAppliancesCount: serializer.fromJson<int>(
+        json['activeAppliancesCount'],
+      ),
+      tariffConfigurationName: serializer.fromJson<String>(
+        json['tariffConfigurationName'],
+      ),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'capturedAt': serializer.toJson<DateTime>(capturedAt),
+      'totalMonthlyConsumptionKwh': serializer.toJson<double>(
+        totalMonthlyConsumptionKwh,
+      ),
+      'totalMonthlyCostFcfa': serializer.toJson<double>(totalMonthlyCostFcfa),
+      'activeAppliancesCount': serializer.toJson<int>(activeAppliancesCount),
+      'tariffConfigurationName': serializer.toJson<String>(
+        tariffConfigurationName,
+      ),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ConsumptionSnapshot copyWith({
+    int? id,
+    DateTime? capturedAt,
+    double? totalMonthlyConsumptionKwh,
+    double? totalMonthlyCostFcfa,
+    int? activeAppliancesCount,
+    String? tariffConfigurationName,
+    DateTime? createdAt,
+  }) => ConsumptionSnapshot(
+    id: id ?? this.id,
+    capturedAt: capturedAt ?? this.capturedAt,
+    totalMonthlyConsumptionKwh:
+        totalMonthlyConsumptionKwh ?? this.totalMonthlyConsumptionKwh,
+    totalMonthlyCostFcfa: totalMonthlyCostFcfa ?? this.totalMonthlyCostFcfa,
+    activeAppliancesCount: activeAppliancesCount ?? this.activeAppliancesCount,
+    tariffConfigurationName:
+        tariffConfigurationName ?? this.tariffConfigurationName,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  ConsumptionSnapshot copyWithCompanion(ConsumptionSnapshotsCompanion data) {
+    return ConsumptionSnapshot(
+      id: data.id.present ? data.id.value : this.id,
+      capturedAt: data.capturedAt.present
+          ? data.capturedAt.value
+          : this.capturedAt,
+      totalMonthlyConsumptionKwh: data.totalMonthlyConsumptionKwh.present
+          ? data.totalMonthlyConsumptionKwh.value
+          : this.totalMonthlyConsumptionKwh,
+      totalMonthlyCostFcfa: data.totalMonthlyCostFcfa.present
+          ? data.totalMonthlyCostFcfa.value
+          : this.totalMonthlyCostFcfa,
+      activeAppliancesCount: data.activeAppliancesCount.present
+          ? data.activeAppliancesCount.value
+          : this.activeAppliancesCount,
+      tariffConfigurationName: data.tariffConfigurationName.present
+          ? data.tariffConfigurationName.value
+          : this.tariffConfigurationName,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ConsumptionSnapshot(')
+          ..write('id: $id, ')
+          ..write('capturedAt: $capturedAt, ')
+          ..write('totalMonthlyConsumptionKwh: $totalMonthlyConsumptionKwh, ')
+          ..write('totalMonthlyCostFcfa: $totalMonthlyCostFcfa, ')
+          ..write('activeAppliancesCount: $activeAppliancesCount, ')
+          ..write('tariffConfigurationName: $tariffConfigurationName, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    capturedAt,
+    totalMonthlyConsumptionKwh,
+    totalMonthlyCostFcfa,
+    activeAppliancesCount,
+    tariffConfigurationName,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ConsumptionSnapshot &&
+          other.id == this.id &&
+          other.capturedAt == this.capturedAt &&
+          other.totalMonthlyConsumptionKwh == this.totalMonthlyConsumptionKwh &&
+          other.totalMonthlyCostFcfa == this.totalMonthlyCostFcfa &&
+          other.activeAppliancesCount == this.activeAppliancesCount &&
+          other.tariffConfigurationName == this.tariffConfigurationName &&
+          other.createdAt == this.createdAt);
+}
+
+class ConsumptionSnapshotsCompanion
+    extends UpdateCompanion<ConsumptionSnapshot> {
+  final Value<int> id;
+  final Value<DateTime> capturedAt;
+  final Value<double> totalMonthlyConsumptionKwh;
+  final Value<double> totalMonthlyCostFcfa;
+  final Value<int> activeAppliancesCount;
+  final Value<String> tariffConfigurationName;
+  final Value<DateTime> createdAt;
+  const ConsumptionSnapshotsCompanion({
+    this.id = const Value.absent(),
+    this.capturedAt = const Value.absent(),
+    this.totalMonthlyConsumptionKwh = const Value.absent(),
+    this.totalMonthlyCostFcfa = const Value.absent(),
+    this.activeAppliancesCount = const Value.absent(),
+    this.tariffConfigurationName = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  ConsumptionSnapshotsCompanion.insert({
+    this.id = const Value.absent(),
+    required DateTime capturedAt,
+    required double totalMonthlyConsumptionKwh,
+    required double totalMonthlyCostFcfa,
+    required int activeAppliancesCount,
+    required String tariffConfigurationName,
+    required DateTime createdAt,
+  }) : capturedAt = Value(capturedAt),
+       totalMonthlyConsumptionKwh = Value(totalMonthlyConsumptionKwh),
+       totalMonthlyCostFcfa = Value(totalMonthlyCostFcfa),
+       activeAppliancesCount = Value(activeAppliancesCount),
+       tariffConfigurationName = Value(tariffConfigurationName),
+       createdAt = Value(createdAt);
+  static Insertable<ConsumptionSnapshot> custom({
+    Expression<int>? id,
+    Expression<DateTime>? capturedAt,
+    Expression<double>? totalMonthlyConsumptionKwh,
+    Expression<double>? totalMonthlyCostFcfa,
+    Expression<int>? activeAppliancesCount,
+    Expression<String>? tariffConfigurationName,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (capturedAt != null) 'captured_at': capturedAt,
+      if (totalMonthlyConsumptionKwh != null)
+        'total_monthly_consumption_kwh': totalMonthlyConsumptionKwh,
+      if (totalMonthlyCostFcfa != null)
+        'total_monthly_cost_fcfa': totalMonthlyCostFcfa,
+      if (activeAppliancesCount != null)
+        'active_appliances_count': activeAppliancesCount,
+      if (tariffConfigurationName != null)
+        'tariff_configuration_name': tariffConfigurationName,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  ConsumptionSnapshotsCompanion copyWith({
+    Value<int>? id,
+    Value<DateTime>? capturedAt,
+    Value<double>? totalMonthlyConsumptionKwh,
+    Value<double>? totalMonthlyCostFcfa,
+    Value<int>? activeAppliancesCount,
+    Value<String>? tariffConfigurationName,
+    Value<DateTime>? createdAt,
+  }) {
+    return ConsumptionSnapshotsCompanion(
+      id: id ?? this.id,
+      capturedAt: capturedAt ?? this.capturedAt,
+      totalMonthlyConsumptionKwh:
+          totalMonthlyConsumptionKwh ?? this.totalMonthlyConsumptionKwh,
+      totalMonthlyCostFcfa: totalMonthlyCostFcfa ?? this.totalMonthlyCostFcfa,
+      activeAppliancesCount:
+          activeAppliancesCount ?? this.activeAppliancesCount,
+      tariffConfigurationName:
+          tariffConfigurationName ?? this.tariffConfigurationName,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (capturedAt.present) {
+      map['captured_at'] = Variable<DateTime>(capturedAt.value);
+    }
+    if (totalMonthlyConsumptionKwh.present) {
+      map['total_monthly_consumption_kwh'] = Variable<double>(
+        totalMonthlyConsumptionKwh.value,
+      );
+    }
+    if (totalMonthlyCostFcfa.present) {
+      map['total_monthly_cost_fcfa'] = Variable<double>(
+        totalMonthlyCostFcfa.value,
+      );
+    }
+    if (activeAppliancesCount.present) {
+      map['active_appliances_count'] = Variable<int>(
+        activeAppliancesCount.value,
+      );
+    }
+    if (tariffConfigurationName.present) {
+      map['tariff_configuration_name'] = Variable<String>(
+        tariffConfigurationName.value,
+      );
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ConsumptionSnapshotsCompanion(')
+          ..write('id: $id, ')
+          ..write('capturedAt: $capturedAt, ')
+          ..write('totalMonthlyConsumptionKwh: $totalMonthlyConsumptionKwh, ')
+          ..write('totalMonthlyCostFcfa: $totalMonthlyCostFcfa, ')
+          ..write('activeAppliancesCount: $activeAppliancesCount, ')
+          ..write('tariffConfigurationName: $tariffConfigurationName, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1608,6 +2119,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TariffConfigurationsTable tariffConfigurations =
       $TariffConfigurationsTable(this);
   late final $TariffTiersTable tariffTiers = $TariffTiersTable(this);
+  late final $ConsumptionSnapshotsTable consumptionSnapshots =
+      $ConsumptionSnapshotsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1616,6 +2129,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     appliances,
     tariffConfigurations,
     tariffTiers,
+    consumptionSnapshots,
   ];
 }
 
@@ -2447,6 +2961,275 @@ typedef $$TariffTiersTableProcessedTableManager =
       TariffTier,
       PrefetchHooks Function()
     >;
+typedef $$ConsumptionSnapshotsTableCreateCompanionBuilder =
+    ConsumptionSnapshotsCompanion Function({
+      Value<int> id,
+      required DateTime capturedAt,
+      required double totalMonthlyConsumptionKwh,
+      required double totalMonthlyCostFcfa,
+      required int activeAppliancesCount,
+      required String tariffConfigurationName,
+      required DateTime createdAt,
+    });
+typedef $$ConsumptionSnapshotsTableUpdateCompanionBuilder =
+    ConsumptionSnapshotsCompanion Function({
+      Value<int> id,
+      Value<DateTime> capturedAt,
+      Value<double> totalMonthlyConsumptionKwh,
+      Value<double> totalMonthlyCostFcfa,
+      Value<int> activeAppliancesCount,
+      Value<String> tariffConfigurationName,
+      Value<DateTime> createdAt,
+    });
+
+class $$ConsumptionSnapshotsTableFilterComposer
+    extends Composer<_$AppDatabase, $ConsumptionSnapshotsTable> {
+  $$ConsumptionSnapshotsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get capturedAt => $composableBuilder(
+    column: $table.capturedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get totalMonthlyConsumptionKwh => $composableBuilder(
+    column: $table.totalMonthlyConsumptionKwh,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get totalMonthlyCostFcfa => $composableBuilder(
+    column: $table.totalMonthlyCostFcfa,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get activeAppliancesCount => $composableBuilder(
+    column: $table.activeAppliancesCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tariffConfigurationName => $composableBuilder(
+    column: $table.tariffConfigurationName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ConsumptionSnapshotsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ConsumptionSnapshotsTable> {
+  $$ConsumptionSnapshotsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get capturedAt => $composableBuilder(
+    column: $table.capturedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get totalMonthlyConsumptionKwh => $composableBuilder(
+    column: $table.totalMonthlyConsumptionKwh,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get totalMonthlyCostFcfa => $composableBuilder(
+    column: $table.totalMonthlyCostFcfa,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get activeAppliancesCount => $composableBuilder(
+    column: $table.activeAppliancesCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tariffConfigurationName => $composableBuilder(
+    column: $table.tariffConfigurationName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ConsumptionSnapshotsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ConsumptionSnapshotsTable> {
+  $$ConsumptionSnapshotsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get capturedAt => $composableBuilder(
+    column: $table.capturedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get totalMonthlyConsumptionKwh => $composableBuilder(
+    column: $table.totalMonthlyConsumptionKwh,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get totalMonthlyCostFcfa => $composableBuilder(
+    column: $table.totalMonthlyCostFcfa,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get activeAppliancesCount => $composableBuilder(
+    column: $table.activeAppliancesCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get tariffConfigurationName => $composableBuilder(
+    column: $table.tariffConfigurationName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$ConsumptionSnapshotsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ConsumptionSnapshotsTable,
+          ConsumptionSnapshot,
+          $$ConsumptionSnapshotsTableFilterComposer,
+          $$ConsumptionSnapshotsTableOrderingComposer,
+          $$ConsumptionSnapshotsTableAnnotationComposer,
+          $$ConsumptionSnapshotsTableCreateCompanionBuilder,
+          $$ConsumptionSnapshotsTableUpdateCompanionBuilder,
+          (
+            ConsumptionSnapshot,
+            BaseReferences<
+              _$AppDatabase,
+              $ConsumptionSnapshotsTable,
+              ConsumptionSnapshot
+            >,
+          ),
+          ConsumptionSnapshot,
+          PrefetchHooks Function()
+        > {
+  $$ConsumptionSnapshotsTableTableManager(
+    _$AppDatabase db,
+    $ConsumptionSnapshotsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ConsumptionSnapshotsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ConsumptionSnapshotsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ConsumptionSnapshotsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<DateTime> capturedAt = const Value.absent(),
+                Value<double> totalMonthlyConsumptionKwh = const Value.absent(),
+                Value<double> totalMonthlyCostFcfa = const Value.absent(),
+                Value<int> activeAppliancesCount = const Value.absent(),
+                Value<String> tariffConfigurationName = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => ConsumptionSnapshotsCompanion(
+                id: id,
+                capturedAt: capturedAt,
+                totalMonthlyConsumptionKwh: totalMonthlyConsumptionKwh,
+                totalMonthlyCostFcfa: totalMonthlyCostFcfa,
+                activeAppliancesCount: activeAppliancesCount,
+                tariffConfigurationName: tariffConfigurationName,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required DateTime capturedAt,
+                required double totalMonthlyConsumptionKwh,
+                required double totalMonthlyCostFcfa,
+                required int activeAppliancesCount,
+                required String tariffConfigurationName,
+                required DateTime createdAt,
+              }) => ConsumptionSnapshotsCompanion.insert(
+                id: id,
+                capturedAt: capturedAt,
+                totalMonthlyConsumptionKwh: totalMonthlyConsumptionKwh,
+                totalMonthlyCostFcfa: totalMonthlyCostFcfa,
+                activeAppliancesCount: activeAppliancesCount,
+                tariffConfigurationName: tariffConfigurationName,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ConsumptionSnapshotsTable, ConsumptionSnapshot>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ConsumptionSnapshotsTable,
+                    ConsumptionSnapshot
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ConsumptionSnapshotsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ConsumptionSnapshotsTable,
+      ConsumptionSnapshot,
+      $$ConsumptionSnapshotsTableFilterComposer,
+      $$ConsumptionSnapshotsTableOrderingComposer,
+      $$ConsumptionSnapshotsTableAnnotationComposer,
+      $$ConsumptionSnapshotsTableCreateCompanionBuilder,
+      $$ConsumptionSnapshotsTableUpdateCompanionBuilder,
+      (
+        ConsumptionSnapshot,
+        BaseReferences<
+          _$AppDatabase,
+          $ConsumptionSnapshotsTable,
+          ConsumptionSnapshot
+        >,
+      ),
+      ConsumptionSnapshot,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2457,4 +3240,6 @@ class $AppDatabaseManager {
       $$TariffConfigurationsTableTableManager(_db, _db.tariffConfigurations);
   $$TariffTiersTableTableManager get tariffTiers =>
       $$TariffTiersTableTableManager(_db, _db.tariffTiers);
+  $$ConsumptionSnapshotsTableTableManager get consumptionSnapshots =>
+      $$ConsumptionSnapshotsTableTableManager(_db, _db.consumptionSnapshots);
 }
