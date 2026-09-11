@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../appliances/presentation/providers/appliances_provider.dart';
+import '../../../budget/data/factories/woyofal_tariff_configuration_factory.dart';
+import '../../../consumption_history/domain/providers/consumption_snapshot_service_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/consumption_distribution_card.dart';
 import '../widgets/top_consumers_card.dart';
@@ -16,6 +18,35 @@ class DashboardPage extends ConsumerStatefulWidget {
 }
 
 class _DashboardPageState extends ConsumerState<DashboardPage> {
+  bool _isCapturing = false;
+
+  Future<void> _captureSnapshot() async {
+    final state = ref.read(appliancesProvider);
+    if (_isCapturing || state.isLoading || state.errorMessage != null) return;
+    setState(() => _isCapturing = true);
+    try {
+      await ref
+          .read(consumptionSnapshotServiceProvider)
+          .capture(
+            appliances: List.of(state.appliances),
+            configuration: WoyofalTariffConfigurationFactory.dpp2026(),
+          );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('État actuel enregistré.')));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossible d’enregistrer l’état actuel.'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isCapturing = false);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -250,6 +281,30 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               ),
             ],
             const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                key: const ValueKey('capture-snapshot'),
+                onPressed:
+                    _isCapturing ||
+                        state.isLoading ||
+                        state.errorMessage != null
+                    ? null
+                    : _captureSnapshot,
+                icon: _isCapturing
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          semanticsLabel: 'Enregistrement en cours',
+                        ),
+                      )
+                    : const Icon(Icons.save_outlined),
+                label: const Text('Enregistrer l’état actuel'),
+              ),
+            ),
+            const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(

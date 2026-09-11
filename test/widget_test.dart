@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:sama_courant/features/consumption_history/domain/services/consumption_snapshot_service.dart';
+import 'package:sama_courant/features/consumption_history/domain/providers/consumption_snapshot_service_provider.dart';
+import 'package:sama_courant/features/budget/domain/entities/tariff_configuration.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +14,27 @@ import 'package:sama_courant/features/appliances/domain/entities/appliance.dart'
 import 'package:sama_courant/features/appliances/domain/providers/appliance_usecase_providers.dart';
 import 'package:sama_courant/features/appliances/domain/usecases/get_appliances.dart';
 import 'features/appliances/fakes/fake_appliance_repository.dart';
+
+class ManualCaptureService implements ConsumptionSnapshotService {
+  final completion = Completer<int>();
+  int calls = 0;
+  List<Appliance>? received;
+  TariffConfiguration? configuration;
+  @override
+  Future<int> capture({
+    required List<Appliance> appliances,
+    required TariffConfiguration configuration,
+    DateTime? capturedAt,
+  }) {
+    calls++;
+    received = appliances;
+    this.configuration = configuration;
+    return completion.future;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 Appliance appliance(String name, double watts, {bool active = true}) =>
     Appliance(
@@ -26,8 +51,9 @@ Appliance appliance(String name, double watts, {bool active = true}) =>
 
 Future<void> openDashboard(
   WidgetTester tester,
-  List<Appliance> appliances,
-) async {
+  List<Appliance> appliances, {
+  ConsumptionSnapshotService? captureService,
+}) async {
   final repository = FakeApplianceRepository();
   appRouter.go('/');
   for (final appliance in appliances) {
@@ -36,6 +62,8 @@ Future<void> openDashboard(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        if (captureService != null)
+          consumptionSnapshotServiceProvider.overrideWithValue(captureService),
         getAppliancesProvider.overrideWithValue(GetAppliances(repository)),
       ],
       child: const SamaCourantApp(),
@@ -45,6 +73,77 @@ Future<void> openDashboard(
 }
 
 void main() {
+  testWidgets(
+    'manual capture passes current appliances and blocks duplicate taps',
+    (tester) async {
+      final service = ManualCaptureService();
+      await openDashboard(tester, [
+        appliance('Actif', 100),
+        appliance('Inactif', 900, active: false),
+      ], captureService: service);
+      expect(service.calls, 0);
+      final button = find.byKey(const ValueKey('capture-snapshot'));
+      expect(find.text('Enregistrer l’état actuel'), findsOneWidget);
+      await tester.ensureVisible(button);
+      await tester.tap(button);
+      await tester.pump();
+      expect(tester.widget<FilledButton>(button).onPressed, isNull);
+      expect(
+        find.descendant(
+          of: button,
+          matching: find.byType(CircularProgressIndicator),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(button);
+      expect(service.calls, 1);
+      expect(service.received!.map((a) => a.name), ['Actif', 'Inactif']);
+      expect(service.configuration!.name, 'Woyofal DPP 2026');
+      service.completion.complete(42);
+      await tester.pumpAndSettle();
+      expect(find.text('État actuel enregistré.'), findsOneWidget);
+      expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
+    },
+  );
+
+  testWidgets(
+    'capture failure shows a friendly error and re-enables the button',
+    (tester) async {
+      final service = ManualCaptureService();
+      await openDashboard(tester, [], captureService: service);
+      final button = find.byKey(const ValueKey('capture-snapshot'));
+      await tester.ensureVisible(button);
+      await tester.tap(button);
+      await tester.pump();
+      service.completion.completeError(StateError('private database details'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Impossible d’enregistrer l’état actuel.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('private database details'), findsNothing);
+      expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
+    },
+  );
+
+  testWidgets(
+    'capture works with no active appliances and survives leaving the page',
+    (tester) async {
+      final service = ManualCaptureService();
+      await openDashboard(tester, [], captureService: service);
+      final button = find.byKey(const ValueKey('capture-snapshot'));
+      await tester.ensureVisible(button);
+      await tester.tap(button);
+      await tester.pump();
+      expect(service.calls, 1);
+      expect(service.received, isEmpty);
+      await tester.pumpWidget(const SizedBox());
+      service.completion.complete(1);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('compact donut selection wraps on a narrow screen', (
     tester,
   ) async {
