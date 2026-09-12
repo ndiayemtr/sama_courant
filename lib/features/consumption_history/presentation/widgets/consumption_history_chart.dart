@@ -20,16 +20,27 @@ class ConsumptionHistoryChart extends StatelessWidget {
     final tooltipDateFormatter = DateFormat("dd/MM/yyyy 'à' HH:mm", 'fr_FR');
 
     final spots = points
+        .asMap()
+        .entries
         .map(
-          (point) => FlSpot(
-            point.capturedAt.millisecondsSinceEpoch.toDouble(),
-            point.consumptionKwh,
-          ),
+          (point) => FlSpot(point.key.toDouble(), point.value.consumptionKwh),
         )
         .toList(growable: false);
 
     final minX = spots.first.x;
     final maxX = spots.last.x;
+    final labelStep = points.length <= 4
+        ? 1
+        : points.length <= 8
+        ? 2
+        : ((points.length - 1) / 4).ceil();
+    final labels = <int, String>{};
+    for (var index = 0; index < points.length; index += labelStep) {
+      final label = dateFormatter.format(points[index].capturedAt);
+      if (labels.isEmpty || labels.values.last != label) {
+        labels[index] = label;
+      }
+    }
 
     final maxConsumption = points.fold<double>(
       0,
@@ -113,14 +124,23 @@ class ConsumptionHistoryChart extends StatelessWidget {
                         sideTitles: SideTitles(
                           showTitles: true,
                           reservedSize: 32,
-                          interval: (maxX - minX) / (points.length - 1),
+                          interval: 1,
                           getTitlesWidget: (value, meta) {
-                            final closestPoint = _findClosestPoint(value);
+                            final label = labels[value.toInt()];
+                            if (value != value.toInt() || label == null) {
+                              return const SizedBox.shrink();
+                            }
 
                             return SideTitleWidget(
                               meta: meta,
+                              fitInside: SideTitleFitInsideData(
+                                enabled: true,
+                                axisPosition: meta.axisPosition,
+                                parentAxisSize: meta.parentAxisSize,
+                                distanceFromEdge: 0,
+                              ),
                               child: Text(
-                                dateFormatter.format(closestPoint.capturedAt),
+                                label,
                                 style: Theme.of(context).textTheme.labelSmall,
                               ),
                             );
@@ -131,9 +151,13 @@ class ConsumptionHistoryChart extends StatelessWidget {
                     lineTouchData: LineTouchData(
                       enabled: true,
                       touchTooltipData: LineTouchTooltipData(
+                        fitInsideHorizontally: true,
+                        fitInsideVertically: true,
+                        getTooltipColor: (_) =>
+                            Theme.of(context).colorScheme.inverseSurface,
                         getTooltipItems: (touchedSpots) {
                           return touchedSpots.map((spot) {
-                            final point = _findClosestPoint(spot.x);
+                            final point = points[spot.spotIndex];
 
                             return LineTooltipItem(
                               '${decimalFormatter.format(point.consumptionKwh)} kWh\n'
@@ -192,24 +216,6 @@ class ConsumptionHistoryChart extends StatelessWidget {
     }
 
     return maxY / 5;
-  }
-
-  ConsumptionHistoryPoint _findClosestPoint(double x) {
-    var closest = points.first;
-    var closestDistance =
-        (closest.capturedAt.millisecondsSinceEpoch.toDouble() - x).abs();
-
-    for (final point in points.skip(1)) {
-      final distance = (point.capturedAt.millisecondsSinceEpoch.toDouble() - x)
-          .abs();
-
-      if (distance < closestDistance) {
-        closest = point;
-        closestDistance = distance;
-      }
-    }
-
-    return closest;
   }
 }
 

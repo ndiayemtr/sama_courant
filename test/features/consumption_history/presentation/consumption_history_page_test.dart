@@ -107,7 +107,7 @@ void main() {
     repository.load = () async => [snapshot(11)];
     await tester.tap(find.text('Réessayer'));
     await tester.pumpAndSettle();
-    expect(find.text('11/09/2026 à 08:45'), findsOneWidget);
+    expect(find.text('11/09/2026 à 08:45'), findsNWidgets(2));
     expect(repository.calls, 2);
   });
 
@@ -120,7 +120,7 @@ void main() {
     repository.load = () async => [snapshot(11)];
     await tester.drag(find.byType(ListView), const Offset(0, 350));
     await tester.pumpAndSettle();
-    expect(find.text('11/09/2026 à 08:45'), findsOneWidget);
+    expect(find.text('11/09/2026 à 08:45'), findsNWidgets(2));
     expect(repository.calls, 2);
     expect(tester.takeException(), isNull);
   });
@@ -154,7 +154,7 @@ void main() {
     await tester.ensureVisible(find.text('Voir l’historique'));
     await tester.tap(find.text('Voir l’historique'));
     await tester.pumpAndSettle();
-    expect(find.text('11/09/2026 à 08:45'), findsOneWidget);
+    expect(find.text('11/09/2026 à 08:45'), findsNWidgets(2));
     expect(repository.calls, 2);
     appRouter.pop();
     await tester.pumpAndSettle();
