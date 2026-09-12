@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'main_navigation_shell.dart';
+import '../../features/analysis/presentation/pages/analysis_page.dart';
 
 import '../../features/appliances/domain/entities/appliance.dart';
 import '../../features/appliances/presentation/pages/appliance_form_page.dart';
@@ -10,18 +12,28 @@ import '../../features/consumption_history/presentation/pages/consumption_histor
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(path: '/', builder: (context, state) => const DashboardPage()),
-    GoRoute(
-      path: '/history',
-      builder: (context, state) => const ConsumptionHistoryPage(),
+    ShellRoute(
+      builder: (context, state, child) =>
+          MainNavigationShell(location: state.uri.path, child: child),
+      routes: [
+        GoRoute(path: '/', builder: (context, state) => const DashboardPage()),
+        GoRoute(
+          path: '/history',
+          builder: (context, state) => const ConsumptionHistoryPage(),
+        ),
+        GoRoute(
+          path: '/analysis',
+          builder: (context, state) => const AnalysisPage(),
+        ),
+        GoRoute(
+          path: '/appliances',
+          builder: (context, state) => const AppliancesPage(),
+        ),
+      ],
     ),
     GoRoute(
       path: '/appliances/add',
       builder: (context, state) => const ApplianceFormPage(),
-    ),
-    GoRoute(
-      path: '/appliances',
-      builder: (context, state) => const AppliancesPage(),
     ),
     GoRoute(
       path: '/appliances/edit',

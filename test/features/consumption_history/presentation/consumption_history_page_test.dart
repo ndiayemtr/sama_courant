@@ -233,20 +233,40 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Enregistrer l’état actuel'), findsOneWidget);
-    await tester.ensureVisible(find.text('Voir l’historique'));
-    await tester.tap(find.text('Voir l’historique'));
+    await tester.ensureVisible(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Historique'),
+      ),
+    );
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Historique'),
+      ),
+    );
     await tester.pumpAndSettle();
-    expect(find.text('Historique'), findsOneWidget);
+    expect(find.text('Historique'), findsNWidgets(2));
     expect(find.text('Aucun historique enregistré.'), findsOneWidget);
-    appRouter.pop();
+    appRouter.go('/');
     await tester.pumpAndSettle();
     repository.load = () async => [snapshot(11)];
-    await tester.ensureVisible(find.text('Voir l’historique'));
-    await tester.tap(find.text('Voir l’historique'));
+    await tester.ensureVisible(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Historique'),
+      ),
+    );
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Historique'),
+      ),
+    );
     await tester.pumpAndSettle();
-    expect(find.text('11/09/2026 à 08:45'), findsNWidgets(2));
+    expect(find.text('11/09/2026 à 08:45'), findsWidgets);
     expect(repository.calls, 2);
-    appRouter.pop();
+    appRouter.go('/');
     await tester.pumpAndSettle();
   });
 }

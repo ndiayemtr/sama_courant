@@ -102,6 +102,39 @@ Future<void> openAnalytics(
 }
 
 void main() {
+  testWidgets('persistent navigation switches tabs without stacking routes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await openDashboard(tester, []);
+    expect(find.text('Voir l’historique'), findsNothing);
+    expect(find.text('Mes appareils'), findsNothing);
+    expect(find.text('Enregistrer l’état actuel'), findsOneWidget);
+    for (final index in [2, 3, 0, 2, 0]) {
+      final label = ['Dashboard', 'Historique', 'Analyse', 'Appareils'][index];
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.text(label),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        index,
+      );
+      expect(appRouter.canPop(), isFalse);
+      if (index == 2) {
+        expect(find.text('Analyse énergétique'), findsOneWidget);
+        expect(find.text('Bientôt disponible'), findsOneWidget);
+      }
+      expect(tester.takeException(), isNull);
+    }
+  });
   testWidgets(
     'manual capture passes current appliances and blocks duplicate taps',
     (tester) async {
@@ -492,8 +525,8 @@ void main() {
     expect(find.text('Aucune consommation à afficher.'), findsNothing);
     expect(find.text('Aucun appareil actif à comparer.'), findsNothing);
     expect(find.byType(PieChart), findsNothing);
-    await tester.ensureVisible(find.text('Mes appareils'));
-    await tester.tap(find.text('Mes appareils'));
+    await tester.ensureVisible(find.text('Appareils'));
+    await tester.tap(find.text('Appareils'));
     await tester.pumpAndSettle();
     expect(find.text('Aucun appareil enregistré'), findsOneWidget);
   });
@@ -536,7 +569,7 @@ void main() {
     expect(find.text('Aucune consommation à afficher.'), findsNothing);
     expect(find.byType(PieChart), findsNothing);
     expect(find.text('—'), findsOneWidget);
-    await tester.ensureVisible(find.text('Mes appareils'));
+    await tester.ensureVisible(find.text('Appareils'));
     expect(tester.takeException(), isNull);
   });
 

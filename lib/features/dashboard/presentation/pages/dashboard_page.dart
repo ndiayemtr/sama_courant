@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+
 import 'package:intl/intl.dart';
 
 import '../../../appliances/presentation/providers/appliances_provider.dart';
@@ -248,23 +248,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       )
                     : const Icon(Icons.save_outlined),
                 label: const Text('Enregistrer l’état actuel'),
-              ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton.icon(
-                onPressed: () => context.push('/history'),
-                icon: const Icon(Icons.history),
-                label: const Text('Voir l’historique'),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () => context.push('/appliances'),
-                icon: const Icon(Icons.electrical_services),
-                label: const Text('Mes appareils'),
               ),
             ),
           ],
