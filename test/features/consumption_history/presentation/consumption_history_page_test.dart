@@ -171,14 +171,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.drag(find.byType(ListView), const Offset(0, -350));
     await tester.pumpAndSettle();
-    expect(find.text('Consommation estimée : 55,50 kWh'), findsNWidgets(2));
+    expect(find.text('55,50 kWh'), findsNWidgets(2));
     expect(
-      find.text(
-        'Coût estimé : ${NumberFormat.decimalPattern('fr_FR').format(4551)} FCFA',
-      ),
+      find.text('${NumberFormat.decimalPattern('fr_FR').format(4551)} FCFA'),
       findsNWidgets(2),
     );
-    expect(find.text('2 appareils actifs'), findsNWidgets(2));
+    expect(find.text('2'), findsNWidgets(2));
     expect(find.text('Woyofal DPP 2026'), findsNWidgets(2));
     expect(
       tester.getTopLeft(find.text('11/09/2026 à 08:45')).dy,

@@ -7,8 +7,6 @@ import '../../../appliances/presentation/providers/appliances_provider.dart';
 import '../../../budget/data/factories/woyofal_tariff_configuration_factory.dart';
 import '../../../consumption_history/domain/providers/consumption_snapshot_service_provider.dart';
 import '../providers/dashboard_provider.dart';
-import '../widgets/consumption_distribution_card.dart';
-import '../widgets/top_consumers_card.dart';
 
 class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
@@ -142,21 +140,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.insights_outlined,
-                                size: 20,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Plus énergivore',
-                                  style: theme.textTheme.titleSmall,
-                                ),
-                              ),
-                            ],
+                          Text(
+                            'Plus énergivore',
+                            style: theme.textTheme.titleSmall,
                           ),
                           const SizedBox(height: 6),
                           Text(
@@ -193,46 +179,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                   ),
                 ],
               ),
-            if (!state.isLoading && state.errorMessage == null) ...[
-              const SizedBox(height: 10),
-              ConsumptionDistributionCard(summary: summary),
-              const SizedBox(height: 10),
-              TopConsumersCard(summary: summary),
-              const SizedBox(height: 10),
-              Card.filled(
-                margin: EdgeInsets.zero,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.insights_outlined,
-                            size: 20,
-                            color: theme.colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Analyse rapide',
-                              style: theme.textTheme.titleSmall,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        summary.analysisSummary,
-                        key: const ValueKey('analysis-summary'),
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
             if (!state.isLoading && state.errorMessage == null) ...[
               const SizedBox(height: 10),
               Card.filled(

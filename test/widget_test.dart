@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sama_courant/features/dashboard/presentation/providers/dashboard_provider.dart';
+import 'package:sama_courant/features/dashboard/presentation/widgets/consumption_distribution_card.dart';
 import 'dart:async';
 import 'package:sama_courant/features/consumption_history/domain/services/consumption_snapshot_service.dart';
 import 'package:sama_courant/features/consumption_history/domain/providers/consumption_snapshot_service_provider.dart';
@@ -67,6 +69,33 @@ Future<void> openDashboard(
         getAppliancesProvider.overrideWithValue(GetAppliances(repository)),
       ],
       child: const SamaCourantApp(),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+Future<void> openAnalytics(
+  WidgetTester tester,
+  List<Appliance> appliances,
+) async {
+  await openDashboard(tester, appliances);
+  final container = ProviderScope.containerOf(
+    tester.element(find.byType(SamaCourantApp)),
+  );
+  final summary = container.read(dashboardProvider);
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Scaffold(
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              ConsumptionDistributionCard(summary: summary),
+              TopConsumersCard(summary: summary),
+            ],
+          ),
+        ),
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -151,7 +180,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await openDashboard(tester, [
+    await openAnalytics(tester, [
       appliance('Réfrigérateur de la grande cuisine', 100),
     ]);
     expect(tester.getSize(find.byType(PieChart)).height, 128);
@@ -202,7 +231,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('analysis summary remains readable on a narrow screen', (
+  testWidgets('Dashboard keeps primary sections without secondary analyses', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(320, 800);
@@ -213,14 +242,12 @@ void main() {
       appliance('Réfrigérateur de la cuisine', 500),
       appliance('Ventilateur', 100),
     ]);
-    final text = find.byKey(const ValueKey('analysis-summary'));
-    expect(find.text('Analyse rapide'), findsOneWidget);
-    expect(
-      tester.widget<Text>(text).data,
-      'Votre consommation est très concentrée sur Réfrigérateur de la cuisine, qui représente 83,3 % du total.',
-    );
-    await tester.ensureVisible(text);
-    expect(tester.getRect(text).right, lessThanOrEqualTo(320));
+    expect(find.text('Analyse rapide'), findsNothing);
+    expect(find.byType(ConsumptionDistributionCard), findsNothing);
+    expect(find.byType(TopConsumersCard), findsNothing);
+    expect(find.text('Résumé mensuel'), findsOneWidget);
+    expect(find.text('Plus énergivore'), findsOneWidget);
+    expect(find.text('Conseils'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -232,7 +259,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await openDashboard(tester, [
+      await openAnalytics(tester, [
         appliance('Réfrigérateur', 150),
         appliance('Ventilateur', 30),
         appliance('Inactif', 9999, active: false),
@@ -267,7 +294,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await openDashboard(tester, [
+      await openAnalytics(tester, [
         for (var i = 1; i <= 7; i++) appliance('Appareil $i', i * 100),
         appliance('Inactif', 9999, active: false),
       ]);
@@ -352,7 +379,7 @@ void main() {
   testWidgets('donut tap and legend tap select consumption details', (
     tester,
   ) async {
-    await openDashboard(tester, [
+    await openAnalytics(tester, [
       appliance('Grand', 900),
       appliance('Petit', 100),
     ]);
@@ -405,7 +432,7 @@ void main() {
   });
 
   testWidgets('Others legend selects the grouped consumption', (tester) async {
-    await openDashboard(tester, [
+    await openAnalytics(tester, [
       for (var i = 1; i <= 8; i++) appliance('Appareil $i', i * 100),
     ]);
     final legend = find.byKey(const ValueKey('consumption-legend-5'));
@@ -439,7 +466,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await openDashboard(tester, [
+    await openAnalytics(tester, [
       appliance('Réfrigérateur de la cuisine', 100),
     ]);
     expect(find.text('100,0 %'), findsOneWidget);
@@ -450,10 +477,6 @@ void main() {
     );
     await tester.ensureVisible(find.text('100,0 %'));
     expect(tester.takeException(), isNull);
-    await tester.ensureVisible(find.text('Mes appareils'));
-    await tester.tap(find.text('Mes appareils'));
-    await tester.pumpAndSettle();
-    expect(find.text('Modifier'), findsOneWidget);
   });
 
   testWidgets('Dashboard with no appliances shows zero KPI and navigation', (
@@ -466,8 +489,8 @@ void main() {
     expect(find.text('0,00 kWh'), findsOneWidget);
     expect(find.text('0 FCFA'), findsOneWidget);
     expect(find.text('—'), findsOneWidget);
-    expect(find.text('Aucune consommation à afficher.'), findsOneWidget);
-    expect(find.text('Aucun appareil actif à comparer.'), findsOneWidget);
+    expect(find.text('Aucune consommation à afficher.'), findsNothing);
+    expect(find.text('Aucun appareil actif à comparer.'), findsNothing);
     expect(find.byType(PieChart), findsNothing);
     await tester.ensureVisible(find.text('Mes appareils'));
     await tester.tap(find.text('Mes appareils'));
@@ -490,14 +513,11 @@ void main() {
         find.text('${NumberFormat.decimalPattern('fr_FR').format(32774)} FCFA'),
         findsOneWidget,
       );
-      expect(find.text('Climatiseur'), findsNWidgets(4));
+      expect(find.text('Climatiseur'), findsNWidgets(2));
       expect(find.text('270,00 kWh/mois'), findsOneWidget);
       expect(find.text('≈ 90,0 % du total'), findsOneWidget);
-      expect(find.byType(Card), findsNWidgets(6));
-      expect(find.text('90,0 %'), findsOneWidget);
-      expect(find.text('10,0 %'), findsOneWidget);
-      final chart = tester.widget<PieChart>(find.byType(PieChart));
-      expect(chart.data.sections.map((section) => section.value), [270, 30]);
+      expect(find.byType(Card), findsNWidgets(3));
+      expect(find.byType(PieChart), findsNothing);
       expect(find.text('Chauffage inactif'), findsNothing);
     },
   );
@@ -513,7 +533,7 @@ void main() {
     expect(find.text('0'), findsOneWidget);
     expect(find.text('0,00 kWh'), findsOneWidget);
     expect(find.text('0 FCFA'), findsOneWidget);
-    expect(find.text('Aucune consommation à afficher.'), findsOneWidget);
+    expect(find.text('Aucune consommation à afficher.'), findsNothing);
     expect(find.byType(PieChart), findsNothing);
     expect(find.text('—'), findsOneWidget);
     await tester.ensureVisible(find.text('Mes appareils'));
@@ -525,8 +545,8 @@ void main() {
   ) async {
     await openDashboard(tester, [appliance('Lampe', 0)]);
     expect(find.text('≈ 0,0 % du total'), findsOneWidget);
-    expect(find.text('Aucune consommation à comparer.'), findsOneWidget);
-    expect(find.text('Aucune consommation à afficher.'), findsOneWidget);
+    expect(find.text('Aucune consommation à comparer.'), findsNothing);
+    expect(find.text('Aucune consommation à afficher.'), findsNothing);
     expect(find.byType(PieChart), findsNothing);
     expect(find.text('0 FCFA'), findsOneWidget);
     expect(tester.takeException(), isNull);
