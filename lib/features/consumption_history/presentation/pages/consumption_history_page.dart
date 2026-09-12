@@ -135,32 +135,38 @@ class _ConsumptionHistoryPageState
                       children: [
                         Text(
                           date.format(snapshot.capturedAt),
-                          style: Theme.of(context).textTheme.titleSmall,
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
-                        const SizedBox(height: 6),
-                        Wrap(
-                          spacing: 16,
-                          runSpacing: 4,
-                          children: [
-                            Text(
-                              'Consommation estimée : '
+                        const SizedBox(height: 12),
+
+                        _HistoryInfoRow(
+                          label: 'Consommation estimée',
+                          value:
                               '${decimal.format(snapshot.totalMonthlyConsumptionKwh)} kWh',
-                            ),
-                            Text(
-                              'Coût estimé : '
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        _HistoryInfoRow(
+                          label: 'Coût estimé',
+                          value:
                               '${fcfa.format(snapshot.totalMonthlyCostFcfa.round())} FCFA',
-                            ),
-                          ],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${snapshot.activeAppliancesCount} '
-                          'appareil'
-                          '${snapshot.activeAppliancesCount == 1 ? '' : 's'} '
-                          'actif'
-                          '${snapshot.activeAppliancesCount == 1 ? '' : 's'}',
+
+                        const SizedBox(height: 8),
+
+                        _HistoryInfoRow(
+                          label: 'Appareils actifs',
+                          value: snapshot.activeAppliancesCount.toString(),
                         ),
-                        Text(snapshot.tariffConfigurationName),
+
+                        const SizedBox(height: 8),
+
+                        _HistoryInfoRow(
+                          label: 'Tarif',
+                          value: snapshot.tariffConfigurationName,
+                        ),
                       ],
                     ),
                   ),
@@ -170,6 +176,37 @@ class _ConsumptionHistoryPageState
           );
         },
       ),
+    );
+  }
+}
+
+class _HistoryInfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _HistoryInfoRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 3,
+          child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 2,
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -447,17 +447,23 @@ class _MonthlySummaryCard extends StatelessWidget {
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 4),
-            _SummaryRow(
+            _MonthlySummaryRow(
               icon: Icons.power_outlined,
               label: 'Appareils actifs',
-              value: '$activeAppliancesCount',
+              value: activeAppliancesCount.toString(),
             ),
-            _SummaryRow(
+
+            const SizedBox(height: 12),
+
+            _MonthlySummaryRow(
               icon: Icons.bolt_outlined,
               label: 'Consommation totale',
               value: '${decimal.format(totalConsumptionKwh)} kWh',
             ),
-            _SummaryRow(
+
+            const SizedBox(height: 12),
+
+            _MonthlySummaryRow(
               icon: Icons.payments_outlined,
               label: 'Coût mensuel estimé',
               value: '${fcfa.format(totalCostFcfa.round())} FCFA',
@@ -465,44 +471,6 @@ class _MonthlySummaryCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final bool emphasize;
-  const _SummaryRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.emphasize = false,
-  });
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: theme.colorScheme.primary),
-          const SizedBox(width: 8),
-          Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: emphasize ? theme.colorScheme.primary : null,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -554,6 +522,47 @@ class _TariffDetailRow extends StatelessWidget {
               ),
             ],
           ],
+        ),
+      ],
+    );
+  }
+}
+
+class _MonthlySummaryRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool emphasize;
+
+  const _MonthlySummaryRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.emphasize = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Row(
+      children: [
+        Icon(icon, size: 22, color: colorScheme.primary),
+        const SizedBox(width: 12),
+
+        Expanded(
+          child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        ),
+
+        const SizedBox(width: 16),
+
+        Text(
+          value,
+          textAlign: TextAlign.right,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: emphasize ? colorScheme.primary : null,
+          ),
         ),
       ],
     );
