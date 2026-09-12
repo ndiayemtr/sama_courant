@@ -85,7 +85,7 @@ class _ConsumptionDistributionCardState
                     ExcludeSemantics(
                       child: PieChart(
                         PieChartData(
-                          centerSpaceRadius: 40,
+                          centerSpaceRadius: 60,
                           sectionsSpace: 0,
                           startDegreeOffset: -90,
                           pieTouchData: PieTouchData(

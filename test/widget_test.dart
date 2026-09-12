@@ -171,11 +171,26 @@ void main() {
     );
     expect(card.summary.consumptionKwh, 300);
     expect(card.summary.activeCount, 2);
+    expect(
+      tester.widget<TopConsumersCard>(find.byType(TopConsumersCard)).summary,
+      same(card.summary),
+    );
+    expect(
+      tester.getTopLeft(find.byType(TopConsumersCard)).dy,
+      greaterThan(
+        tester.getTopLeft(find.byType(ConsumptionDistributionCard)).dy,
+      ),
+    );
     expect(find.text('Inactif'), findsNothing);
     await tester.tap(find.byKey(const ValueKey('consumption-legend-0')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('consumption-selection')), findsOneWidget);
     expect(find.text('270,00 kWh/mois'), findsOneWidget);
+    final analysis = find.byKey(const ValueKey('analysis-summary'));
+    await tester.ensureVisible(analysis);
+    expect(tester.widget<Text>(analysis).data, card.summary.analysisSummary);
+    expect(find.text('Analyse rapide'), findsOneWidget);
+    expect(find.text('Conseils'), findsNothing);
     expect(tester.takeException(), isNull);
   });
   testWidgets('persistent navigation switches tabs without stacking routes', (
@@ -207,6 +222,11 @@ void main() {
       if (index == 2) {
         expect(find.text('Analyse énergétique'), findsOneWidget);
         expect(find.text('Aucune consommation à afficher.'), findsOneWidget);
+        expect(find.text('Aucun appareil actif à comparer.'), findsOneWidget);
+        expect(
+          find.text('Aucun appareil actif pour analyser la consommation.'),
+          findsOneWidget,
+        );
       }
       expect(tester.takeException(), isNull);
     }
