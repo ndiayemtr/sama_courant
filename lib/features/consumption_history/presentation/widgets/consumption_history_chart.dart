@@ -1,13 +1,26 @@
+import 'dart:math' as math;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../domain/entities/consumption_history_point.dart';
 
-class ConsumptionHistoryChart extends StatelessWidget {
+class ConsumptionHistoryChart extends StatefulWidget {
   final List<ConsumptionHistoryPoint> points;
 
   const ConsumptionHistoryChart({super.key, required this.points});
+
+  @override
+  State<ConsumptionHistoryChart> createState() =>
+      _ConsumptionHistoryChartState();
+}
+
+class _ConsumptionHistoryChartState extends State<ConsumptionHistoryChart> {
+  bool _showCost = false;
+  List<ConsumptionHistoryPoint> get points => widget.points;
+  double _value(ConsumptionHistoryPoint point) =>
+      _showCost ? point.costFcfa : point.consumptionKwh;
 
   @override
   Widget build(BuildContext context) {
@@ -15,16 +28,19 @@ class ConsumptionHistoryChart extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final decimalFormatter = NumberFormat('0.00', 'fr_FR');
+    final decimalFormatter = _showCost
+        ? NumberFormat.decimalPattern('fr_FR')
+        : NumberFormat('0.00', 'fr_FR');
+    final unit = _showCost ? 'FCFA' : 'kWh';
+    String formatted(double value) =>
+        decimalFormatter.format(_showCost ? value.round() : value);
     final dateFormatter = DateFormat('dd/MM', 'fr_FR');
     final tooltipDateFormatter = DateFormat("dd/MM/yyyy 'à' HH:mm", 'fr_FR');
 
     final spots = points
         .asMap()
         .entries
-        .map(
-          (point) => FlSpot(point.key.toDouble(), point.value.consumptionKwh),
-        )
+        .map((point) => FlSpot(point.key.toDouble(), _value(point.value)))
         .toList(growable: false);
 
     final minX = spots.first.x;
@@ -44,8 +60,7 @@ class ConsumptionHistoryChart extends StatelessWidget {
 
     final maxConsumption = points.fold<double>(
       0,
-      (maxValue, point) =>
-          point.consumptionKwh > maxValue ? point.consumptionKwh : maxValue,
+      (maxValue, point) => _value(point) > maxValue ? _value(point) : maxValue,
     );
 
     final maxY = maxConsumption <= 0 ? 1.0 : maxConsumption * 1.15;
@@ -79,9 +94,23 @@ class ConsumptionHistoryChart extends StatelessWidget {
               'Estimations enregistrées',
               style: Theme.of(context).textTheme.bodySmall,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            SegmentedButton<bool>(
+              showSelectedIcon: false,
+              segments: const [
+                ButtonSegment(value: false, label: Text('Consommation')),
+                ButtonSegment(value: true, label: Text('Coût')),
+              ],
+              selected: {_showCost},
+              onSelectionChanged: (selection) =>
+                  setState(() => _showCost = selection.single),
+            ),
+            const SizedBox(height: 12),
             if (points.length == 1)
-              _SinglePointHistory(point: points.first)
+              _SinglePointHistory(
+                point: points.first,
+                formattedValue: '${formatted(_value(points.first))} $unit',
+              )
             else
               SizedBox(
                 height: 210,
@@ -107,13 +136,13 @@ class ConsumptionHistoryChart extends StatelessWidget {
                       leftTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
-                          reservedSize: 46,
+                          reservedSize: _showCost ? 64 : 46,
                           interval: _horizontalInterval(maxY),
                           getTitlesWidget: (value, meta) {
                             return SideTitleWidget(
                               meta: meta,
                               child: Text(
-                                decimalFormatter.format(value),
+                                formatted(value),
                                 style: Theme.of(context).textTheme.labelSmall,
                               ),
                             );
@@ -160,7 +189,7 @@ class ConsumptionHistoryChart extends StatelessWidget {
                             final point = points[spot.spotIndex];
 
                             return LineTooltipItem(
-                              '${decimalFormatter.format(point.consumptionKwh)} kWh\n'
+                              '${formatted(_value(point))} $unit\n'
                               '${tooltipDateFormatter.format(point.capturedAt)}',
                               TextStyle(
                                 color: Theme.of(
@@ -193,7 +222,9 @@ class ConsumptionHistoryChart extends StatelessWidget {
               ),
             const SizedBox(height: 4),
             Text(
-              'Consommation mensuelle estimée (kWh)',
+              _showCost
+                  ? 'Coût mensuel estimé (FCFA)'
+                  : 'Consommation mensuelle estimée (kWh)',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -203,30 +234,33 @@ class ConsumptionHistoryChart extends StatelessWidget {
   }
 
   double _horizontalInterval(double maxY) {
-    if (maxY <= 10) {
-      return 2;
-    }
-
-    if (maxY <= 50) {
-      return 10;
-    }
-
-    if (maxY <= 100) {
-      return 20;
-    }
-
-    return maxY / 5;
+    final target = maxY / 5;
+    final magnitude = math
+        .pow(10, (math.log(target) / math.ln10).floor())
+        .toDouble();
+    final scaled = target / magnitude;
+    final step = scaled <= 1
+        ? 1
+        : scaled <= 2
+        ? 2
+        : scaled <= 5
+        ? 5
+        : 10;
+    return math.max(_showCost ? 1.0 : 0.01, step * magnitude);
   }
 }
 
 class _SinglePointHistory extends StatelessWidget {
   final ConsumptionHistoryPoint point;
+  final String formattedValue;
 
-  const _SinglePointHistory({required this.point});
+  const _SinglePointHistory({
+    required this.point,
+    required this.formattedValue,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final decimalFormatter = NumberFormat('0.00', 'fr_FR');
     final dateFormatter = DateFormat("dd/MM/yyyy 'à' HH:mm", 'fr_FR');
 
     return Container(
@@ -241,7 +275,7 @@ class _SinglePointHistory extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            '${decimalFormatter.format(point.consumptionKwh)} kWh',
+            formattedValue,
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
