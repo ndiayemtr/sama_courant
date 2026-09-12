@@ -37,7 +37,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
           children: [
             Text(
               'Comprenez où part votre consommation.',
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
             if (state.isLoading)
@@ -52,9 +52,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
               ),
             ] else ...[
               ConsumptionDistributionCard(summary: summary),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               TopConsumersCard(summary: summary),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Card.filled(
                 margin: EdgeInsets.zero,
                 child: Padding(
@@ -88,6 +88,54 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                   ),
                 ),
               ),
+              if (summary.recommendations.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Card.filled(
+                  key: const ValueKey('analysis-recommendations'),
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Conseils', style: theme.textTheme.titleSmall),
+                        for (final recommendation in summary.recommendations)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.lightbulb_outline,
+                                  size: 20,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        recommendation.title,
+                                        style: theme.textTheme.labelLarge,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        recommendation.message,
+                                        style: theme.textTheme.bodyMedium,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
           ],
         ),

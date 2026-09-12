@@ -115,6 +115,37 @@ Future<void> openAnalytics(
 }
 
 void main() {
+  testWidgets('Analysis omits the recommendations card when none exist', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appliancesProvider.overrideWith(
+            () => AnalysisTestNotifier(const AppliancesState()),
+          ),
+          dashboardProvider.overrideWithValue(
+            const DashboardSummary(
+              activeCount: 0,
+              consumptionKwh: 0,
+              costFcfa: 0,
+              mostConsuming: null,
+              consumptionShares: [],
+              recommendations: [],
+            ),
+          ),
+        ],
+        child: const MaterialApp(home: AnalysisPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('analysis-recommendations')),
+      findsNothing,
+    );
+    expect(find.text('Conseils'), findsNothing);
+    expect(find.text('Analyse rapide'), findsOneWidget);
+  });
   for (final loading in [true, false]) {
     testWidgets('Analysis handles ${loading ? 'loading' : 'error'}', (
       tester,
@@ -190,7 +221,36 @@ void main() {
     await tester.ensureVisible(analysis);
     expect(tester.widget<Text>(analysis).data, card.summary.analysisSummary);
     expect(find.text('Analyse rapide'), findsOneWidget);
-    expect(find.text('Conseils'), findsNothing);
+    final advice = find.byKey(const ValueKey('analysis-recommendations'));
+    expect(find.text('Conseils'), findsOneWidget);
+    expect(
+      tester.getTopLeft(advice).dy,
+      greaterThan(tester.getTopLeft(analysis).dy),
+    );
+    expect(
+      tester.getTopLeft(analysis).dy,
+      greaterThan(tester.getTopLeft(find.byType(TopConsumersCard)).dy),
+    );
+    for (final recommendation in card.summary.recommendations) {
+      final message = find.descendant(
+        of: advice,
+        matching: find.text(recommendation.message),
+      );
+      expect(
+        find.descendant(of: advice, matching: find.text(recommendation.title)),
+        findsWidgets,
+      );
+      await tester.ensureVisible(message);
+      expect(message, findsOneWidget);
+      expect(tester.getRect(message).right, lessThanOrEqualTo(304));
+    }
+    expect(
+      find.descendant(
+        of: advice,
+        matching: find.byIcon(Icons.lightbulb_outline),
+      ),
+      findsNWidgets(card.summary.recommendations.length),
+    );
     expect(tester.takeException(), isNull);
   });
   testWidgets('persistent navigation switches tabs without stacking routes', (
@@ -519,7 +579,11 @@ void main() {
     final initial = tester.widget<PieChart>(chartFinder).data.sections;
     expect(initial.map((section) => section.radius), [16, 16]);
     await tester.ensureVisible(chartFinder);
-    await tester.tapAt(tester.getCenter(chartFinder) + const Offset(48, 0));
+    final chartData = tester.widget<PieChart>(chartFinder).data;
+    await tester.tapAt(
+      tester.getCenter(chartFinder) +
+          Offset(chartData.centerSpaceRadius + initial.first.radius / 2, 0),
+    );
     await tester.pumpAndSettle();
     expect(
       find.descendant(of: details, matching: find.text('Grand')),
