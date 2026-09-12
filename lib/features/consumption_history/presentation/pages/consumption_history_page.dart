@@ -7,11 +7,20 @@ import '../widgets/consumption_history_chart.dart';
 
 import '../providers/consumption_history_provider.dart';
 
-class ConsumptionHistoryPage extends ConsumerWidget {
+class ConsumptionHistoryPage extends ConsumerStatefulWidget {
   const ConsumptionHistoryPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ConsumptionHistoryPage> createState() =>
+      _ConsumptionHistoryPageState();
+}
+
+class _ConsumptionHistoryPageState
+    extends ConsumerState<ConsumptionHistoryPage> {
+  int _periodDays = 30;
+
+  @override
+  Widget build(BuildContext context) {
     final history = ref.watch(consumptionHistoryProvider);
     final decimal = NumberFormat('0.00', 'fr_FR');
     final fcfa = NumberFormat.decimalPattern('fr_FR');
@@ -38,9 +47,17 @@ class ConsumptionHistoryPage extends ConsumerWidget {
           ),
         ),
         data: (snapshots) {
+          final now = DateTime.now();
+          final cutoff = now.subtract(Duration(days: _periodDays));
+          final visible = snapshots
+              .where(
+                (snapshot) =>
+                    _periodDays == 0 || !snapshot.capturedAt.isBefore(cutoff),
+              )
+              .toList();
           final chartService = ref.read(consumptionHistoryChartServiceProvider);
 
-          final chartPoints = chartService.buildPoints(snapshots);
+          final chartPoints = chartService.buildPoints(visible);
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -54,9 +71,32 @@ class ConsumptionHistoryPage extends ConsumerWidget {
             child: ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(12),
-              itemCount: snapshots.isEmpty ? 1 : snapshots.length + 1,
+              itemCount: visible.isEmpty ? 2 : visible.length + 2,
               separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SegmentedButton<int>(
+                        showSelectedIcon: false,
+                        segments: const [
+                          ButtonSegment(value: 7, label: Text('7 jours')),
+                          ButtonSegment(value: 30, label: Text('30 jours')),
+                          ButtonSegment(value: 0, label: Text('Tout')),
+                        ],
+                        selected: {_periodDays},
+                        onSelectionChanged: (selection) =>
+                            setState(() => _periodDays = selection.single),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${visible.length} état${visible.length == 1 ? '' : 's'} enregistré${visible.length == 1 ? '' : 's'}',
+                        key: const ValueKey('history-visible-count'),
+                      ),
+                    ],
+                  );
+                }
                 if (snapshots.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 48),
@@ -76,11 +116,15 @@ class ConsumptionHistoryPage extends ConsumerWidget {
                   );
                 }
 
-                if (index == 0) {
+                if (visible.isEmpty) {
+                  return const Text('Aucun état enregistré sur cette période.');
+                }
+
+                if (index == 1) {
                   return ConsumptionHistoryChart(points: chartPoints);
                 }
 
-                final snapshot = snapshots[index - 1];
+                final snapshot = visible[index - 2];
 
                 return Card.filled(
                   margin: EdgeInsets.zero,

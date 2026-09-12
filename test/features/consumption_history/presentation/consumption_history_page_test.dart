@@ -13,6 +13,7 @@ import 'package:sama_courant/features/consumption_history/data/providers/consump
 import 'package:sama_courant/features/consumption_history/domain/entities/consumption_snapshot.dart';
 import 'package:sama_courant/features/consumption_history/domain/repositories/consumption_snapshot_repository.dart';
 import 'package:sama_courant/features/consumption_history/presentation/pages/consumption_history_page.dart';
+import 'package:sama_courant/features/consumption_history/presentation/widgets/consumption_history_chart.dart';
 
 import '../../appliances/fakes/fake_appliance_repository.dart';
 
@@ -51,6 +52,95 @@ Future<void> openHistory(WidgetTester tester, HistoryRepository repository) =>
 
 void main() {
   setUpAll(() => initializeDateFormatting('fr_FR'));
+  testWidgets(
+    'period filters share snapshots between chart and list on mobile',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final now = DateTime.now();
+      final entries = [2, 15, 45]
+          .map(
+            (days) => ConsumptionSnapshot(
+              capturedAt: now.subtract(Duration(days: days)),
+              createdAt: now,
+              totalMonthlyConsumptionKwh: days.toDouble(),
+              totalMonthlyCostFcfa: 100,
+              activeAppliancesCount: 1,
+              tariffConfigurationName: 'Grille $days',
+            ),
+          )
+          .toList();
+      final repository = HistoryRepository()..load = () async => entries;
+      await openHistory(tester, repository);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<SegmentedButton<int>>(find.byType(SegmentedButton<int>))
+            .selected,
+        {30},
+      );
+      for (final period in [30, 7, 0]) {
+        await tester.tap(find.text(period == 0 ? 'Tout' : '$period jours'));
+        await tester.pumpAndSettle();
+        final expected = period == 7
+            ? [2]
+            : period == 30
+            ? [2, 15]
+            : [2, 15, 45];
+        expect(
+          tester
+              .widget<Text>(find.byKey(const ValueKey('history-visible-count')))
+              .data,
+          startsWith('${expected.length} état'),
+        );
+        final points = tester
+            .widget<ConsumptionHistoryChart>(
+              find.byType(ConsumptionHistoryChart),
+            )
+            .points;
+        expect(points.map((p) => p.consumptionKwh), expected.reversed);
+        for (final days in [2, 15, 45]) {
+          expect(
+            find.text('Grille $days'),
+            expected.contains(days) ? findsOneWidget : findsNothing,
+          );
+        }
+        expect(tester.takeException(), isNull);
+      }
+      expect(repository.calls, 1);
+    },
+  );
+
+  testWidgets('empty period differs from empty history and Tout restores it', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final repository = HistoryRepository()
+      ..load = () async => [
+        ConsumptionSnapshot(
+          capturedAt: now.subtract(const Duration(days: 45)),
+          createdAt: now,
+          totalMonthlyConsumptionKwh: 1,
+          totalMonthlyCostFcfa: 1,
+          activeAppliancesCount: 1,
+          tariffConfigurationName: 'Ancienne grille',
+        ),
+      ];
+    await openHistory(tester, repository);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Aucun état enregistré sur cette période.'),
+      findsOneWidget,
+    );
+    expect(find.text('Aucun historique enregistré.'), findsNothing);
+    expect(find.byType(ConsumptionHistoryChart), findsNothing);
+    await tester.tap(find.text('Tout'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ConsumptionHistoryChart), findsOneWidget);
+    expect(find.text('Aucun état enregistré sur cette période.'), findsNothing);
+  });
   testWidgets('loading becomes an empty history', (tester) async {
     final pending = Completer<List<ConsumptionSnapshot>>();
     final repository = HistoryRepository()..load = () => pending.future;
@@ -78,6 +168,8 @@ void main() {
     final repository = HistoryRepository()
       ..load = () async => [snapshot(11), snapshot(10)];
     await openHistory(tester, repository);
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView), const Offset(0, -350));
     await tester.pumpAndSettle();
     expect(find.text('Consommation estimée : 55,50 kWh'), findsNWidgets(2));
     expect(
