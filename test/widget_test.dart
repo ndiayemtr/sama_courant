@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:sama_courant/features/analysis/presentation/pages/analysis_page.dart';
+import 'package:sama_courant/features/appliances/presentation/notifiers/appliances_notifier.dart';
+import 'package:sama_courant/features/appliances/presentation/providers/appliances_provider.dart';
+import 'package:sama_courant/features/appliances/presentation/state/appliances_state.dart';
 import 'package:sama_courant/features/dashboard/presentation/providers/dashboard_provider.dart';
 import 'package:sama_courant/features/dashboard/presentation/widgets/consumption_distribution_card.dart';
 import 'dart:async';
@@ -16,6 +20,15 @@ import 'package:sama_courant/features/appliances/domain/entities/appliance.dart'
 import 'package:sama_courant/features/appliances/domain/providers/appliance_usecase_providers.dart';
 import 'package:sama_courant/features/appliances/domain/usecases/get_appliances.dart';
 import 'features/appliances/fakes/fake_appliance_repository.dart';
+
+class AnalysisTestNotifier extends AppliancesNotifier {
+  final AppliancesState initial;
+  AnalysisTestNotifier(this.initial);
+  @override
+  AppliancesState build() => initial;
+  @override
+  Future<void> loadAppliances() async {}
+}
 
 class ManualCaptureService implements ConsumptionSnapshotService {
   final completion = Completer<int>();
@@ -102,6 +115,69 @@ Future<void> openAnalytics(
 }
 
 void main() {
+  for (final loading in [true, false]) {
+    testWidgets('Analysis handles ${loading ? 'loading' : 'error'}', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appliancesProvider.overrideWith(
+              () => AnalysisTestNotifier(
+                AppliancesState(
+                  isLoading: loading,
+                  errorMessage: loading ? null : 'private error',
+                ),
+              ),
+            ),
+          ],
+          child: const MaterialApp(home: AnalysisPage()),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(ConsumptionDistributionCard), findsNothing);
+      if (loading) {
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      } else {
+        expect(
+          find.text('Impossible de charger les appareils.'),
+          findsOneWidget,
+        );
+        expect(find.text('Réessayer'), findsOneWidget);
+        expect(find.textContaining('private error'), findsNothing);
+      }
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('Analysis reuses live distribution with selection on mobile', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await openDashboard(tester, [
+      appliance('Grand', 900),
+      appliance('Petit', 100),
+      appliance('Inactif', 500, active: false),
+    ]);
+    await tester.tap(find.text('Analyse'));
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('Comprenez où part votre consommation.'), findsOneWidget);
+    final card = tester.widget<ConsumptionDistributionCard>(
+      find.byType(ConsumptionDistributionCard),
+    );
+    expect(card.summary.consumptionKwh, 300);
+    expect(card.summary.activeCount, 2);
+    expect(find.text('Inactif'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('consumption-legend-0')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('consumption-selection')), findsOneWidget);
+    expect(find.text('270,00 kWh/mois'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
   testWidgets('persistent navigation switches tabs without stacking routes', (
     tester,
   ) async {
@@ -130,7 +206,7 @@ void main() {
       expect(appRouter.canPop(), isFalse);
       if (index == 2) {
         expect(find.text('Analyse énergétique'), findsOneWidget);
-        expect(find.text('Bientôt disponible'), findsOneWidget);
+        expect(find.text('Aucune consommation à afficher.'), findsOneWidget);
       }
       expect(tester.takeException(), isNull);
     }
