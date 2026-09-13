@@ -7,6 +7,23 @@ import 'package:sama_courant/features/budget/domain/entities/tariff_taxable_base
 
 void main() {
   group('TariffComponent', () {
+    test('stores disabled and included flags with an optional threshold', () {
+      const component = TariffComponent(
+        name: 'Composante de test',
+        type: TariffComponentType.tax,
+        calculationMethod: TariffCalculationMethod.percentage,
+        value: 5,
+        unit: '%',
+        taxableBase: TariffTaxableBase.energy,
+        includedInTariff: true,
+        enabled: false,
+        thresholdKwh: 150.5,
+      );
+      expect(component.enabled, isFalse);
+      expect(component.includedInTariff, isTrue);
+      expect(component.thresholdKwh, 150.5);
+      expect(component.value, 5);
+    });
     test('represents a per-kWh energy component', () {
       const component = TariffComponent(
         name: 'Énergie',
@@ -25,6 +42,8 @@ void main() {
       expect(component.unit, 'FCFA/kWh');
       expect(component.taxableBase, isNull);
       expect(component.includedInTariff, isFalse);
+      expect(component.enabled, isTrue);
+      expect(component.thresholdKwh, isNull);
     });
 
     test('represents a per-kWh fee', () {

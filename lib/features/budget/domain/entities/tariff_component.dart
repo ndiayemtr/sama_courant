@@ -9,7 +9,16 @@ class TariffComponent {
   final double value;
   final String unit;
   final TariffTaxableBase? taxableBase;
+
+  /// Already included in the energy price; must not be added again.
   final bool includedInTariff;
+
+  /// Configuration flag reserved for subsequent calculation rules.
+  /// Existing calculators do not yet interpret this flag.
+  final bool enabled;
+
+  /// Optional consumption threshold in kWh, without applicability logic here.
+  final double? thresholdKwh;
 
   const TariffComponent({
     required this.name,
@@ -19,5 +28,7 @@ class TariffComponent {
     required this.unit,
     required this.taxableBase,
     required this.includedInTariff,
+    this.enabled = true,
+    this.thresholdKwh,
   });
 }
