@@ -216,194 +216,204 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
       showDragHandle: true,
       builder: (context) {
         return SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              appliance.name,
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Détail de la part mensuelle estimée',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      IconButton(
-                        tooltip: 'Fermer',
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.secondaryContainer.withValues(alpha: 0.45),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
+          child: DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.85,
+            minChildSize: 0.25,
+            maxChildSize: 0.95,
+            builder: (context, scrollController) {
+              return SingleChildScrollView(
+                controller: scrollController,
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.receipt_long_outlined, size: 20),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                configuration.name,
-                                style: Theme.of(context).textTheme.titleSmall
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                appliance.name,
+                                style: Theme.of(context).textTheme.titleLarge
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 4),
+                              Text(
+                                'Détail de la part mensuelle estimée',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
                         ),
-
-                        const SizedBox(height: 8),
-
-                        Text(
-                          'Catégorie : ${configuration.customerCategory}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-
-                        const SizedBox(height: 4),
-
-                        Text(
-                          configuration.effectiveTo == null
-                              ? 'Applicable depuis le '
-                                    '${dateFormatter.format(configuration.effectiveFrom)}'
-                              : 'Applicable du '
-                                    '${dateFormatter.format(configuration.effectiveFrom)} '
-                                    'au '
-                                    '${dateFormatter.format(configuration.effectiveTo!)}',
-                          style: Theme.of(context).textTheme.bodySmall,
+                        const SizedBox(width: 12),
+                        IconButton(
+                          tooltip: 'Fermer',
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close),
                         ),
                       ],
                     ),
-                  ),
 
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  _TariffDetailRow(
-                    label: 'Consommation de l’appareil',
-                    value:
-                        '${decimalFormatter.format(appliance.monthlyConsumptionKwh)} kWh',
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  _TariffDetailRow(
-                    label: 'Consommation du foyer',
-                    value:
-                        '${decimalFormatter.format(totalMonthlyConsumptionKwh)} kWh',
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  _TariffDetailRow(
-                    label: 'Part de consommation',
-                    value:
-                        '${percentageFormatter.format(contributionPercentage)} %',
-                  ),
-
-                  const Divider(height: 28),
-
-                  Text(
-                    'Tarification globale du foyer',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  TariffCalculationDetails(
-                    result: householdResult,
-                    configuration: configuration,
-                  ),
-                  const SizedBox(height: 12),
-                  _TariffDetailRow(
-                    label: 'Coût total estimé du foyer',
-                    value:
-                        '${fcfaFormatter.format(householdResult.totalCost.round())} FCFA',
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primaryContainer.withValues(alpha: 0.45),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: _TariffDetailRow(
-                      label: 'Part estimée de cet appareil',
-                      value:
-                          '${fcfaFormatter.format(allocatedCost.round())} FCFA',
-                      emphasize: true,
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        size: 18,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.secondaryContainer
+                            .withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Le coût de cet appareil correspond à sa part de la '
-                          'consommation mensuelle totale du foyer. La grille '
-                          'tarifaire progressive est appliquée une seule fois à '
-                          'la consommation globale, puis le coût est réparti '
-                          'proportionnellement entre les appareils actifs.',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.receipt_long_outlined, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  configuration.name,
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
                               ),
-                        ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          Text(
+                            'Catégorie : ${configuration.customerCategory}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+
+                          const SizedBox(height: 4),
+
+                          Text(
+                            configuration.effectiveTo == null
+                                ? 'Applicable depuis le '
+                                      '${dateFormatter.format(configuration.effectiveFrom)}'
+                                : 'Applicable du '
+                                      '${dateFormatter.format(configuration.effectiveFrom)} '
+                                      'au '
+                                      '${dateFormatter.format(configuration.effectiveTo!)}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    _TariffDetailRow(
+                      label: 'Consommation de l’appareil',
+                      value:
+                          '${decimalFormatter.format(appliance.monthlyConsumptionKwh)} kWh',
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _TariffDetailRow(
+                      label: 'Consommation du foyer',
+                      value:
+                          '${decimalFormatter.format(totalMonthlyConsumptionKwh)} kWh',
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _TariffDetailRow(
+                      label: 'Part de consommation',
+                      value:
+                          '${percentageFormatter.format(contributionPercentage)} %',
+                    ),
+
+                    const Divider(height: 28),
+
+                    Text(
+                      'Tarification globale du foyer',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    TariffCalculationDetails(
+                      result: householdResult,
+                      configuration: configuration,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _TariffDetailRow(
+                      label: 'Coût total estimé du foyer',
+                      value:
+                          '${fcfaFormatter.format(householdResult.totalCost.round())} FCFA',
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: _TariffDetailRow(
+                        label: 'Part estimée de cet appareil',
+                        value:
+                            '${fcfaFormatter.format(allocatedCost.round())} FCFA',
+                        emphasize: true,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Le coût de cet appareil correspond à sa part de la '
+                            'consommation mensuelle totale du foyer. La grille '
+                            'tarifaire progressive est appliquée une seule fois à '
+                            'la consommation globale, puis le coût est réparti '
+                            'proportionnellement entre les appareils actifs.',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              );
+            },
           ),
         );
       },
