@@ -7,6 +7,7 @@ class TariffCalculationResult {
   final double fees;
   final double taxes;
   final double totalCost;
+  double get totalCharges => fees + taxes;
   final List<TariffTierCalculation> tierCalculations;
   final List<TariffComponentCalculation> feeCalculations;
   final List<TariffComponentCalculation> taxCalculations;

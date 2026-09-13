@@ -1,3 +1,4 @@
+import '../../../budget/presentation/widgets/tariff_calculation_details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -225,18 +226,35 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    appliance.name,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              appliance.name,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Détail de la part mensuelle estimée',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ],
+                        ),
+                      ),
 
-                  const SizedBox(height: 4),
+                      const SizedBox(width: 12),
 
-                  Text(
-                    'Détail de la part mensuelle estimée',
-                    style: Theme.of(context).textTheme.bodyMedium,
+                      IconButton(
+                        tooltip: 'Fermer',
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 20),
@@ -325,40 +343,11 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
 
                   const SizedBox(height: 12),
 
-                  ...householdResult.tierCalculations.map(
-                    (tier) => Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: _TariffDetailRow(
-                        label: 'Tranche ${tier.tierOrder}',
-                        value:
-                            '${decimalFormatter.format(tier.consumedKwh)} kWh × '
-                            '${decimalFormatter.format(tier.pricePerKwh)} FCFA/kWh',
-                        secondaryValue:
-                            '${fcfaFormatter.format(tier.cost.round())} FCFA',
-                      ),
-                    ),
+                  TariffCalculationDetails(
+                    result: householdResult,
+                    configuration: configuration,
                   ),
-
-                  if (householdResult.fees > 0) ...[
-                    const Divider(height: 28),
-                    _TariffDetailRow(
-                      label: 'Frais',
-                      value:
-                          '${fcfaFormatter.format(householdResult.fees.round())} FCFA',
-                    ),
-                  ],
-
-                  if (householdResult.taxes > 0) ...[
-                    const SizedBox(height: 12),
-                    _TariffDetailRow(
-                      label: 'Taxes',
-                      value:
-                          '${fcfaFormatter.format(householdResult.taxes.round())} FCFA',
-                    ),
-                  ],
-
-                  const Divider(height: 28),
-
+                  const SizedBox(height: 12),
                   _TariffDetailRow(
                     label: 'Coût total estimé du foyer',
                     value:
@@ -479,13 +468,11 @@ class _MonthlySummaryCard extends StatelessWidget {
 class _TariffDetailRow extends StatelessWidget {
   final String label;
   final String value;
-  final String? secondaryValue;
   final bool emphasize;
 
   const _TariffDetailRow({
     required this.label,
     required this.value,
-    this.secondaryValue,
     this.emphasize = false,
   });
 
@@ -514,13 +501,6 @@ class _TariffDetailRow extends StatelessWidget {
                 color: emphasize ? Theme.of(context).colorScheme.primary : null,
               ),
             ),
-            if (secondaryValue != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                secondaryValue!,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
           ],
         ),
       ],
