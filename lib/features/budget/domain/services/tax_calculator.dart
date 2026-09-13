@@ -78,6 +78,10 @@ class TaxCalculator {
           calculations.add(
             TariffComponentCalculation(
               name: component.name,
+              enabled: component.enabled,
+              includedInTariff: component.includedInTariff,
+              taxableBase: component.taxableBase,
+              thresholdKwh: component.thresholdKwh,
               type: component.type,
               calculationMethod: component.calculationMethod,
               baseAmount: baseAmount,
@@ -92,6 +96,10 @@ class TaxCalculator {
           calculations.add(
             TariffComponentCalculation(
               name: component.name,
+              enabled: component.enabled,
+              includedInTariff: component.includedInTariff,
+              taxableBase: component.taxableBase,
+              thresholdKwh: component.thresholdKwh,
               type: component.type,
               calculationMethod: component.calculationMethod,
               baseAmount: null,
@@ -107,6 +115,10 @@ class TaxCalculator {
           calculations.add(
             TariffComponentCalculation(
               name: component.name,
+              enabled: component.enabled,
+              includedInTariff: component.includedInTariff,
+              taxableBase: component.taxableBase,
+              thresholdKwh: component.thresholdKwh,
               type: component.type,
               calculationMethod: component.calculationMethod,
               baseAmount: applicableKwh,

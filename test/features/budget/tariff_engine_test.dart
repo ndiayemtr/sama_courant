@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sama_courant/features/budget/data/factories/woyofal_tariff_configuration_factory.dart';
 
 import 'package:sama_courant/features/budget/data/services/tariff_engine_impl.dart';
 import 'package:sama_courant/features/budget/domain/entities/billing_mode.dart';
@@ -11,6 +12,101 @@ import 'package:sama_courant/features/budget/domain/entities/tariff_tier.dart';
 
 void main() {
   const engine = TariffEngineImpl();
+  test(
+    'additional configured charges coexist with official VAT without double counting',
+    () {
+      final official = WoyofalTariffConfigurationFactory.dpp2026();
+      expect(official.components, hasLength(1));
+      final baseline = engine.calculate(
+        consumptionKwh: 300,
+        configuration: official,
+      );
+      expect(baseline.energyCost, closeTo(32773.5, 1e-8));
+      expect(baseline.taxes, closeTo(1228.41, 1e-8));
+      expect(baseline.totalCost, closeTo(34001.91, 1e-8));
+      // Synthetic charges belong to this test configuration only.
+      final additions = [
+        for (final type in [TariffComponentType.fee, TariffComponentType.tax])
+          for (final method in TariffCalculationMethod.values)
+            TariffComponent(
+              name: 'Test ${type.name} ${method.name}',
+              type: type,
+              calculationMethod: method,
+              value: 1,
+              unit: 'test',
+              taxableBase: TariffTaxableBase.energy,
+              thresholdKwh: method == TariffCalculationMethod.perKwh
+                  ? 250
+                  : null,
+              includedInTariff: false,
+            ),
+        const TariffComponent(
+          name: 'Incluse',
+          type: TariffComponentType.fee,
+          calculationMethod: TariffCalculationMethod.perKwh,
+          value: 0.7,
+          unit: 'FCFA/kWh',
+          taxableBase: null,
+          includedInTariff: true,
+        ),
+        const TariffComponent(
+          name: 'Inactive',
+          type: TariffComponentType.tax,
+          calculationMethod: TariffCalculationMethod.fixed,
+          value: 100,
+          unit: 'FCFA',
+          taxableBase: null,
+          includedInTariff: false,
+          enabled: false,
+        ),
+      ];
+      for (final components in [
+        [...official.components, ...additions],
+        [...additions.reversed, ...official.components],
+      ]) {
+        final config = TariffConfiguration(
+          name: 'Test',
+          customerCategory: official.customerCategory,
+          billingMode: official.billingMode,
+          tiers: official.tiers,
+          effectiveFrom: official.effectiveFrom,
+          effectiveTo: null,
+          isActive: true,
+          components: components,
+        );
+        final result = engine.calculate(
+          consumptionKwh: 300,
+          configuration: config,
+        );
+        expect(result.fees, closeTo(378.735, 1e-8));
+        expect(result.taxes, closeTo(1607.145, 1e-8));
+        expect(result.totalCost, closeTo(34759.38, 1e-8));
+        expect(config.components, hasLength(9));
+        final details = [...result.feeCalculations, ...result.taxCalculations];
+        expect(details, hasLength(7));
+        for (final detail in details) {
+          final source = config.components.singleWhere(
+            (c) => c.name == detail.name,
+          );
+          expect(detail.enabled, source.enabled);
+          expect(detail.includedInTariff, source.includedInTariff);
+          expect(detail.taxableBase, source.taxableBase);
+          expect(detail.thresholdKwh, source.thresholdKwh);
+          expect(detail.value, source.value);
+          expect(detail.calculationMethod, source.calculationMethod);
+          expect(detail.includedInTotal, isTrue);
+        }
+        expect(
+          result.totalCost,
+          closeTo(
+            result.energyCost +
+                details.fold<double>(0, (sum, c) => sum + c.amount),
+            1e-8,
+          ),
+        );
+      }
+    },
+  );
   test(
     'excess energy basis spans actual tier prices without changing global percentages',
     () {

@@ -54,6 +54,10 @@ class FeeCalculator {
           calculations.add(
             TariffComponentCalculation(
               name: component.name,
+              enabled: component.enabled,
+              includedInTariff: component.includedInTariff,
+              taxableBase: component.taxableBase,
+              thresholdKwh: component.thresholdKwh,
               type: component.type,
               calculationMethod: component.calculationMethod,
               baseAmount: applicableKwh,
@@ -68,6 +72,10 @@ class FeeCalculator {
           calculations.add(
             TariffComponentCalculation(
               name: component.name,
+              enabled: component.enabled,
+              includedInTariff: component.includedInTariff,
+              taxableBase: component.taxableBase,
+              thresholdKwh: component.thresholdKwh,
               type: component.type,
               calculationMethod: component.calculationMethod,
               baseAmount: null,
@@ -113,6 +121,10 @@ class FeeCalculator {
         calculations.add(
           TariffComponentCalculation(
             name: component.name,
+            enabled: component.enabled,
+            includedInTariff: component.includedInTariff,
+            taxableBase: component.taxableBase,
+            thresholdKwh: component.thresholdKwh,
             type: component.type,
             calculationMethod: component.calculationMethod,
             baseAmount: base,
