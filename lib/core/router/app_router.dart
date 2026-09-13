@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/budget/data/factories/woyofal_tariff_configuration_factory.dart';
+import '../../features/budget/presentation/pages/tariff_configuration_page.dart';
 import 'main_navigation_shell.dart';
 import '../../features/analysis/presentation/pages/analysis_page.dart';
 
@@ -12,6 +14,12 @@ import '../../features/consumption_history/presentation/pages/consumption_histor
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
   routes: [
+    GoRoute(
+      path: '/tariff',
+      builder: (context, state) => TariffConfigurationPage(
+        configuration: WoyofalTariffConfigurationFactory.dpp2026(),
+      ),
+    ),
     ShellRoute(
       builder: (context, state, child) =>
           MainNavigationShell(location: state.uri.path, child: child),

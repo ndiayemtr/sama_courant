@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:sama_courant/features/analysis/presentation/pages/analysis_page.dart';
 import 'package:sama_courant/features/appliances/presentation/notifiers/appliances_notifier.dart';
 import 'package:sama_courant/features/appliances/presentation/providers/appliances_provider.dart';
@@ -115,6 +116,21 @@ Future<void> openAnalytics(
 }
 
 void main() {
+  testWidgets('Dashboard opens tariff configuration and returns to four tabs', (
+    tester,
+  ) async {
+    await initializeDateFormatting('fr_FR');
+    await openDashboard(tester, []);
+    await tester.tap(find.byTooltip('Tarification'));
+    await tester.pumpAndSettle();
+    expect(find.text('Woyofal DPP 2026'), findsOneWidget);
+    expect(appRouter.canPop(), isTrue);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(NavigationDestination), findsNWidgets(4));
+    expect(find.text('Enregistrer l’état actuel'), findsOneWidget);
+  });
   testWidgets('Analysis omits the recommendations card when none exist', (
     tester,
   ) async {

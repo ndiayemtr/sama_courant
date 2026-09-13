@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:intl/intl.dart';
@@ -65,7 +66,16 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     final mostConsuming = summary.mostConsuming;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Sama Courant')),
+      appBar: AppBar(
+        title: const Text('Sama Courant'),
+        actions: [
+          IconButton(
+            tooltip: 'Tarification',
+            icon: const Icon(Icons.receipt_long_outlined),
+            onPressed: () => context.push('/tariff'),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
