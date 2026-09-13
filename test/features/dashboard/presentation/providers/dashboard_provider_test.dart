@@ -228,14 +228,14 @@ void main() {
       10,
     ]);
     expect(summary.consumptionKwh, 300);
-    expect(summary.costFcfa, closeTo(32773.5, 1e-9));
+    expect(summary.costFcfa, closeTo(34001.91, 1e-9));
     expect(
       summary.consumptionShares.first.allocatedCostFcfa,
-      closeTo(29496.15, 1e-9),
+      closeTo(30601.719, 1e-9),
     );
     expect(
       summary.consumptionShares.last.allocatedCostFcfa,
-      closeTo(3277.35, 1e-9),
+      closeTo(3400.191, 1e-9),
     );
     expect(
       summary.consumptionShares.fold<double>(

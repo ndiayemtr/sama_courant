@@ -132,7 +132,7 @@ void main() {
       expect(engine.consumptions, [330]);
       expect(engine.configurations.single, same(configuration));
       expect(saved.totalMonthlyConsumptionKwh, 330);
-      expect(saved.totalMonthlyCostFcfa, closeTo(36868.2, 1e-8));
+      expect(saved.totalMonthlyCostFcfa, closeTo(38833.656, 1e-8));
       expect(saved.activeAppliancesCount, 2);
       expect(saved.capturedAt, saved.createdAt);
       expect(saved.tariffConfigurationName, configuration.name);

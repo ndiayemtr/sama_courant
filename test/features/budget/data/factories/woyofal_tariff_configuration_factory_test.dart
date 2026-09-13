@@ -33,7 +33,13 @@ void main() {
     test('should not add unconfirmed fees or taxes', () {
       final configuration = WoyofalTariffConfigurationFactory.dpp2026();
 
-      expect(configuration.components, isEmpty);
+      expect(configuration.components, hasLength(1));
+      final vat = configuration.components.single;
+      expect(vat.name, 'TVA');
+      expect(vat.value, 18);
+      expect(vat.thresholdKwh, 250);
+      expect(vat.enabled, isTrue);
+      expect(vat.includedInTariff, isFalse);
     });
   });
 }

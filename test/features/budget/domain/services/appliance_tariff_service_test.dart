@@ -94,7 +94,7 @@ void main() {
         // + 100 kWh × 136.49
         // + 110 kWh × 136.49
         expect(result.energyCost, closeTo(40962.90, 0.001));
-        expect(result.totalCost, closeTo(40962.90, 0.001));
+        expect(result.totalCost, closeTo(43665.402, 0.001));
       },
     );
   });

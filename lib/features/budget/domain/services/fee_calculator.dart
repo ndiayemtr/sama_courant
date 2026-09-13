@@ -9,11 +9,13 @@ class FeeCalculator {
 
   double calculate({
     double? energyCost,
+    double Function(double thresholdKwh)? excessEnergyCost,
     required double consumptionKwh,
     required List<TariffComponent> components,
   }) {
     final breakdown = calculateBreakdown(
       energyCost: energyCost,
+      excessEnergyCost: excessEnergyCost,
       consumptionKwh: consumptionKwh,
       components: components,
     );
@@ -26,6 +28,7 @@ class FeeCalculator {
 
   List<TariffComponentCalculation> calculateBreakdown({
     double? energyCost,
+    double Function(double thresholdKwh)? excessEnergyCost,
     required double consumptionKwh,
     required List<TariffComponent> components,
   }) {
@@ -97,6 +100,11 @@ class FeeCalculator {
           continue;
         }
         final base = switch (component.taxableBase) {
+          TariffTaxableBase.excessEnergyCost =>
+            (excessEnergyCost ??
+                (throw ArgumentError('Missing tier cost resolver')))(
+              component.thresholdKwh ?? 0,
+            ),
           TariffTaxableBase.fees => fixedFees,
           TariffTaxableBase.energyAndFees ||
           TariffTaxableBase.subtotal => energyCost + fixedFees,

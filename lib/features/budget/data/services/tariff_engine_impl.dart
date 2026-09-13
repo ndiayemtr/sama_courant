@@ -42,7 +42,21 @@ class TariffEngineImpl implements TariffEngine {
       (total, calculation) => total + calculation.cost,
     );
 
+    double excessEnergyCost(double threshold) {
+      var cost = 0.0;
+      for (final calculation in tierCalculations) {
+        final tier = configuration.tiers.firstWhere(
+          (tier) => tier.tierOrder == calculation.tierOrder,
+        );
+        final end = tier.minKwh + calculation.consumedKwh;
+        final start = threshold > tier.minKwh ? threshold : tier.minKwh;
+        if (end > start) cost += (end - start) * calculation.pricePerKwh;
+      }
+      return cost;
+    }
+
     final feeCalculations = feeCalculator.calculateBreakdown(
+      excessEnergyCost: excessEnergyCost,
       energyCost: energyCost,
       consumptionKwh: consumptionKwh,
       components: configuration.components,
@@ -54,6 +68,7 @@ class TariffEngineImpl implements TariffEngine {
     );
 
     final taxCalculations = taxCalculator.calculateBreakdown(
+      excessEnergyCost: excessEnergyCost,
       consumptionKwh: consumptionKwh,
       defaultToEnergyBase: true,
       energyCost: energyCost,

@@ -703,7 +703,7 @@ void main() {
       expect(find.text('300,00 kWh'), findsOneWidget);
       // 150 × 82 + 150 × 136.49: progressive household cost.
       expect(
-        find.text('${NumberFormat.decimalPattern('fr_FR').format(32774)} FCFA'),
+        find.text('${NumberFormat.decimalPattern('fr_FR').format(34002)} FCFA'),
         findsOneWidget,
       );
       expect(find.text('Climatiseur'), findsNWidgets(2));

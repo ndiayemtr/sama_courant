@@ -11,6 +11,46 @@ import 'package:sama_courant/features/budget/domain/entities/tariff_tier.dart';
 
 void main() {
   const engine = TariffEngineImpl();
+  test(
+    'excess energy basis spans actual tier prices without changing global percentages',
+    () {
+      final configuration = TariffConfiguration(
+        name: 'Test',
+        customerCategory: 'Test',
+        billingMode: BillingMode.woyofal,
+        tiers: const [
+          TariffTier(minKwh: 0, maxKwh: 100, pricePerKwh: 2, tierOrder: 1),
+          TariffTier(minKwh: 100, maxKwh: null, pricePerKwh: 5, tierOrder: 2),
+        ],
+        effectiveFrom: DateTime(2026),
+        effectiveTo: null,
+        isActive: true,
+        components: [
+          for (final base in [
+            TariffTaxableBase.energy,
+            TariffTaxableBase.excessEnergyCost,
+          ])
+            TariffComponent(
+              name: base.name,
+              type: TariffComponentType.tax,
+              calculationMethod: TariffCalculationMethod.percentage,
+              value: 10,
+              unit: '%',
+              taxableBase: base,
+              thresholdKwh: 50,
+              includedInTariff: false,
+            ),
+        ],
+      );
+      final result = engine.calculate(
+        consumptionKwh: 150,
+        configuration: configuration,
+      );
+      expect(result.energyCost, 450);
+      expect(result.taxCalculations.map((item) => item.baseAmount), [450, 350]);
+      expect(result.totalCost, 530);
+    },
+  );
 
   TariffComponent component(
     TariffCalculationMethod method, {

@@ -1,1 +1,7 @@
-enum TariffTaxableBase { energy, fees, energyAndFees, subtotal }
+enum TariffTaxableBase {
+  energy,
+  fees,
+  energyAndFees,
+  subtotal,
+  excessEnergyCost,
+}

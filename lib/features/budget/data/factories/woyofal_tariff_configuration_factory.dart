@@ -1,4 +1,8 @@
 import '../../domain/entities/billing_mode.dart';
+import '../../domain/entities/tariff_component.dart';
+import '../../domain/entities/tariff_component_type.dart';
+import '../../domain/entities/tariff_calculation_method.dart';
+import '../../domain/entities/tariff_taxable_base.dart';
 import '../../domain/entities/tariff_configuration.dart';
 import '../../domain/entities/tariff_tier.dart';
 
@@ -20,7 +24,19 @@ class WoyofalTariffConfigurationFactory {
           tierOrder: 3,
         ),
       ],
-      components: const [],
+      components: const [
+        TariffComponent(
+          name: 'TVA',
+          type: TariffComponentType.tax,
+          calculationMethod: TariffCalculationMethod.percentage,
+          value: 18,
+          unit: '%',
+          taxableBase: TariffTaxableBase.excessEnergyCost,
+          thresholdKwh: 250,
+          enabled: true,
+          includedInTariff: false,
+        ),
+      ],
       effectiveFrom: DateTime(2026, 1, 1),
       effectiveTo: null,
       isActive: true,

@@ -8,6 +8,25 @@ void main() {
     final engine = const TariffEngineImpl();
 
     final configuration = WoyofalTariffConfigurationFactory.dpp2026();
+    for (final kwh in [0.0, 150.0, 250.0, 250.01, 300.0]) {
+      test('VAT only taxes excess energy at $kwh kWh', () {
+        final result = engine.calculate(
+          consumptionKwh: kwh,
+          configuration: configuration,
+        );
+        final base = kwh > 250 ? (kwh - 250) * 136.49 : 0.0;
+        expect(result.taxes, closeTo(base * 0.18, 1e-9));
+        expect(
+          result.totalCost,
+          closeTo(result.energyCost + base * 0.18, 1e-9),
+        );
+        if (kwh > 250) {
+          expect(result.taxCalculations.single.baseAmount, closeTo(base, 1e-9));
+        } else {
+          expect(result.taxCalculations, isEmpty);
+        }
+      });
+    }
 
     test('should calculate 100 kWh at 8,200 FCFA', () {
       final result = engine.calculate(
@@ -65,7 +84,7 @@ void main() {
       );
 
       expect(result.energyCost, closeTo(32773.50, 0.001));
-      expect(result.totalCost, closeTo(32773.50, 0.001));
+      expect(result.totalCost, closeTo(34001.91, 0.001));
 
       expect(result.tierCalculations.length, 3);
 
@@ -86,7 +105,7 @@ void main() {
       );
 
       expect(result.energyCost, closeTo(46422.50, 0.001));
-      expect(result.totalCost, closeTo(46422.50, 0.001));
+      expect(result.totalCost, closeTo(50107.73, 0.001));
 
       expect(result.tierCalculations.length, 3);
 

@@ -10,6 +10,7 @@ class TaxCalculator {
   double calculate({
     double consumptionKwh = 0,
     bool defaultToEnergyBase = false,
+    double Function(double thresholdKwh)? excessEnergyCost,
     required double energyCost,
     required double fees,
     required List<TariffComponent> components,
@@ -17,6 +18,7 @@ class TaxCalculator {
     final breakdown = calculateBreakdown(
       consumptionKwh: consumptionKwh,
       defaultToEnergyBase: defaultToEnergyBase,
+      excessEnergyCost: excessEnergyCost,
       energyCost: energyCost,
       fees: fees,
       components: components,
@@ -31,6 +33,7 @@ class TaxCalculator {
   List<TariffComponentCalculation> calculateBreakdown({
     double consumptionKwh = 0,
     bool defaultToEnergyBase = false,
+    double Function(double thresholdKwh)? excessEnergyCost,
     required double energyCost,
     required double fees,
     required List<TariffComponent> components,
@@ -57,6 +60,13 @@ class TaxCalculator {
                 (defaultToEnergyBase ? TariffTaxableBase.energy : null),
             energyCost: energyCost,
             fees: fees,
+            excessCost:
+                component.taxableBase == TariffTaxableBase.excessEnergyCost
+                ? (excessEnergyCost ??
+                      (throw ArgumentError('Missing tier cost resolver')))(
+                    component.thresholdKwh ?? 0,
+                  )
+                : 0,
           );
 
           if (baseAmount <= 0) {
@@ -114,10 +124,13 @@ class TaxCalculator {
 
   double _calculateTaxableBase({
     required TariffTaxableBase? taxableBase,
+    required double excessCost,
     required double energyCost,
     required double fees,
   }) {
     switch (taxableBase) {
+      case TariffTaxableBase.excessEnergyCost:
+        return excessCost;
       case TariffTaxableBase.energy:
         return energyCost;
 
