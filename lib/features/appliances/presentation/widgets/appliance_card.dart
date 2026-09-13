@@ -115,8 +115,11 @@ class ApplianceCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 width: double.infinity,
-                constraints: const BoxConstraints(minHeight: 48),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                constraints: const BoxConstraints(minHeight: 52),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: Theme.of(
                     context,
@@ -130,25 +133,26 @@ class ApplianceCard extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(width: 10),
+
                     Expanded(
-                      flex: 3,
                       child: Text(
                         'Part mensuelle estimée',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      flex: 2,
-                      child: Text(
-                        '${fcfaFormatter.format(monthlyCostFcfa.round())} FCFA',
-                        textAlign: TextAlign.right,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+
+                    const SizedBox(width: 12),
+
+                    Text(
+                      '${fcfaFormatter.format(monthlyCostFcfa.round())} FCFA',
+                      textAlign: TextAlign.right,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
+
+                    const SizedBox(width: 4),
                     const Icon(Icons.chevron_right, size: 20),
                   ],
                 ),
