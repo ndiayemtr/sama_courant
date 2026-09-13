@@ -8,11 +8,15 @@ class TaxCalculator {
   const TaxCalculator();
 
   double calculate({
+    double consumptionKwh = 0,
+    bool defaultToEnergyBase = false,
     required double energyCost,
     required double fees,
     required List<TariffComponent> components,
   }) {
     final breakdown = calculateBreakdown(
+      consumptionKwh: consumptionKwh,
+      defaultToEnergyBase: defaultToEnergyBase,
       energyCost: energyCost,
       fees: fees,
       components: components,
@@ -25,6 +29,8 @@ class TaxCalculator {
   }
 
   List<TariffComponentCalculation> calculateBreakdown({
+    double consumptionKwh = 0,
+    bool defaultToEnergyBase = false,
     required double energyCost,
     required double fees,
     required List<TariffComponent> components,
@@ -36,14 +42,19 @@ class TaxCalculator {
         continue;
       }
 
-      if (component.includedInTariff) {
+      if (!component.enabled ||
+          component.includedInTariff ||
+          (component.thresholdKwh != null &&
+              consumptionKwh <= component.thresholdKwh!)) {
         continue;
       }
 
       switch (component.calculationMethod) {
         case TariffCalculationMethod.percentage:
           final baseAmount = _calculateTaxableBase(
-            taxableBase: component.taxableBase,
+            taxableBase:
+                component.taxableBase ??
+                (defaultToEnergyBase ? TariffTaxableBase.energy : null),
             energyCost: energyCost,
             fees: fees,
           );
@@ -82,9 +93,18 @@ class TaxCalculator {
           break;
 
         case TariffCalculationMethod.perKwh:
-          // Une taxe au kWh n'est pas encore traitée.
-          // Elle pourra être ajoutée lorsqu'une règle
-          // réglementaire nécessitera explicitement ce mode.
+          final applicableKwh = consumptionKwh - (component.thresholdKwh ?? 0);
+          calculations.add(
+            TariffComponentCalculation(
+              name: component.name,
+              type: component.type,
+              calculationMethod: component.calculationMethod,
+              baseAmount: applicableKwh,
+              value: component.value,
+              unit: component.unit,
+              amount: applicableKwh * component.value,
+            ),
+          );
           break;
       }
     }

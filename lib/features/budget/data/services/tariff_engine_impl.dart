@@ -43,6 +43,7 @@ class TariffEngineImpl implements TariffEngine {
     );
 
     final feeCalculations = feeCalculator.calculateBreakdown(
+      energyCost: energyCost,
       consumptionKwh: consumptionKwh,
       components: configuration.components,
     );
@@ -53,6 +54,8 @@ class TariffEngineImpl implements TariffEngine {
     );
 
     final taxCalculations = taxCalculator.calculateBreakdown(
+      consumptionKwh: consumptionKwh,
+      defaultToEnergyBase: true,
       energyCost: energyCost,
       fees: fees,
       components: configuration.components,

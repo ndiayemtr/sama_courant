@@ -13,8 +13,7 @@ class TariffComponent {
   /// Already included in the energy price; must not be added again.
   final bool includedInTariff;
 
-  /// Configuration flag reserved for subsequent calculation rules.
-  /// Existing calculators do not yet interpret this flag.
+  /// Whether this component participates in the calculation.
   final bool enabled;
 
   /// Optional consumption threshold in kWh, without applicability logic here.

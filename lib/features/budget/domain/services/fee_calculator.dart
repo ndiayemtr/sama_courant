@@ -2,15 +2,18 @@ import '../entities/tariff_calculation_method.dart';
 import '../entities/tariff_component.dart';
 import '../entities/tariff_component_calculation.dart';
 import '../entities/tariff_component_type.dart';
+import '../entities/tariff_taxable_base.dart';
 
 class FeeCalculator {
   const FeeCalculator();
 
   double calculate({
+    double? energyCost,
     required double consumptionKwh,
     required List<TariffComponent> components,
   }) {
     final breakdown = calculateBreakdown(
+      energyCost: energyCost,
       consumptionKwh: consumptionKwh,
       components: components,
     );
@@ -22,6 +25,7 @@ class FeeCalculator {
   }
 
   List<TariffComponentCalculation> calculateBreakdown({
+    double? energyCost,
     required double consumptionKwh,
     required List<TariffComponent> components,
   }) {
@@ -32,20 +36,24 @@ class FeeCalculator {
         continue;
       }
 
-      if (component.includedInTariff) {
+      if (!component.enabled ||
+          component.includedInTariff ||
+          (component.thresholdKwh != null &&
+              consumptionKwh <= component.thresholdKwh!)) {
         continue;
       }
 
       switch (component.calculationMethod) {
         case TariffCalculationMethod.perKwh:
-          final amount = consumptionKwh * component.value;
+          final applicableKwh = consumptionKwh - (component.thresholdKwh ?? 0);
+          final amount = applicableKwh * component.value;
 
           calculations.add(
             TariffComponentCalculation(
               name: component.name,
               type: component.type,
               calculationMethod: component.calculationMethod,
-              baseAmount: consumptionKwh,
+              baseAmount: applicableKwh,
               value: component.value,
               unit: component.unit,
               amount: amount,
@@ -68,12 +76,45 @@ class FeeCalculator {
           break;
 
         case TariffCalculationMethod.percentage:
-          // Les frais en pourcentage sont traités par la
-          // couche fiscale et ne sont pas calculés ici.
           break;
       }
     }
 
+    // Percentage fees use the non-percentage fees as their explicit fee base.
+    // This keeps the result independent of component ordering and avoids cycles.
+    if (energyCost != null) {
+      final fixedFees = calculations.fold<double>(
+        0,
+        (sum, item) => sum + item.amount,
+      );
+      for (final component in components) {
+        if (component.type != TariffComponentType.fee ||
+            component.calculationMethod != TariffCalculationMethod.percentage ||
+            !component.enabled ||
+            component.includedInTariff ||
+            (component.thresholdKwh != null &&
+                consumptionKwh <= component.thresholdKwh!)) {
+          continue;
+        }
+        final base = switch (component.taxableBase) {
+          TariffTaxableBase.fees => fixedFees,
+          TariffTaxableBase.energyAndFees ||
+          TariffTaxableBase.subtotal => energyCost + fixedFees,
+          _ => energyCost,
+        };
+        calculations.add(
+          TariffComponentCalculation(
+            name: component.name,
+            type: component.type,
+            calculationMethod: component.calculationMethod,
+            baseAmount: base,
+            value: component.value,
+            unit: component.unit,
+            amount: base * component.value / 100,
+          ),
+        );
+      }
+    }
     return calculations;
   }
 }

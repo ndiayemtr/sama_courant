@@ -12,6 +12,135 @@ import 'package:sama_courant/features/budget/domain/entities/tariff_tier.dart';
 void main() {
   const engine = TariffEngineImpl();
 
+  TariffComponent component(
+    TariffCalculationMethod method, {
+    bool enabled = true,
+    bool included = false,
+    double? threshold,
+    TariffComponentType type = TariffComponentType.fee,
+    TariffTaxableBase? base,
+  }) => TariffComponent(
+    name: 'Test $method',
+    type: type,
+    calculationMethod: method,
+    value: 10,
+    unit: 'test',
+    taxableBase: base,
+    includedInTariff: included,
+    enabled: enabled,
+    thresholdKwh: threshold,
+  );
+  TariffConfiguration configured(List<TariffComponent> components) =>
+      TariffConfiguration(
+        name: 'Test générique',
+        customerCategory: 'Test',
+        billingMode: BillingMode.woyofal,
+        tiers: const [
+          TariffTier(minKwh: 0, maxKwh: 50, pricePerKwh: 2, tierOrder: 1),
+          TariffTier(minKwh: 50, maxKwh: null, pricePerKwh: 4, tierOrder: 2),
+        ],
+        effectiveFrom: DateTime(2026),
+        effectiveTo: null,
+        isActive: true,
+        components: components,
+      );
+
+  for (final type in [TariffComponentType.fee, TariffComponentType.tax]) {
+    for (final method in TariffCalculationMethod.values) {
+      for (final consumption in [0.0, 50.0, 100.0]) {
+        for (final threshold in <double?>[null, 50]) {
+          test(
+            '$type $method at $consumption kWh with threshold $threshold',
+            () {
+              final result = engine.calculate(
+                consumptionKwh: consumption,
+                configuration: configured([
+                  component(method, type: type, threshold: threshold),
+                ]),
+              );
+              final energy = consumption == 100 ? 300.0 : consumption * 2;
+              final applies = threshold == null || consumption > threshold;
+              final expected = !applies
+                  ? 0.0
+                  : switch (method) {
+                      TariffCalculationMethod.fixed => 10.0,
+                      TariffCalculationMethod.perKwh =>
+                        (consumption - (threshold ?? 0)) * 10,
+                      TariffCalculationMethod.percentage => energy * 0.1,
+                    };
+              expect(result.energyCost, energy);
+              expect(result.totalCost, energy + expected);
+              final details = [
+                ...result.feeCalculations,
+                ...result.taxCalculations,
+              ];
+              expect(
+                details.fold<double>(0, (sum, item) => sum + item.amount),
+                expected,
+              );
+              for (final detail in details) {
+                expect(detail.calculationMethod, method);
+                expect(detail.type, type);
+                expect(detail.includedInTotal, isTrue);
+              }
+            },
+          );
+        }
+      }
+      for (final included in [false, true]) {
+        test(
+          '$type $method is excluded when ${included ? 'included' : 'disabled'}',
+          () {
+            final result = engine.calculate(
+              consumptionKwh: 100,
+              configuration: configured([
+                component(
+                  method,
+                  type: type,
+                  included: included,
+                  enabled: included,
+                ),
+              ]),
+            );
+            expect(result.totalCost, 300);
+            expect(result.feeCalculations, isEmpty);
+            expect(result.taxCalculations, isEmpty);
+          },
+        );
+      }
+    }
+  }
+
+  test(
+    'combines components once with explicit tax base and stable fee base',
+    () {
+      final components = [
+        component(TariffCalculationMethod.fixed),
+        component(TariffCalculationMethod.perKwh, threshold: 50),
+        component(TariffCalculationMethod.percentage),
+        component(
+          TariffCalculationMethod.percentage,
+          type: TariffComponentType.tax,
+          base: TariffTaxableBase.energyAndFees,
+        ),
+        component(TariffCalculationMethod.fixed, included: true),
+        component(TariffCalculationMethod.fixed, enabled: false),
+      ];
+      for (final ordered in [components, components.reversed.toList()]) {
+        final result = engine.calculate(
+          consumptionKwh: 100,
+          configuration: configured(ordered),
+        );
+        expect(result.energyCost, 300);
+        expect(result.fees, 540);
+        expect(result.taxes, 84);
+        expect(result.totalCost, 924);
+        expect(result.feeCalculations, hasLength(3));
+        expect(result.taxCalculations, hasLength(1));
+      }
+    },
+  );
+
   group('TariffEngineImpl', () {
     final configuration = TariffConfiguration(
       name: 'Configuration de test',

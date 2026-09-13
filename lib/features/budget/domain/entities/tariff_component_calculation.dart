@@ -10,6 +10,9 @@ class TariffComponentCalculation {
   final String unit;
   final double amount;
 
+  /// Calculators only return enabled components not already included in energy.
+  bool get includedInTotal => true;
+
   const TariffComponentCalculation({
     required this.name,
     required this.type,
