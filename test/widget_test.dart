@@ -116,21 +116,42 @@ Future<void> openAnalytics(
 }
 
 void main() {
-  testWidgets('Dashboard opens tariff configuration and returns to four tabs', (
-    tester,
-  ) async {
-    await initializeDateFormatting('fr_FR');
-    await openDashboard(tester, []);
-    await tester.tap(find.byTooltip('Tarification'));
-    await tester.pumpAndSettle();
-    expect(find.text('Woyofal DPP 2026'), findsOneWidget);
-    expect(appRouter.canPop(), isTrue);
-    await tester.pageBack();
-    await tester.pumpAndSettle();
-    expect(find.byType(NavigationBar), findsOneWidget);
-    expect(find.byType(NavigationDestination), findsNWidgets(4));
-    expect(find.text('Enregistrer l’état actuel'), findsOneWidget);
-  });
+  testWidgets(
+    'Dashboard opens settings and tariff with correct back navigation on mobile',
+    (tester) async {
+      await initializeDateFormatting('fr_FR');
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await openDashboard(tester, []);
+      await tester.tap(find.byTooltip('Paramètres'));
+      await tester.pumpAndSettle();
+      expect(find.text('Paramètres'), findsOneWidget);
+      expect(
+        find.text('Woyofal DPP 2026\nVoir la configuration tarifaire'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('Tarification'));
+      await tester.pumpAndSettle();
+      expect(find.text('Woyofal DPP 2026'), findsOneWidget);
+      expect(appRouter.canPop(), isTrue);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.text('Paramètres'), findsOneWidget);
+      expect(
+        find.text('Woyofal DPP 2026\nVoir la configuration tarifaire'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(NavigationDestination), findsNWidgets(4));
+      expect(find.text('Enregistrer l’état actuel'), findsOneWidget);
+    },
+  );
   testWidgets('Analysis omits the recommendations card when none exist', (
     tester,
   ) async {

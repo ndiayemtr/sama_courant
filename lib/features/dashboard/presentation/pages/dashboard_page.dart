@@ -70,9 +70,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         title: const Text('Sama Courant'),
         actions: [
           IconButton(
-            tooltip: 'Tarification',
-            icon: const Icon(Icons.receipt_long_outlined),
-            onPressed: () => context.push('/tariff'),
+            tooltip: 'Paramètres',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => context.push('/settings'),
           ),
         ],
       ),
