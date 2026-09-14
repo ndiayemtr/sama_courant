@@ -37,7 +37,7 @@ class SettingsPage extends StatelessWidget {
                 Text(
                   'La consommation estimée dépend de la puissance de vos appareils, de leur quantité, de leur durée d’utilisation quotidienne et du nombre de jours d’utilisation.',
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 6),
                 Text(
                   'Le coût estimé utilise la configuration tarifaire Woyofal active, ainsi que les taxes et composantes tarifaires actuellement intégrées dans l’application.',
                 ),
@@ -64,6 +64,11 @@ class SettingsPage extends StatelessWidget {
                 SizedBox(height: 4),
                 Text(
                   'Sama Courant vous aide à mieux comprendre et estimer la consommation électrique de votre foyer.',
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Version 1.0.0',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -101,7 +106,9 @@ class _InformationCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
             ],
