@@ -94,13 +94,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Bienvenue ⚡', style: theme.textTheme.titleLarge),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Suivez votre consommation électrique.',
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 16),
                   Text('Vue d’ensemble', style: theme.textTheme.titleLarge),
                   const SizedBox(height: 16),
                   if (state.isLoading)

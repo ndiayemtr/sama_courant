@@ -247,71 +247,127 @@ void main() {
   ) async {
     tester.view.physicalSize = const Size(320, 800);
     tester.view.devicePixelRatio = 1;
+
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+
     await openDashboard(tester, [
       appliance('Grand', 900),
       appliance('Petit', 100),
       appliance('Inactif', 500, active: false),
     ]);
+
     await tester.tap(find.text('Analyse'));
     await tester.pumpAndSettle();
+
+    // Navigation principale conservée.
     expect(find.byType(NavigationBar), findsOneWidget);
-    expect(find.text('Comprenez où part votre consommation.'), findsOneWidget);
-    final card = tester.widget<ConsumptionDistributionCard>(
-      find.byType(ConsumptionDistributionCard),
+
+    // Titre de la page.
+    expect(find.text('Analyse énergétique'), findsOneWidget);
+
+    // L'ancien sous-titre a été volontairement supprimé.
+    expect(find.text('Comprenez où part votre consommation.'), findsNothing);
+
+    // Répartition.
+    final distributionFinder = find.byType(ConsumptionDistributionCard);
+    expect(distributionFinder, findsOneWidget);
+
+    final distributionCard = tester.widget<ConsumptionDistributionCard>(
+      distributionFinder,
     );
-    expect(card.summary.consumptionKwh, 300);
-    expect(card.summary.activeCount, 2);
-    expect(
-      tester.widget<TopConsumersCard>(find.byType(TopConsumersCard)).summary,
-      same(card.summary),
-    );
-    expect(
-      tester.getTopLeft(find.byType(TopConsumersCard)).dy,
-      greaterThan(
-        tester.getTopLeft(find.byType(ConsumptionDistributionCard)).dy,
-      ),
-    );
+
+    expect(distributionCard.summary.consumptionKwh, 300);
+    expect(distributionCard.summary.activeCount, 2);
+
+    // L'appareil inactif ne participe pas à l'analyse.
     expect(find.text('Inactif'), findsNothing);
+
+    // Sélection interactive depuis la légende.
     await tester.tap(find.byKey(const ValueKey('consumption-legend-0')));
     await tester.pumpAndSettle();
+
     expect(find.byKey(const ValueKey('consumption-selection')), findsOneWidget);
     expect(find.text('270,00 kWh/mois'), findsOneWidget);
+
+    // Analyse / À retenir.
     final analysis = find.byKey(const ValueKey('analysis-summary'));
+
     await tester.ensureVisible(analysis);
-    expect(tester.widget<Text>(analysis).data, card.summary.analysisSummary);
-    expect(find.text('Analyse rapide'), findsOneWidget);
-    final advice = find.byKey(const ValueKey('analysis-recommendations'));
-    expect(find.text('Conseils'), findsOneWidget);
+
     expect(
-      tester.getTopLeft(advice).dy,
-      greaterThan(tester.getTopLeft(analysis).dy),
+      tester.widget<Text>(analysis).data,
+      distributionCard.summary.analysisSummary,
     );
+
+    expect(find.text('À retenir'), findsOneWidget);
+
+    // Top consommateurs.
+    final topConsumersFinder = find.byType(TopConsumersCard);
+
+    expect(topConsumersFinder, findsOneWidget);
+
+    expect(
+      tester.widget<TopConsumersCard>(topConsumersFinder).summary,
+      same(distributionCard.summary),
+    );
+
+    // Nouvel ordre :
+    // Répartition -> À retenir -> Top consommateurs.
     expect(
       tester.getTopLeft(analysis).dy,
-      greaterThan(tester.getTopLeft(find.byType(TopConsumersCard)).dy),
+      greaterThan(tester.getTopLeft(distributionFinder).dy),
     );
-    for (final recommendation in card.summary.recommendations) {
+
+    await tester.ensureVisible(topConsumersFinder);
+
+    expect(
+      tester.getTopLeft(topConsumersFinder).dy,
+      greaterThan(tester.getTopLeft(analysis).dy),
+    );
+
+    // Conseils.
+    final advice = find.byKey(const ValueKey('analysis-recommendations'));
+
+    expect(advice, findsOneWidget);
+    expect(find.text('Conseils'), findsOneWidget);
+
+    await tester.ensureVisible(advice);
+
+    expect(
+      tester.getTopLeft(advice).dy,
+      greaterThan(tester.getTopLeft(topConsumersFinder).dy),
+    );
+
+    for (final recommendation in distributionCard.summary.recommendations) {
+      final title = find.descendant(
+        of: advice,
+        matching: find.text(recommendation.title),
+      );
+
       final message = find.descendant(
         of: advice,
         matching: find.text(recommendation.message),
       );
-      expect(
-        find.descendant(of: advice, matching: find.text(recommendation.title)),
-        findsWidgets,
-      );
+
+      expect(title, findsWidgets);
+
       await tester.ensureVisible(message);
+
       expect(message, findsOneWidget);
+
+      // Responsive 320 px.
       expect(tester.getRect(message).right, lessThanOrEqualTo(304));
     }
+
     expect(
       find.descendant(
         of: advice,
         matching: find.byIcon(Icons.lightbulb_outline),
       ),
-      findsNWidgets(card.summary.recommendations.length),
+      findsNWidgets(distributionCard.summary.recommendations.length),
     );
+
     expect(tester.takeException(), isNull);
   });
   testWidgets('persistent navigation switches tabs without stacking routes', (

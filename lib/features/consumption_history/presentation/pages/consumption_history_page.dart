@@ -80,21 +80,28 @@ class _ConsumptionHistoryPageState
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SegmentedButton<int>(
-                        showSelectedIcon: false,
-                        segments: const [
-                          ButtonSegment(value: 7, label: Text('7 jours')),
-                          ButtonSegment(value: 30, label: Text('30 jours')),
-                          ButtonSegment(value: 0, label: Text('Tout')),
-                        ],
-                        selected: {_periodDays},
-                        onSelectionChanged: (selection) =>
-                            setState(() => _periodDays = selection.single),
+                      SizedBox(
+                        width: double.infinity,
+                        child: SegmentedButton<int>(
+                          showSelectedIcon: false,
+                          segments: const [
+                            ButtonSegment(value: 7, label: Text('7 jours')),
+                            ButtonSegment(value: 30, label: Text('30 jours')),
+                            ButtonSegment(value: 0, label: Text('Tout')),
+                          ],
+                          selected: {_periodDays},
+                          onSelectionChanged: (selection) =>
+                              setState(() => _periodDays = selection.single),
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${visible.length} état${visible.length == 1 ? '' : 's'} enregistré${visible.length == 1 ? '' : 's'}',
+                        '${visible.length} état${visible.length == 1 ? '' : 's'} '
+                        'enregistré${visible.length == 1 ? '' : 's'}',
                         key: const ValueKey('history-visible-count'),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   );
@@ -130,8 +137,11 @@ class _ConsumptionHistoryPageState
                         Text(
                           date.format(snapshot.capturedAt),
                           style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w600),
+                              ?.copyWith(fontWeight: FontWeight.w700),
                         ),
+
+                        const SizedBox(height: 8),
+                        const Divider(height: 1),
                         const SizedBox(height: 12),
 
                         _HistoryInfoRow(

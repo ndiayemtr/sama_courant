@@ -146,11 +146,14 @@ void main() {
   ) async {
     tester.view.physicalSize = const Size(320, 800);
     tester.view.devicePixelRatio = 1;
+
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+
     var details = false;
     var edited = false;
     var deleted = false;
+
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -166,13 +169,54 @@ void main() {
         ),
       ),
     );
+
+    await tester.pumpAndSettle();
+
+    // Informations principales.
+    expect(find.text('Réfrigérateur'), findsOneWidget);
     expect(find.text('Actif'), findsOneWidget);
     expect(find.text('1,50 kWh'), findsOneWidget);
     expect(find.text('45,00 kWh'), findsOneWidget);
+    expect(find.text('Part mensuelle estimée'), findsOneWidget);
+    expect(find.textContaining('FCFA'), findsOneWidget);
+
+    // Les actions ne sont plus directement visibles.
+    expect(find.text('Modifier'), findsNothing);
+    expect(find.text('Supprimer'), findsNothing);
+
+    // Détail tarifaire.
     await tester.tap(find.text('Part mensuelle estimée'));
+    await tester.pump();
+
+    expect(details, isTrue);
+
+    // Ouvrir le menu d'actions.
+    expect(find.byIcon(Icons.more_vert), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Modifier'), findsOneWidget);
+    expect(find.text('Supprimer'), findsOneWidget);
+
+    // Modifier.
     await tester.tap(find.text('Modifier'));
+    await tester.pumpAndSettle();
+
+    expect(edited, isTrue);
+
+    // Le popup se ferme après sélection :
+    // il faut donc le rouvrir pour tester Supprimer.
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Supprimer'), findsOneWidget);
+
     await tester.tap(find.text('Supprimer'));
-    expect(details && edited && deleted, isTrue);
+    await tester.pumpAndSettle();
+
+    expect(deleted, isTrue);
+
     expect(tester.takeException(), isNull);
   });
 

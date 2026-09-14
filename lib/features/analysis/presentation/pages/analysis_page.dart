@@ -37,11 +37,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Comprenez où part votre consommation.',
-              style: theme.textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 12),
             if (state.isLoading)
               const Center(child: CircularProgressIndicator())
             else if (state.errorMessage != null) ...[
@@ -63,9 +58,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
               ),
             ] else ...[
               ConsumptionDistributionCard(summary: summary),
-              const SizedBox(height: 12),
-              TopConsumersCard(summary: summary),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Card.filled(
                 margin: EdgeInsets.zero,
                 child: Padding(
@@ -76,14 +69,14 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                       Row(
                         children: [
                           Icon(
-                            Icons.insights_outlined,
+                            Icons.lightbulb_outline,
                             size: 20,
                             color: theme.colorScheme.primary,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Analyse rapide',
+                              'À retenir',
                               style: theme.textTheme.titleSmall,
                             ),
                           ),
@@ -99,8 +92,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                   ),
                 ),
               ),
+              const SizedBox(height: 8),
+              TopConsumersCard(summary: summary),
+
               if (summary.recommendations.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Card.filled(
                   key: const ValueKey('analysis-recommendations'),
                   margin: EdgeInsets.zero,
