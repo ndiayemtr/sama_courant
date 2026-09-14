@@ -232,7 +232,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Enregistrer l’état actuel'), findsOneWidget);
+    expect(find.text('Ajouter mon premier appareil'), findsOneWidget);
     await tester.ensureVisible(
       find.descendant(
         of: find.byType(NavigationBar),

@@ -149,7 +149,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(NavigationBar), findsOneWidget);
       expect(find.byType(NavigationDestination), findsNWidgets(4));
-      expect(find.text('Enregistrer l’état actuel'), findsOneWidget);
+      expect(find.text('Ajouter mon premier appareil'), findsOneWidget);
     },
   );
   testWidgets('Analysis omits the recommendations card when none exist', (
@@ -300,7 +300,7 @@ void main() {
     await openDashboard(tester, []);
     expect(find.text('Voir l’historique'), findsNothing);
     expect(find.text('Mes appareils'), findsNothing);
-    expect(find.text('Enregistrer l’état actuel'), findsOneWidget);
+    expect(find.text('Ajouter mon premier appareil'), findsOneWidget);
     for (final index in [2, 3, 0, 2, 0]) {
       final label = ['Dashboard', 'Historique', 'Analyse', 'Appareils'][index];
       await tester.tap(
@@ -365,7 +365,9 @@ void main() {
     'capture failure shows a friendly error and re-enables the button',
     (tester) async {
       final service = ManualCaptureService();
-      await openDashboard(tester, [], captureService: service);
+      await openDashboard(tester, [
+        appliance('Lampe', 10),
+      ], captureService: service);
       final button = find.byKey(const ValueKey('capture-snapshot'));
       await tester.ensureVisible(button);
       await tester.tap(button);
@@ -385,13 +387,15 @@ void main() {
     'capture works with no active appliances and survives leaving the page',
     (tester) async {
       final service = ManualCaptureService();
-      await openDashboard(tester, [], captureService: service);
+      await openDashboard(tester, [
+        appliance('Lampe', 10, active: false),
+      ], captureService: service);
       final button = find.byKey(const ValueKey('capture-snapshot'));
       await tester.ensureVisible(button);
       await tester.tap(button);
       await tester.pump();
       expect(service.calls, 1);
-      expect(service.received, isEmpty);
+      expect(service.received!.single.isActive, isFalse);
       await tester.pumpWidget(const SizedBox());
       service.completion.complete(1);
       await tester.pumpAndSettle();
@@ -709,16 +713,38 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Dashboard with no appliances shows zero KPI and navigation', (
+  testWidgets('empty Dashboard welcomes users and opens add form on mobile', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await openDashboard(tester, []);
     expect(find.text('Sama Courant'), findsOneWidget);
-    expect(find.text('Bienvenue ⚡'), findsOneWidget);
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('0,00 kWh'), findsOneWidget);
-    expect(find.text('0 FCFA'), findsOneWidget);
-    expect(find.text('—'), findsOneWidget);
+    expect(find.text('Bienvenue dans Sama Courant'), findsOneWidget);
+    for (final label in [
+      'Résumé mensuel',
+      'Plus énergivore',
+      'Conseils',
+      '0,00 kWh',
+      'Enregistrer l’état actuel',
+    ]) {
+      expect(find.text(label), findsNothing);
+    }
+    expect(find.byType(NavigationBar), findsOneWidget);
+    final cta = find.text('Ajouter mon premier appareil');
+    await tester.ensureVisible(cta);
+    expect(tester.takeException(), isNull);
+    // The narrow-screen assertion targets the new welcome state only.
+    tester.view.physicalSize = const Size(800, 800);
+    await tester.pumpAndSettle();
+    await tester.tap(cta);
+    await tester.pumpAndSettle();
+    expect(appRouter.canPop(), isTrue);
+    expect(find.text('Ajouter un appareil'), findsWidgets);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
     expect(find.text('Aucune consommation à afficher.'), findsNothing);
     expect(find.text('Aucun appareil actif à comparer.'), findsNothing);
     expect(find.byType(PieChart), findsNothing);
