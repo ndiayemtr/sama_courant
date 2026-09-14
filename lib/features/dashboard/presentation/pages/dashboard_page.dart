@@ -1,3 +1,4 @@
+import '../../../../core/widgets/empty_state_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -82,40 +83,13 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             !state.isLoading &&
                 state.errorMessage == null &&
                 state.appliances.isEmpty
-            ? Card.filled(
-                margin: EdgeInsets.zero,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Icon(
-                        Icons.bolt_outlined,
-                        size: 36,
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Bienvenue dans Sama Courant',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Ajoutez vos appareils pour commencer à estimer votre consommation et votre coût mensuel.',
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        onPressed: () => context.push('/appliances/add'),
-                        child: const Text(
-                          'Ajouter mon premier appareil',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+            ? EmptyStateCard(
+                icon: Icons.bolt_outlined,
+                title: 'Bienvenue dans Sama Courant',
+                message:
+                    'Ajoutez vos appareils pour commencer à estimer votre consommation et votre coût mensuel.',
+                actionLabel: 'Ajouter mon premier appareil',
+                onAction: () => context.push('/appliances/add'),
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

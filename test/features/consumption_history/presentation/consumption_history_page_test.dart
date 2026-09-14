@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:sama_courant/core/widgets/empty_state_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
@@ -51,6 +52,58 @@ Future<void> openHistory(WidgetTester tester, HistoryRepository repository) =>
     );
 
 void main() {
+  testWidgets('empty states have one usable CTA at 320px with enlarged text', (
+    tester,
+  ) async {
+    await initializeDateFormatting('fr_FR');
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    appRouter.go('/');
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          consumptionSnapshotRepositoryProvider.overrideWithValue(
+            HistoryRepository(),
+          ),
+          getAppliancesProvider.overrideWithValue(
+            GetAppliances(FakeApplianceRepository()),
+          ),
+        ],
+        child: const SamaCourantApp(),
+      ),
+    );
+    for (final entry in {
+      '/': 'Ajouter mon premier appareil',
+      '/appliances': 'Ajouter un appareil',
+      '/analysis': 'Voir mes appareils',
+      '/history': 'Aller au Dashboard',
+    }.entries) {
+      appRouter.go(entry.key);
+      await tester.pumpAndSettle();
+      final card = find.byType(EmptyStateCard);
+      expect(card, findsOneWidget);
+      final button = find.descendant(
+        of: card,
+        matching: find.byType(FilledButton),
+      );
+      expect(button, findsOneWidget);
+      expect(find.text(entry.value), findsOneWidget);
+      expect(find.byType(FloatingActionButton), findsNothing);
+      await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
+      expect(button.hitTestable(), findsOneWidget);
+      expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
+      expect(tester.takeException(), isNull);
+    }
+    await tester.tap(find.text('Aller au Dashboard'));
+    await tester.pumpAndSettle();
+    expect(find.text('Ajouter mon premier appareil'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
   setUpAll(() => initializeDateFormatting('fr_FR'));
   testWidgets(
     'period filters share snapshots between chart and list on mobile',
