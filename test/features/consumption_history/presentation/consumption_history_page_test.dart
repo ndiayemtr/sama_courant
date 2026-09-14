@@ -134,8 +134,9 @@ void main() {
       find.text('Aucun état enregistré sur cette période.'),
       findsOneWidget,
     );
-    expect(find.text('Aucun historique enregistré.'), findsNothing);
+    expect(find.text('Aucun historique enregistré'), findsNothing);
     expect(find.byType(ConsumptionHistoryChart), findsNothing);
+    expect(find.text('Aller au Dashboard'), findsNothing);
     await tester.tap(find.text('Tout'));
     await tester.pumpAndSettle();
     expect(find.byType(ConsumptionHistoryChart), findsOneWidget);
@@ -148,7 +149,7 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     pending.complete([]);
     await tester.pumpAndSettle();
-    expect(find.text('Aucun historique enregistré.'), findsOneWidget);
+    expect(find.text('Aucun historique enregistré'), findsOneWidget);
     expect(
       find.text(
         'Enregistrez un état depuis le Dashboard pour commencer le suivi.',
@@ -247,9 +248,11 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Historique'), findsNWidgets(2));
-    expect(find.text('Aucun historique enregistré.'), findsOneWidget);
-    appRouter.go('/');
+    expect(find.text('Aucun historique enregistré'), findsOneWidget);
+    await tester.ensureVisible(find.text('Aller au Dashboard'));
+    await tester.tap(find.text('Aller au Dashboard'));
     await tester.pumpAndSettle();
+    expect(find.text('Ajouter mon premier appareil'), findsOneWidget);
     repository.load = () async => [snapshot(11)];
     await tester.ensureVisible(
       find.descendant(

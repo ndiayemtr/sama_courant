@@ -116,6 +116,30 @@ Future<void> openAnalytics(
 }
 
 void main() {
+  for (final active in [false, true]) {
+    testWidgets(
+      'Analysis empty CTA handles inactive or zero consumption: $active',
+      (tester) async {
+        tester.view.physicalSize = const Size(320, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await openDashboard(tester, [
+          appliance('Lampe', active ? 0 : 100, active: active),
+        ]);
+        await tester.tap(find.text('Analyse'));
+        await tester.pumpAndSettle();
+        expect(find.text('Pas encore de données à analyser'), findsOneWidget);
+        expect(find.byType(PieChart), findsNothing);
+        final cta = find.text('Voir mes appareils');
+        await tester.ensureVisible(cta);
+        expect(tester.takeException(), isNull);
+        await tester.tap(cta);
+        await tester.pumpAndSettle();
+        expect(find.text('Mes appareils'), findsOneWidget);
+      },
+    );
+  }
   testWidgets(
     'Dashboard opens settings and tariff with correct back navigation on mobile',
     (tester) async {
@@ -181,7 +205,7 @@ void main() {
       findsNothing,
     );
     expect(find.text('Conseils'), findsNothing);
-    expect(find.text('Analyse rapide'), findsOneWidget);
+    expect(find.text('Pas encore de données à analyser'), findsOneWidget);
   });
   for (final loading in [true, false]) {
     testWidgets('Analysis handles ${loading ? 'loading' : 'error'}', (
@@ -318,12 +342,9 @@ void main() {
       expect(appRouter.canPop(), isFalse);
       if (index == 2) {
         expect(find.text('Analyse énergétique'), findsOneWidget);
-        expect(find.text('Aucune consommation à afficher.'), findsOneWidget);
-        expect(find.text('Aucun appareil actif à comparer.'), findsOneWidget);
-        expect(
-          find.text('Aucun appareil actif pour analyser la consommation.'),
-          findsOneWidget,
-        );
+        expect(find.text('Pas encore de données à analyser'), findsOneWidget);
+        expect(find.text('Voir mes appareils'), findsOneWidget);
+        expect(find.text('Pas encore de données à analyser'), findsOneWidget);
       }
       expect(tester.takeException(), isNull);
     }
@@ -752,6 +773,8 @@ void main() {
     await tester.tap(find.text('Appareils'));
     await tester.pumpAndSettle();
     expect(find.text('Aucun appareil enregistré'), findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsNothing);
+    expect(find.text('Ajouter un appareil'), findsOneWidget);
   });
 
   testWidgets(

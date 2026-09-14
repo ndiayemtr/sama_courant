@@ -93,14 +93,16 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Mes appareils')),
       body: _buildBody(context, ref, state),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Le formulaire d'ajout sera ajouté dans une prochaine étape.
-          context.push('/appliances/add');
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Ajouter'),
-      ),
+      floatingActionButton: state.appliances.isEmpty
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () {
+                // Le formulaire d'ajout sera ajouté dans une prochaine étape.
+                context.push('/appliances/add');
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Ajouter'),
+            ),
     );
   }
 

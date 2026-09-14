@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/empty_state_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../appliances/presentation/providers/appliances_provider.dart';
 import '../../../dashboard/presentation/providers/dashboard_provider.dart';
@@ -49,6 +51,15 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                     ref.read(appliancesProvider.notifier).loadAppliances(),
                 icon: const Icon(Icons.refresh),
                 label: const Text('Réessayer'),
+              ),
+            ] else if (summary.consumptionKwh <= 0) ...[
+              EmptyStateCard(
+                icon: Icons.insights_outlined,
+                title: 'Pas encore de données à analyser',
+                message:
+                    'Ajoutez et activez des appareils pour voir la répartition de votre consommation.',
+                actionLabel: 'Voir mes appareils',
+                onAction: () => context.go('/appliances'),
               ),
             ] else ...[
               ConsumptionDistributionCard(summary: summary),

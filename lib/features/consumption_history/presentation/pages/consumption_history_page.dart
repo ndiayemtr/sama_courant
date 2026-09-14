@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/empty_state_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -98,21 +100,13 @@ class _ConsumptionHistoryPageState
                   );
                 }
                 if (snapshots.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 48),
-                    child: Column(
-                      children: [
-                        Icon(Icons.history_outlined, size: 40),
-                        SizedBox(height: 12),
-                        Text('Aucun historique enregistré.'),
-                        SizedBox(height: 4),
-                        Text(
-                          'Enregistrez un état depuis le Dashboard '
-                          'pour commencer le suivi.',
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
+                  return EmptyStateCard(
+                    icon: Icons.history_outlined,
+                    title: 'Aucun historique enregistré',
+                    message:
+                        'Enregistrez un état depuis le Dashboard pour commencer le suivi.',
+                    actionLabel: 'Aller au Dashboard',
+                    onAction: () => context.go('/'),
                   );
                 }
 
