@@ -81,7 +81,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
           children: [
             _buildHeader(context),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             _buildSection(
               context,
@@ -102,7 +102,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             _buildSection(
               context,
@@ -119,7 +119,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
                     keyboardType: TextInputType.number,
                     validator: _validatePower,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   _buildTextField(
                     controller: _quantityController,
                     label: 'Quantité',
@@ -133,44 +133,78 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             _buildSection(
               context,
               icon: Icons.schedule,
               title: 'Utilisation',
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _hoursPerDayController,
-                      label: 'Heures / jour',
-                      hint: 'Ex. 8',
-                      icon: Icons.access_time,
-                      suffixText: 'h',
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 330;
+
+                  if (isNarrow) {
+                    return Column(
+                      children: [
+                        _buildTextField(
+                          controller: _hoursPerDayController,
+                          label: 'Heures / jour',
+                          hint: 'Ex. 8',
+                          icon: Icons.access_time,
+                          suffixText: 'h',
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          validator: _validateHoursPerDay,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildTextField(
+                          controller: _daysPerMonthController,
+                          label: 'Jours / mois',
+                          hint: 'Ex. 30',
+                          icon: Icons.calendar_month,
+                          suffixText: 'j',
+                          keyboardType: TextInputType.number,
+                          validator: _validateDaysPerMonth,
+                        ),
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          controller: _hoursPerDayController,
+                          label: 'Heures / jour',
+                          hint: 'Ex. 8',
+                          icon: Icons.access_time,
+                          suffixText: 'h',
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          validator: _validateHoursPerDay,
+                        ),
                       ),
-                      validator: _validateHoursPerDay,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _daysPerMonthController,
-                      label: 'Jours / mois',
-                      hint: 'Ex. 30',
-                      icon: Icons.calendar_month,
-                      suffixText: 'j',
-                      keyboardType: TextInputType.number,
-                      validator: _validateDaysPerMonth,
-                    ),
-                  ),
-                ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildTextField(
+                          controller: _daysPerMonthController,
+                          label: 'Jours / mois',
+                          hint: 'Ex. 30',
+                          icon: Icons.calendar_month,
+                          suffixText: 'j',
+                          keyboardType: TextInputType.number,
+                          validator: _validateDaysPerMonth,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
             if (_isEditMode) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Card(
                 child: SwitchListTile(
                   value: _isActive,
@@ -197,7 +231,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
               ),
             ],
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
 
             FilledButton.icon(
               onPressed: _isSaving ? null : _onSave,
@@ -421,7 +455,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(20),
@@ -429,13 +463,13 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
       child: Row(
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: colorScheme.primary,
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.bolt, color: colorScheme.onPrimary, size: 30),
+            child: Icon(Icons.bolt, color: colorScheme.onPrimary, size: 26),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -443,7 +477,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Nouvel appareil',
+                  _isEditMode ? 'Modifier l’appareil' : 'Nouvel appareil',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onPrimaryContainer,
@@ -451,7 +485,9 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Ajoutez un appareil pour suivre sa consommation.',
+                  _isEditMode
+                      ? 'Mettez à jour les informations de cet appareil.'
+                      : 'Ajoutez un appareil pour suivre sa consommation.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onPrimaryContainer,
                   ),
