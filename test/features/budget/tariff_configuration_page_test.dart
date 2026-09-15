@@ -26,7 +26,7 @@ void main() {
       ),
     );
     expect(find.text('Woyofal DPP 2026'), findsOneWidget);
-    expect(find.text('Date d’application : 01/01/2026'), findsOneWidget);
+    expect(find.text('Depuis le 01/01/2026'), findsOneWidget);
     for (final label in [
       'Tranche 1',
       'Tranche 2',
@@ -42,7 +42,9 @@ void main() {
     expect(find.text('TVA'), findsOneWidget);
     expect(find.text('18 %'), findsOneWidget);
     expect(find.text('Applicable au-delà de 250 kWh'), findsOneWidget);
-    final basis = find.text('Assiette : coût de l’énergie excédentaire');
+    final basis = find.text(
+      'Calculée sur le coût de l’énergie consommée au-delà du seuil.',
+    );
     await tester.ensureVisible(basis);
     await tester.pumpAndSettle();
     expect(basis, findsOneWidget);

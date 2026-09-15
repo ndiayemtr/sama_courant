@@ -28,7 +28,10 @@ class _ConsumptionHistoryPageState
     final fcfa = NumberFormat.decimalPattern('fr_FR');
     final date = DateFormat("dd/MM/yyyy 'à' HH:mm", 'fr_FR');
     return Scaffold(
-      appBar: AppBar(title: const Text('Historique')),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: const Text('Historique'),
+      ),
       body: history.when(
         skipLoadingOnRefresh: false,
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -39,7 +42,7 @@ class _ConsumptionHistoryPageState
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text('Impossible de charger l’historique.'),
-                TextButton.icon(
+                FilledButton.icon(
                   onPressed: () => ref.invalidate(consumptionHistoryProvider),
                   icon: const Icon(Icons.refresh),
                   label: const Text('Réessayer'),

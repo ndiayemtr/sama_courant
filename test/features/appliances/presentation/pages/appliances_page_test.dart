@@ -123,6 +123,30 @@ ProviderContainer createContainer(ApplianceRepository repository) {
 }
 
 void main() {
+  testWidgets('delete confirmation shows floating success', (tester) async {
+    final container = createContainer(
+      TestApplianceRepository(appliances: [createTestAppliance()]),
+    );
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: AppliancesPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Supprimer'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Supprimer'));
+    await tester.pumpAndSettle();
+    expect(find.text('Appareil supprimé avec succès.'), findsOneWidget);
+    expect(
+      tester.widget<SnackBar>(find.byType(SnackBar)).behavior,
+      SnackBarBehavior.floating,
+    );
+  });
   testWidgets('retry clears loading error after successful reload', (
     tester,
   ) async {
@@ -289,7 +313,9 @@ void main() {
 
     expect(find.text('Une erreur est survenue'), findsOneWidget);
 
-    expect(find.textContaining('Erreur de chargement'), findsOneWidget);
+    expect(find.text('Impossible de charger les appareils.'), findsOneWidget);
+    expect(find.textContaining('Erreur de chargement'), findsNothing);
+    expect(find.textContaining('Exception'), findsNothing);
 
     expect(find.text('Réessayer'), findsOneWidget);
 

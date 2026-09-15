@@ -9,9 +9,11 @@ import 'package:sama_courant/features/appliances/presentation/pages/appliance_fo
 
 class FakeApplianceRepository implements ApplianceRepository {
   Appliance? createdAppliance;
+  bool fail = false;
 
   @override
   Future<int> create(Appliance appliance) async {
+    if (fail) throw StateError('private database details');
     createdAppliance = appliance;
     return 1;
   }
@@ -28,6 +30,7 @@ class FakeApplianceRepository implements ApplianceRepository {
 
   @override
   Future<bool> update(Appliance appliance) async {
+    if (fail) throw StateError('private database details');
     return true;
   }
 
@@ -47,6 +50,11 @@ GoRouter createTestRouter() {
       GoRoute(
         path: '/appliances/add',
         builder: (context, state) => const ApplianceFormPage(),
+      ),
+      GoRoute(
+        path: '/appliances/edit',
+        builder: (context, state) =>
+            ApplianceFormPage(appliance: state.extra! as Appliance),
       ),
     ],
   );
@@ -79,6 +87,67 @@ Future<void> tapSave(WidgetTester tester) async {
 }
 
 void main() {
+  for (final edit in [false, true]) {
+    for (final fail in [false, true]) {
+      testWidgets('form feedback edit=$edit fail=$fail', (tester) async {
+        final repository = FakeApplianceRepository()..fail = fail;
+        final router = createTestRouter();
+        addTearDown(router.dispose);
+        await tester.pumpWidget(createTestWidget(repository, router));
+        router.push(
+          edit ? '/appliances/edit' : '/appliances/add',
+          extra: edit
+              ? Appliance(
+                  id: 1,
+                  name: 'Lampe',
+                  category: 'Cuisine',
+                  powerWatts: 100,
+                  quantity: 1,
+                  hoursPerDay: 8,
+                  daysPerMonth: 30,
+                  isActive: true,
+                  createdAt: DateTime(2026),
+                  updatedAt: DateTime(2026),
+                )
+              : null,
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(BackButton), findsOneWidget);
+        expect(find.byType(NavigationBar), findsNothing);
+        if (!edit) {
+          await enterField(tester, 'Nom de l’appareil', 'Lampe');
+          final category = find.byType(DropdownButtonFormField<String>);
+          await tester.ensureVisible(category);
+          await tester.tap(category);
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Cuisine').last);
+          await enterField(tester, 'Puissance', '100');
+          await enterField(tester, 'Heures / jour', '8');
+        }
+        await tapSave(tester);
+        await tester.pumpAndSettle();
+        final message = fail
+            ? (edit
+                  ? 'Impossible de modifier l’appareil. Veuillez réessayer.'
+                  : 'Impossible d’enregistrer l’appareil. Veuillez réessayer.')
+            : (edit
+                  ? 'Appareil modifié avec succès.'
+                  : 'Appareil enregistré avec succès.');
+        expect(find.text(message), findsOneWidget);
+        expect(
+          tester.widget<SnackBar>(find.byType(SnackBar)).behavior,
+          SnackBarBehavior.floating,
+        );
+        expect(find.textContaining('private database details'), findsNothing);
+        expect(find.textContaining('StateError'), findsNothing);
+        if (fail) {
+          await tester.pageBack();
+          await tester.pumpAndSettle();
+        }
+        expect(find.text('Page précédente'), findsOneWidget);
+      });
+    }
+  }
   group('ApplianceFormPage', () {
     testWidgets('affiche les erreurs lorsque le formulaire est vide', (
       tester,

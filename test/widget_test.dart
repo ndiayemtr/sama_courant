@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sama_courant/features/analysis/presentation/pages/analysis_page.dart';
+import 'package:sama_courant/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:sama_courant/features/appliances/presentation/notifiers/appliances_notifier.dart';
 import 'package:sama_courant/features/appliances/presentation/providers/appliances_provider.dart';
 import 'package:sama_courant/features/appliances/presentation/state/appliances_state.dart';
@@ -29,6 +30,21 @@ class AnalysisTestNotifier extends AppliancesNotifier {
   AppliancesState build() => initial;
   @override
   Future<void> loadAppliances() async {}
+}
+
+class RetryTestNotifier extends AppliancesNotifier {
+  int calls = 0;
+  @override
+  AppliancesState build() => const AppliancesState();
+  @override
+  Future<void> loadAppliances() async {
+    calls++;
+    state = calls == 1
+        ? const AppliancesState(
+            errorMessage: 'Exception: private database details',
+          )
+        : const AppliancesState();
+  }
 }
 
 class ManualCaptureService implements ConsumptionSnapshotService {
@@ -116,6 +132,27 @@ Future<void> openAnalytics(
 }
 
 void main() {
+  for (final page in [const DashboardPage(), const AnalysisPage()]) {
+    testWidgets('${page.runtimeType} retry clears a safe error', (
+      tester,
+    ) async {
+      final notifier = RetryTestNotifier();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [appliancesProvider.overrideWith(() => notifier)],
+          child: MaterialApp(home: page),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Impossible de charger les appareils.'), findsOneWidget);
+      expect(find.textContaining('private database details'), findsNothing);
+      expect(find.textContaining('Exception'), findsNothing);
+      await tester.tap(find.widgetWithText(FilledButton, 'Réessayer'));
+      await tester.pumpAndSettle();
+      expect(notifier.calls, 2);
+      expect(find.text('Impossible de charger les appareils.'), findsNothing);
+    });
+  }
   for (final active in [false, true]) {
     testWidgets(
       'Analysis empty CTA handles inactive or zero consumption: $active',
@@ -152,22 +189,22 @@ void main() {
       await tester.tap(find.byTooltip('Paramètres'));
       await tester.pumpAndSettle();
       expect(find.text('Paramètres'), findsOneWidget);
-      expect(
-        find.text('Woyofal DPP 2026\nVoir la configuration tarifaire'),
-        findsOneWidget,
-      );
+      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(find.text('Woyofal DPP 2026'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.tap(find.text('Tarification'));
       await tester.pumpAndSettle();
       expect(find.text('Woyofal DPP 2026'), findsOneWidget);
+      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.byType(BackButton), findsOneWidget);
       expect(appRouter.canPop(), isTrue);
       await tester.pageBack();
       await tester.pumpAndSettle();
       expect(find.text('Paramètres'), findsOneWidget);
-      expect(
-        find.text('Woyofal DPP 2026\nVoir la configuration tarifaire'),
-        findsOneWidget,
-      );
+      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(find.text('Woyofal DPP 2026'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pageBack();
       await tester.pumpAndSettle();
@@ -396,6 +433,9 @@ void main() {
         index,
       );
       expect(appRouter.canPop(), isFalse);
+      expect(find.byType(BackButton), findsNothing);
+      expect(find.byType(AppBar), findsOneWidget);
+      expect(find.byType(NavigationDestination), findsNWidgets(4));
       if (index == 2) {
         expect(find.text('Analyse énergétique'), findsOneWidget);
         expect(find.text('Pas encore de données à analyser'), findsOneWidget);
@@ -434,6 +474,10 @@ void main() {
       service.completion.complete(42);
       await tester.pumpAndSettle();
       expect(find.text('État actuel enregistré.'), findsOneWidget);
+      expect(
+        tester.widget<SnackBar>(find.byType(SnackBar)).behavior,
+        SnackBarBehavior.floating,
+      );
       expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
     },
   );
@@ -456,6 +500,10 @@ void main() {
         findsOneWidget,
       );
       expect(find.textContaining('private database details'), findsNothing);
+      expect(
+        tester.widget<SnackBar>(find.byType(SnackBar)).behavior,
+        SnackBarBehavior.floating,
+      );
       expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
     },
   );

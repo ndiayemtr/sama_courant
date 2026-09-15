@@ -1,3 +1,4 @@
+import '../../../appliances/presentation/widgets/appliances_error.dart';
 import '../../../../core/widgets/empty_state_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -32,14 +33,18 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             configuration: WoyofalTariffConfigurationFactory.dpp2026(),
           );
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('État actuel enregistré.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('État actuel enregistré.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Impossible d’enregistrer l’état actuel.'),
+          behavior: SnackBarBehavior.floating,
         ),
       );
     } finally {
@@ -68,6 +73,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Sama Courant'),
         actions: [
           IconButton(
@@ -77,204 +83,204 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child:
-            !state.isLoading &&
-                state.errorMessage == null &&
-                state.appliances.isEmpty
-            ? EmptyStateCard(
-                icon: Icons.bolt_outlined,
-                title: 'Bienvenue dans Sama Courant',
-                message:
-                    'Ajoutez vos appareils pour commencer à estimer votre consommation et votre coût mensuel.',
-                actionLabel: 'Ajouter mon premier appareil',
-                onAction: () => context.push('/appliances/add'),
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Vue d’ensemble', style: theme.textTheme.titleLarge),
-                  const SizedBox(height: 16),
-                  if (state.isLoading)
-                    const Center(child: CircularProgressIndicator())
-                  else if (state.errorMessage != null)
-                    Column(
+      body: state.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : state.errorMessage != null
+          ? AppliancesError(
+              message: 'Impossible de charger les appareils.',
+              onRetry: () =>
+                  ref.read(appliancesProvider.notifier).loadAppliances(),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: state.appliances.isEmpty
+                  ? EmptyStateCard(
+                      icon: Icons.bolt_outlined,
+                      title: 'Bienvenue dans Sama Courant',
+                      message:
+                          'Ajoutez vos appareils pour commencer à estimer votre consommation et votre coût mensuel.',
+                      actionLabel: 'Ajouter mon premier appareil',
+                      onAction: () => context.push('/appliances/add'),
+                    )
+                  : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Impossible de charger les appareils.'),
-                        TextButton.icon(
-                          onPressed: () => ref
-                              .read(appliancesProvider.notifier)
-                              .loadAppliances(),
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Réessayer'),
+                        Text(
+                          'Vue d’ensemble',
+                          style: theme.textTheme.titleLarge,
                         ),
-                      ],
-                    )
-                  else
-                    Column(
-                      children: [
-                        Card.filled(
-                          margin: EdgeInsets.zero,
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Résumé mensuel',
-                                  style: theme.textTheme.titleSmall,
-                                ),
-                                const SizedBox(height: 4),
-                                _SummaryRow(
-                                  icon: Icons.electrical_services,
-                                  label: 'Appareils actifs',
-                                  value: '${summary.activeCount}',
-                                ),
-                                _SummaryRow(
-                                  icon: Icons.bolt_outlined,
-                                  label: 'Consommation mensuelle',
-                                  value:
-                                      '${decimal.format(summary.consumptionKwh)} kWh',
-                                ),
-                                _SummaryRow(
-                                  icon: Icons.payments_outlined,
-                                  label: 'Coût mensuel estimé',
-                                  value:
-                                      '${fcfa.format(summary.costFcfa.round())} FCFA',
-                                  emphasize: true,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Card.filled(
-                          margin: EdgeInsets.zero,
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Plus énergivore',
-                                  style: theme.textTheme.titleSmall,
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  mostConsuming?.name ?? '—',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                if (mostConsuming != null) ...[
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          '${decimal.format(mostConsuming.monthlyConsumptionKwh)} kWh/mois',
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          '≈ ${NumberFormat('0.0', 'fr_FR').format(summary.consumptionKwh <= 0 ? 0 : mostConsuming.monthlyConsumptionKwh / summary.consumptionKwh * 100)} % du total',
-                                          textAlign: TextAlign.right,
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(
-                                                color: theme
-                                                    .colorScheme
-                                                    .onSurfaceVariant,
-                                              ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  if (!state.isLoading && state.errorMessage == null) ...[
-                    const SizedBox(height: 10),
-                    Card.filled(
-                      key: const ValueKey('dashboard-recommendations'),
-                      margin: EdgeInsets.zero,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 16),
+                        Column(
                           children: [
-                            Text('Conseils', style: theme.textTheme.titleSmall),
-                            for (final recommendation
-                                in summary.recommendations)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: Row(
+                            Card.filled(
+                              margin: EdgeInsets.zero,
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(
-                                      Icons.lightbulb_outline,
-                                      size: 20,
-                                      color: theme.colorScheme.primary,
+                                    Text(
+                                      'Résumé mensuel',
+                                      style: theme.textTheme.titleSmall,
                                     ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            recommendation.title,
-                                            style: theme.textTheme.labelLarge,
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            recommendation.message,
-                                            style: theme.textTheme.bodyMedium,
-                                          ),
-                                        ],
-                                      ),
+                                    const SizedBox(height: 4),
+                                    _SummaryRow(
+                                      icon: Icons.electrical_services,
+                                      label: 'Appareils actifs',
+                                      value: '${summary.activeCount}',
+                                    ),
+                                    _SummaryRow(
+                                      icon: Icons.bolt_outlined,
+                                      label: 'Consommation mensuelle',
+                                      value:
+                                          '${decimal.format(summary.consumptionKwh)} kWh',
+                                    ),
+                                    _SummaryRow(
+                                      icon: Icons.payments_outlined,
+                                      label: 'Coût mensuel estimé',
+                                      value:
+                                          '${fcfa.format(summary.costFcfa.round())} FCFA',
+                                      emphasize: true,
                                     ),
                                   ],
                                 ),
                               ),
+                            ),
+                            const SizedBox(height: 10),
+                            Card.filled(
+                              margin: EdgeInsets.zero,
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Plus énergivore',
+                                      style: theme.textTheme.titleSmall,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      mostConsuming?.name ?? '—',
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    if (mostConsuming != null) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              '${decimal.format(mostConsuming.monthlyConsumptionKwh)} kWh/mois',
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              '≈ ${NumberFormat('0.0', 'fr_FR').format(summary.consumptionKwh <= 0 ? 0 : mostConsuming.monthlyConsumptionKwh / summary.consumptionKwh * 100)} % du total',
+                                              textAlign: TextAlign.right,
+                                              style: theme.textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    color: theme
+                                                        .colorScheme
+                                                        .onSurfaceVariant,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
                           ],
                         ),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      key: const ValueKey('capture-snapshot'),
-                      onPressed:
-                          _isCapturing ||
-                              state.isLoading ||
-                              state.errorMessage != null
-                          ? null
-                          : _captureSnapshot,
-                      icon: _isCapturing
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                semanticsLabel: 'Enregistrement en cours',
+                        if (!state.isLoading && state.errorMessage == null) ...[
+                          const SizedBox(height: 10),
+                          Card.filled(
+                            key: const ValueKey('dashboard-recommendations'),
+                            margin: EdgeInsets.zero,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Conseils',
+                                    style: theme.textTheme.titleSmall,
+                                  ),
+                                  for (final recommendation
+                                      in summary.recommendations)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            Icons.lightbulb_outline,
+                                            size: 20,
+                                            color: theme.colorScheme.primary,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  recommendation.title,
+                                                  style: theme
+                                                      .textTheme
+                                                      .labelLarge,
+                                                ),
+                                                const SizedBox(height: 2),
+                                                Text(
+                                                  recommendation.message,
+                                                  style: theme
+                                                      .textTheme
+                                                      .bodyMedium,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
                               ),
-                            )
-                          : const Icon(Icons.save_outlined),
-                      label: const Text('Enregistrer l’état actuel'),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            key: const ValueKey('capture-snapshot'),
+                            onPressed:
+                                _isCapturing ||
+                                    state.isLoading ||
+                                    state.errorMessage != null
+                                ? null
+                                : _captureSnapshot,
+                            icon: _isCapturing
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      semanticsLabel: 'Enregistrement en cours',
+                                    ),
+                                  )
+                                : const Icon(Icons.save_outlined),
+                            label: const Text('Enregistrer l’état actuel'),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-      ),
+            ),
     );
   }
 }

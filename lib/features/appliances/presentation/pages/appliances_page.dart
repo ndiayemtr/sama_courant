@@ -91,7 +91,10 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     final state = ref.watch(appliancesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mes appareils')),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: const Text('Mes appareils'),
+      ),
       body: _buildBody(context, ref, state),
       floatingActionButton: state.appliances.isEmpty
           ? null
@@ -117,7 +120,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
 
     if (state.errorMessage != null) {
       return AppliancesError(
-        message: state.errorMessage!,
+        message: 'Impossible de charger les appareils.',
         onRetry: () {
           ref.read(appliancesProvider.notifier).loadAppliances();
         },
