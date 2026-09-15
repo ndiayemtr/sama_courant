@@ -21,25 +21,25 @@ class SettingsPage extends StatelessWidget {
                 titleAlignment: ListTileTitleAlignment.center,
                 leading: const Icon(Icons.receipt_long_outlined),
                 title: const Text('Tarification'),
-                subtitle: Text(
-                  '${configuration.name}\nVoir la configuration tarifaire',
-                ),
-                isThreeLine: true,
+                subtitle: Text(configuration.name),
+                isThreeLine: false,
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push('/tariff'),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             const _InformationCard(
               icon: Icons.info_outline,
               title: 'Comment fonctionnent les estimations ?',
               children: [
                 Text(
-                  'La consommation estimée dépend de la puissance de vos appareils, de leur quantité, de leur durée d’utilisation quotidienne et du nombre de jours d’utilisation.',
+                  'La consommation estimée dépend de la puissance, de la quantité '
+                  'et de la durée d’utilisation de vos appareils.',
                 ),
                 SizedBox(height: 6),
                 Text(
-                  'Le coût estimé utilise la configuration tarifaire Woyofal active, ainsi que les taxes et composantes tarifaires actuellement intégrées dans l’application.',
+                  'Le coût estimé utilise la tarification Woyofal active ainsi que '
+                  'les taxes actuellement intégrées dans Sama Courant.',
                 ),
                 SizedBox(height: 12),
                 Text(
@@ -52,8 +52,8 @@ class SettingsPage extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            const _InformationCard(
+            const SizedBox(height: 10),
+            _InformationCard(
               icon: Icons.bolt_outlined,
               title: 'À propos de Sama Courant',
               children: [
@@ -68,7 +68,9 @@ class SettingsPage extends StatelessWidget {
                 SizedBox(height: 8),
                 Text(
                   'Version 1.0.0',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),

@@ -25,22 +25,51 @@ class TariffConfigurationPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Voici la tarification utilisée pour estimer votre consommation et votre coût.',
+            Text(
+              'Tarification utilisée pour vos estimations',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             _Section(
               title: configuration.isActive
                   ? 'Configuration active'
                   : 'Configuration inactive',
               children: [
-                Text(
-                  configuration.name,
-                  style: Theme.of(context).textTheme.titleMedium,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        configuration.name,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    if (configuration.isActive)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'Active',
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 6),
+
                 Text(
-                  'Date d’application : ${date.format(configuration.effectiveFrom)}',
+                  'Depuis le ${date.format(configuration.effectiveFrom)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 if (configuration.effectiveTo != null)
                   Text(
@@ -79,15 +108,18 @@ class TariffConfigurationPage extends StatelessWidget {
                           child: Text(
                             '${decimal.format(tier.pricePerKwh)} FCFA/kWh',
                             textAlign: TextAlign.right,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                         ),
+                        if (tier != tiers.last) const Divider(height: 10),
                       ],
                     ),
                   ),
               ],
             ),
             if (components.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               _Section(
                 title: 'Taxes et composantes',
                 children: [
@@ -126,12 +158,22 @@ class TariffConfigurationPage extends StatelessWidget {
                           if (component.calculationMethod ==
                               TariffCalculationMethod.percentage)
                             Text(
-                              'Assiette : ${switch (component.taxableBase) {
-                                TariffTaxableBase.excessEnergyCost => 'coût de l’énergie excédentaire',
-                                TariffTaxableBase.fees => 'redevances',
-                                TariffTaxableBase.energyAndFees || TariffTaxableBase.subtotal => 'énergie et redevances',
-                                _ => 'coût de l’énergie',
-                              }}',
+                              switch (component.taxableBase) {
+                                TariffTaxableBase.excessEnergyCost =>
+                                  'Calculée sur le coût de l’énergie consommée au-delà du seuil.',
+                                TariffTaxableBase.fees =>
+                                  'Calculée sur les redevances applicables.',
+                                TariffTaxableBase.energyAndFees ||
+                                TariffTaxableBase.subtotal =>
+                                  'Calculée sur l’énergie et les redevances applicables.',
+                                _ => 'Calculée sur le coût de l’énergie.',
+                              },
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
                             ),
                           if (component.includedInTariff)
                             const Text('Inclus dans le tarif'),
@@ -141,9 +183,31 @@ class TariffConfigurationPage extends StatelessWidget {
                 ],
               ),
             ],
-            const SizedBox(height: 12),
-            const Text(
-              'Les estimations de Sama Courant sont calculées à partir de cette configuration tarifaire.',
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.secondaryContainer.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Ces tarifs sont utilisés par Sama Courant pour calculer vos estimations.',
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
