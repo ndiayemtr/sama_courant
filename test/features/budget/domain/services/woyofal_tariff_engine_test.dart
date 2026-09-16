@@ -8,6 +8,18 @@ void main() {
     final engine = const TariffEngineImpl();
 
     final configuration = WoyofalTariffConfigurationFactory.dpp2026();
+    test('rejects a non-finite cost from finite consumption', () {
+      const consumptionKwh = 2e306;
+      expect(consumptionKwh.isFinite, isTrue);
+      expect(
+        () => engine.calculate(
+          consumptionKwh: consumptionKwh,
+          configuration: configuration,
+        ),
+        throwsArgumentError,
+      );
+    });
+
     for (final kwh in [0.0, 150.0, 150.01, 250.0, 250.01, 300.0]) {
       test('VAT only taxes excess energy at $kwh kWh', () {
         final result = engine.calculate(

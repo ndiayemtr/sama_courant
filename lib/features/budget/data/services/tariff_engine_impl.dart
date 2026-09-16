@@ -83,6 +83,10 @@ class TariffEngineImpl implements TariffEngine {
 
     final totalCost = energyCost + fees + taxes;
 
+    if (!totalCost.isFinite) {
+      throw ArgumentError('Coût tarifaire hors limites numériques.');
+    }
+
     return TariffCalculationResult(
       consumptionKwh: consumptionKwh,
       energyCost: energyCost,

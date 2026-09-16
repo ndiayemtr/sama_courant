@@ -13,6 +13,51 @@ void main() {
 
     final configuration = WoyofalTariffConfigurationFactory.dpp2026();
 
+    test('allocates household cost to active appliances and handles zero', () {
+      Appliance appliance(double kwh, {bool active = true}) => Appliance(
+        name: 'Test',
+        category: 'Cuisine',
+        powerWatts: kwh * 1000,
+        quantity: 1,
+        hoursPerDay: 1,
+        daysPerMonth: 1,
+        isActive: active,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+      final appliances = [
+        appliance(100),
+        appliance(200),
+        appliance(500, active: false),
+        appliance(0),
+      ];
+      final shares = appliances
+          .map(
+            (item) => service.calculateAllocatedMonthlyCost(
+              appliance: item,
+              appliances: appliances,
+              configuration: configuration,
+            ),
+          )
+          .toList();
+      expect(shares[0], closeTo(34001.91 / 3, 1e-9));
+      expect(shares[1], closeTo(34001.91 * 2 / 3, 1e-9));
+      expect(shares[2], 0);
+      expect(shares[3], 0);
+      expect(
+        shares.fold<double>(0, (sum, value) => sum + value),
+        closeTo(34001.91, 1e-9),
+      );
+      expect(
+        service.calculateAllocatedMonthlyCost(
+          appliance: appliances.last,
+          appliances: [appliances.last],
+          configuration: configuration,
+        ),
+        0,
+      );
+    });
+
     test('should calculate monthly cost for a 100W appliance used 5h/day', () {
       final appliance = Appliance(
         name: 'Réfrigérateur',
