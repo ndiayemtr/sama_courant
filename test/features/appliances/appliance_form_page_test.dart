@@ -92,7 +92,7 @@ Future<void> tapSave(WidgetTester tester) async {
   await tester.drag(find.byType(ListView).first, const Offset(0, -500));
   await tester.pumpAndSettle();
 
-  final saveButton = find.byType(FilledButton, skipOffstage: false);
+  final saveButton = find.byType(FilledButton);
   await tester.scrollUntilVisible(
     saveButton,
     200,

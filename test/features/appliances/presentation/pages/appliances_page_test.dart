@@ -81,6 +81,13 @@ class PendingApplianceRepository extends TestApplianceRepository {
   Future<List<Appliance>> getAll() => loadCompleter.future;
 }
 
+class FailedDeleteRepository extends TestApplianceRepository {
+  FailedDeleteRepository() : super(appliances: [createTestAppliance()]);
+  @override
+  Future<void> delete(int id) async =>
+      throw StateError('private deletion failure');
+}
+
 class RetryApplianceRepository extends TestApplianceRepository {
   bool failed = false;
 
@@ -123,6 +130,34 @@ ProviderContainer createContainer(ApplianceRepository repository) {
 }
 
 void main() {
+  testWidgets('failed deletion never reports success or technical details', (
+    tester,
+  ) async {
+    final container = createContainer(FailedDeleteRepository());
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: AppliancesPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Supprimer'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Supprimer'));
+    await tester.pumpAndSettle();
+    expect(find.text('Appareil supprimé avec succès.'), findsNothing);
+    expect(find.textContaining('private deletion failure'), findsNothing);
+    expect(
+      find.text('Impossible de terminer la suppression. Veuillez réessayer.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Réessayer'));
+    await tester.pumpAndSettle();
+    expect(find.text('Réfrigérateur'), findsOneWidget);
+  });
   testWidgets('delete confirmation shows floating success', (tester) async {
     final container = createContainer(
       TestApplianceRepository(appliances: [createTestAppliance()]),

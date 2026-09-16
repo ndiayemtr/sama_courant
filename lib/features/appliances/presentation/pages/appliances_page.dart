@@ -80,8 +80,12 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Appareil supprimé avec succès.'),
+      SnackBar(
+        content: Text(
+          ref.read(appliancesProvider).errorMessage == null
+              ? 'Appareil supprimé avec succès.'
+              : 'Impossible de terminer la suppression. Veuillez réessayer.',
+        ),
         behavior: SnackBarBehavior.floating,
       ),
     );

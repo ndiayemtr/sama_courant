@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../domain/entities/appliance.dart';
 import '../../domain/providers/appliance_usecase_providers.dart';
+import '../providers/appliances_provider.dart';
 
 class ApplianceFormPage extends ConsumerStatefulWidget {
   final Appliance? appliance;
@@ -405,6 +406,12 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
         debugPrint('Appliance enregistré avec succès.');
         debugPrint('ID: $id');
       }
+
+      if (!mounted) {
+        return;
+      }
+
+      await ref.read(appliancesProvider.notifier).loadAppliances();
 
       if (!mounted) {
         return;

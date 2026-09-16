@@ -22,6 +22,11 @@ import 'package:sama_courant/features/appliances/domain/entities/appliance.dart'
 import 'package:sama_courant/features/appliances/domain/providers/appliance_usecase_providers.dart';
 import 'package:sama_courant/features/appliances/domain/usecases/get_appliances.dart';
 import 'features/appliances/fakes/fake_appliance_repository.dart';
+import 'features/appliances/appliance_form_page_test.dart' as form;
+import 'package:sama_courant/features/appliances/data/providers/appliance_repository_provider.dart';
+import 'package:sama_courant/features/consumption_history/data/providers/consumption_snapshot_repository_provider.dart';
+import 'features/consumption_history/domain/services/consumption_snapshot_service_test.dart'
+    as snapshots;
 
 class AnalysisTestNotifier extends AppliancesNotifier {
   final AppliancesState initial;
@@ -132,6 +137,133 @@ Future<void> openAnalytics(
 }
 
 void main() {
+  testWidgets('MVP refreshes after add edit toggle and last deletion', (
+    tester,
+  ) async {
+    await initializeDateFormatting('fr_FR');
+    final repository = FakeApplianceRepository();
+    final historyRepository = snapshots.RecordingRepository();
+    appRouter.go('/');
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          applianceRepositoryProvider.overrideWithValue(repository),
+          consumptionSnapshotRepositoryProvider.overrideWithValue(
+            historyRepository,
+          ),
+        ],
+        child: const SamaCourantApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Bienvenue dans Sama Courant'), findsOneWidget);
+    await tester.tap(find.text('Ajouter mon premier appareil'));
+    await tester.pumpAndSettle();
+    await form.enterField(tester, 'Nom', 'Lampe MVP');
+    final category = find.byType(DropdownButtonFormField<String>);
+    await tester.ensureVisible(category);
+    await tester.pumpAndSettle();
+    await tester.tap(category);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cuisine').last);
+    await form.enterField(tester, 'Puissance', '100');
+    await form.enterField(tester, 'Heures/j', '8');
+    await form.tapSave(tester);
+    await tester.pumpAndSettle();
+    expect(find.text('Résumé mensuel'), findsOneWidget);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SamaCourantApp)),
+    );
+    expect(container.read(dashboardProvider).consumptionKwh, 24);
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Appareils'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Lampe MVP'), findsOneWidget);
+    for (final active in [false, true]) {
+      await tester.tap(find.byTooltip('Actions'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Modifier'));
+      await tester.pumpAndSettle();
+      await form.enterField(tester, 'Nom', 'Lampe modifiée');
+      await form.enterField(tester, 'Puissance', '200');
+      await tester.scrollUntilVisible(
+        find.byType(SwitchListTile),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byType(SwitchListTile));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(SwitchListTile));
+      await form.tapSave(tester);
+      await tester.pumpAndSettle();
+      expect(find.text('Lampe modifiée'), findsOneWidget);
+      expect(
+        container.read(appliancesProvider).appliances.single.isActive,
+        active,
+      );
+      expect(container.read(dashboardProvider).consumptionKwh, active ? 48 : 0);
+      await tester.pump(const Duration(seconds: 4));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Dashboard'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final capture = find.byKey(const ValueKey('capture-snapshot'));
+    await tester.ensureVisible(capture);
+    await tester.pumpAndSettle();
+    await tester.tap(capture);
+    await tester.pumpAndSettle();
+    expect(find.text('État actuel enregistré.'), findsOneWidget);
+    expect(historyRepository.saved.single.totalMonthlyConsumptionKwh, 48);
+    expect(
+      historyRepository.saved.single.totalMonthlyCostFcfa,
+      container.read(dashboardProvider).costFcfa,
+    );
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Historique'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('1 état enregistré'), findsOneWidget);
+    expect(find.textContaining('48,00'), findsWidgets);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Appareils'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Supprimer'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Supprimer'));
+    await tester.pumpAndSettle();
+    expect(find.text('Aucun appareil enregistré'), findsOneWidget);
+    expect(await repository.getAll(), isEmpty);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Dashboard'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Bienvenue dans Sama Courant'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
   for (final page in [const DashboardPage(), const AnalysisPage()]) {
     testWidgets('${page.runtimeType} retry clears a safe error', (
       tester,
