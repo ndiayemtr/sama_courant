@@ -60,10 +60,22 @@ GoRouter createTestRouter() {
   );
 }
 
-Widget createTestWidget(FakeApplianceRepository repository, GoRouter router) {
+Widget createTestWidget(
+  FakeApplianceRepository repository,
+  GoRouter router, {
+  double textScale = 1,
+}) {
   return ProviderScope(
     overrides: [applianceRepositoryProvider.overrideWithValue(repository)],
-    child: MaterialApp.router(routerConfig: router),
+    child: MaterialApp.router(
+      routerConfig: router,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(
+          context,
+        ).copyWith(textScaler: TextScaler.linear(textScale)),
+        child: child!,
+      ),
+    ),
   );
 }
 
@@ -81,6 +93,12 @@ Future<void> tapSave(WidgetTester tester) async {
   await tester.pumpAndSettle();
 
   final saveButton = find.byType(FilledButton, skipOffstage: false);
+  await tester.scrollUntilVisible(
+    saveButton,
+    200,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.pumpAndSettle();
   await tester.ensureVisible(saveButton);
   await tester.pumpAndSettle();
   await tester.tap(saveButton);
@@ -90,10 +108,16 @@ void main() {
   for (final edit in [false, true]) {
     for (final fail in [false, true]) {
       testWidgets('form feedback edit=$edit fail=$fail', (tester) async {
+        tester.view.physicalSize = const Size(320, 800);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
         final repository = FakeApplianceRepository()..fail = fail;
         final router = createTestRouter();
         addTearDown(router.dispose);
-        await tester.pumpWidget(createTestWidget(repository, router));
+        await tester.pumpWidget(
+          createTestWidget(repository, router, textScale: 1.5),
+        );
         router.push(
           edit ? '/appliances/edit' : '/appliances/add',
           extra: edit
@@ -115,14 +139,14 @@ void main() {
         expect(find.byType(BackButton), findsOneWidget);
         expect(find.byType(NavigationBar), findsNothing);
         if (!edit) {
-          await enterField(tester, 'Nom de l’appareil', 'Lampe');
+          await enterField(tester, 'Nom', 'Lampe');
           final category = find.byType(DropdownButtonFormField<String>);
           await tester.ensureVisible(category);
           await tester.tap(category);
           await tester.pumpAndSettle();
           await tester.tap(find.text('Cuisine').last);
           await enterField(tester, 'Puissance', '100');
-          await enterField(tester, 'Heures / jour', '8');
+          await enterField(tester, 'Heures/j', '8');
         }
         await tapSave(tester);
         await tester.pumpAndSettle();
@@ -189,7 +213,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      await enterField(tester, 'Nom de l’appareil', 'Réfrigérateur');
+      await enterField(tester, 'Nom', 'Réfrigérateur');
       await enterField(tester, 'Puissance', '-100');
 
       await tapSave(tester);
@@ -214,7 +238,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      await enterField(tester, 'Heures / jour', '25');
+      await enterField(tester, 'Heures/j', '25');
 
       await tapSave(tester);
 
@@ -238,7 +262,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      await enterField(tester, 'Jours / mois', '32');
+      await enterField(tester, 'Jours/mois', '32');
 
       await tapSave(tester);
 
@@ -262,7 +286,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      await enterField(tester, 'Nom de l’appareil', 'Réfrigérateur');
+      await enterField(tester, 'Nom', 'Réfrigérateur');
 
       final categoryField = find.byType(DropdownButtonFormField<String>);
       await tester.ensureVisible(categoryField);
@@ -274,8 +298,8 @@ void main() {
 
       await enterField(tester, 'Puissance', '150');
       await enterField(tester, 'Quantité', '1');
-      await enterField(tester, 'Heures / jour', '8');
-      await enterField(tester, 'Jours / mois', '30');
+      await enterField(tester, 'Heures/j', '8');
+      await enterField(tester, 'Jours/mois', '30');
 
       await tapSave(tester);
 

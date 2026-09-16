@@ -1,3 +1,4 @@
+import '../../../../core/widgets/page_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/tariff_configuration.dart';
@@ -19,7 +20,7 @@ class TariffConfigurationPage extends StatelessWidget {
         .where((c) => c.enabled)
         .toList();
     return Scaffold(
-      appBar: AppBar(title: const Text('Tarification')),
+      appBar: pageAppBar(context: context, title: 'Tarification'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

@@ -1,3 +1,4 @@
+import '../../../../core/widgets/page_app_bar.dart';
 import '../../../appliances/presentation/widgets/appliances_error.dart';
 import '../../../../core/widgets/empty_state_card.dart';
 import 'package:flutter/material.dart';
@@ -72,9 +73,11 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     final mostConsuming = summary.mostConsuming;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: pageAppBar(
+        context: context,
         automaticallyImplyLeading: false,
-        title: const Text('Sama Courant'),
+        title: 'Sama Courant',
+
         actions: [
           IconButton(
             tooltip: 'Paramètres',
@@ -146,7 +149,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             Card.filled(
                               margin: EdgeInsets.zero,
                               child: Padding(
@@ -198,7 +201,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                           ],
                         ),
                         if (!state.isLoading && state.errorMessage == null) ...[
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                           Card.filled(
                             key: const ValueKey('dashboard-recommendations'),
                             margin: EdgeInsets.zero,

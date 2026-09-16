@@ -1,3 +1,4 @@
+import '../../../../core/widgets/page_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/empty_state_card.dart';
@@ -28,9 +29,10 @@ class _ConsumptionHistoryPageState
     final fcfa = NumberFormat.decimalPattern('fr_FR');
     final date = DateFormat("dd/MM/yyyy 'à' HH:mm", 'fr_FR');
     return Scaffold(
-      appBar: AppBar(
+      appBar: pageAppBar(
+        context: context,
         automaticallyImplyLeading: false,
-        title: const Text('Historique'),
+        title: 'Historique',
       ),
       body: history.when(
         skipLoadingOnRefresh: false,
@@ -75,7 +77,7 @@ class _ConsumptionHistoryPageState
             },
             child: ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               itemCount: visible.isEmpty ? 2 : visible.length + 2,
               separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {

@@ -1,3 +1,4 @@
+import '../../../../core/widgets/page_app_bar.dart';
 import '../../../budget/presentation/widgets/tariff_calculation_details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -91,9 +92,10 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     final state = ref.watch(appliancesProvider);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: pageAppBar(
+        context: context,
         automaticallyImplyLeading: false,
-        title: const Text('Mes appareils'),
+        title: 'Mes appareils',
       ),
       body: _buildBody(context, ref, state),
       floatingActionButton: state.appliances.isEmpty
@@ -159,7 +161,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
       itemBuilder: (context, index) {
         if (index == 0) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.only(bottom: 12),
             child: _MonthlySummaryCard(
               activeAppliancesCount: activeAppliances.length,
               totalConsumptionKwh: totalMonthlyConsumptionKwh,
@@ -234,7 +236,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
             builder: (context, scrollController) {
               return SingleChildScrollView(
                 controller: scrollController,
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,7 +270,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
                       ],
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
 
                     Container(
                       width: double.infinity,
@@ -318,7 +320,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
 
                     _TariffDetailRow(
                       label: 'Consommation de l’appareil',

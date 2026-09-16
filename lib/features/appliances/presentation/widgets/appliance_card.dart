@@ -211,23 +211,42 @@ class ApplianceCard extends StatelessWidget {
                     const SizedBox(width: 10),
 
                     Expanded(
-                      child: Text(
-                        'Part mensuelle estimée',
-                        style: theme.textTheme.bodyMedium,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final label = Text(
+                            'Part mensuelle estimée',
+                            style: theme.textTheme.bodyMedium,
+                          );
+                          final value = Text(
+                            '${fcfaFormatter.format(monthlyCostFcfa.round())} FCFA',
+                            textAlign: TextAlign.right,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                          );
+                          if (constraints.maxWidth /
+                                  MediaQuery.textScalerOf(context).scale(1) <
+                              240) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                label,
+                                const SizedBox(height: 4),
+                                value,
+                              ],
+                            );
+                          }
+                          return Row(
+                            children: [
+                              Expanded(child: label),
+                              const SizedBox(width: 12),
+                              Flexible(child: value),
+                            ],
+                          );
+                        },
                       ),
                     ),
-
-                    const SizedBox(width: 12),
-
-                    Text(
-                      '${fcfaFormatter.format(monthlyCostFcfa.round())} FCFA',
-                      textAlign: TextAlign.right,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-
                     const SizedBox(width: 4),
 
                     const Icon(Icons.chevron_right, size: 20),

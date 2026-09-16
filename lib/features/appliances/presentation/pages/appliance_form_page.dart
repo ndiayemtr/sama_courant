@@ -1,3 +1,4 @@
+import '../../../../core/widgets/page_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -69,19 +70,19 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _isEditMode ? 'Modifier un appareil' : 'Ajouter un appareil',
-        ),
+      appBar: pageAppBar(
+        context: context,
+
+        title: _isEditMode ? 'Modifier un appareil' : 'Ajouter un appareil',
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+          padding: const EdgeInsets.all(16),
           children: [
             _buildHeader(context),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             _buildSection(
               context,
@@ -91,8 +92,8 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
                 children: [
                   _buildTextField(
                     controller: _nameController,
-                    label: 'Nom de l’appareil',
-                    hint: 'Ex. Réfrigérateur',
+                    label: 'Nom',
+                    hint: 'Ex. Frigo',
                     icon: Icons.devices_other,
                     validator: _validateName,
                   ),
@@ -125,7 +126,6 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
                     label: 'Quantité',
                     hint: 'Ex. 1',
                     icon: Icons.format_list_numbered,
-                    suffixText: 'appareil(s)',
                     keyboardType: TextInputType.number,
                     validator: _validateQuantity,
                   ),
@@ -148,7 +148,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
                       children: [
                         _buildTextField(
                           controller: _hoursPerDayController,
-                          label: 'Heures / jour',
+                          label: 'Heures/j',
                           hint: 'Ex. 8',
                           icon: Icons.access_time,
                           suffixText: 'h',
@@ -160,7 +160,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
                         const SizedBox(height: 12),
                         _buildTextField(
                           controller: _daysPerMonthController,
-                          label: 'Jours / mois',
+                          label: 'Jours/mois',
                           hint: 'Ex. 30',
                           icon: Icons.calendar_month,
                           suffixText: 'j',
@@ -176,7 +176,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
                       Expanded(
                         child: _buildTextField(
                           controller: _hoursPerDayController,
-                          label: 'Heures / jour',
+                          label: 'Heures/j',
                           hint: 'Ex. 8',
                           icon: Icons.access_time,
                           suffixText: 'h',
@@ -190,7 +190,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
                       Expanded(
                         child: _buildTextField(
                           controller: _daysPerMonthController,
-                          label: 'Jours / mois',
+                          label: 'Jours/mois',
                           hint: 'Ex. 30',
                           icon: Icons.calendar_month,
                           suffixText: 'j',
@@ -245,11 +245,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
               label: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 child: Text(
-                  _isSaving
-                      ? 'Enregistrement...'
-                      : _isEditMode
-                      ? 'Enregistrer les modifications'
-                      : 'Enregistrer l’appareil',
+                  _isSaving ? 'Enregistrement...' : 'Enregistrer',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -455,7 +451,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(20),
@@ -524,10 +520,12 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
               children: [
                 Icon(icon, size: 22, color: colorScheme.primary),
                 const SizedBox(width: 10),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -556,8 +554,11 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
+        hintMaxLines: 2,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
         prefixIcon: Icon(icon),
         suffixText: suffixText,
+        errorMaxLines: 4,
         border: const OutlineInputBorder(),
       ),
     );
@@ -575,9 +576,14 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     ];
 
     return DropdownButtonFormField<String>(
+      isExpanded: true,
+      isDense: false,
+      itemHeight: null,
       initialValue: _selectedCategory,
       decoration: const InputDecoration(
         labelText: 'Catégorie',
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        errorMaxLines: 4,
         prefixIcon: Icon(Icons.category_outlined),
         border: OutlineInputBorder(),
       ),

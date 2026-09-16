@@ -1,3 +1,4 @@
+import '../../../../core/widgets/page_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../budget/data/factories/woyofal_tariff_configuration_factory.dart';
@@ -9,7 +10,7 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final configuration = WoyofalTariffConfigurationFactory.dpp2026();
     return Scaffold(
-      appBar: AppBar(title: const Text('Paramètres')),
+      appBar: pageAppBar(context: context, title: 'Paramètres'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -27,7 +28,7 @@ class SettingsPage extends StatelessWidget {
                 onTap: () => context.push('/tariff'),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             const _InformationCard(
               icon: Icons.info_outline,
               title: 'Comment fonctionnent les estimations ?',
@@ -52,7 +53,7 @@ class SettingsPage extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             _InformationCard(
               icon: Icons.bolt_outlined,
               title: 'À propos de Sama Courant',

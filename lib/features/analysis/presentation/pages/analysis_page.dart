@@ -1,3 +1,4 @@
+import '../../../../core/widgets/page_app_bar.dart';
 import '../../../appliances/presentation/widgets/appliances_error.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -32,9 +33,10 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     final summary = ref.watch(dashboardProvider);
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
+      appBar: pageAppBar(
+        context: context,
         automaticallyImplyLeading: false,
-        title: const Text('Analyse énergétique'),
+        title: 'Analyse énergétique',
       ),
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -60,7 +62,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                     ),
                   ] else ...[
                     ConsumptionDistributionCard(summary: summary),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Card.filled(
                       margin: EdgeInsets.zero,
                       child: Padding(
@@ -94,11 +96,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     TopConsumersCard(summary: summary),
 
                     if (summary.recommendations.isNotEmpty) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Card.filled(
                         key: const ValueKey('analysis-recommendations'),
                         margin: EdgeInsets.zero,

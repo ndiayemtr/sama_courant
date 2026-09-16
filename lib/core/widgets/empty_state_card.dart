@@ -18,7 +18,7 @@ class EmptyStateCard extends StatelessWidget {
   Widget build(BuildContext context) => Card.filled(
     margin: EdgeInsets.zero,
     child: Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
