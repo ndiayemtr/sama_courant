@@ -8,13 +8,24 @@ void main() {
     final engine = const TariffEngineImpl();
 
     final configuration = WoyofalTariffConfigurationFactory.dpp2026();
-    for (final kwh in [0.0, 150.0, 250.0, 250.01, 300.0]) {
+    for (final kwh in [0.0, 150.0, 150.01, 250.0, 250.01, 300.0]) {
       test('VAT only taxes excess energy at $kwh kWh', () {
         final result = engine.calculate(
           consumptionKwh: kwh,
           configuration: configuration,
         );
         final base = kwh > 250 ? (kwh - 250) * 136.49 : 0.0;
+        final expectedEnergy = kwh <= 150
+            ? kwh * 82
+            : 150 * 82 + (kwh - 150) * 136.49;
+        expect(result.energyCost, closeTo(expectedEnergy, 1e-9));
+        expect(
+          result.tierCalculations.fold<double>(
+            0,
+            (sum, tier) => sum + tier.consumedKwh,
+          ),
+          closeTo(kwh, 1e-9),
+        );
         expect(result.taxes, closeTo(base * 0.18, 1e-9));
         expect(
           result.totalCost,

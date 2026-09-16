@@ -9,6 +9,51 @@ import 'package:sama_courant/features/consumption_history/presentation/widgets/c
 void main() {
   setUpAll(() => initializeDateFormatting('fr_FR'));
 
+  testWidgets('snapshots at the exact same instant keep distinct points', (
+    tester,
+  ) async {
+    final date = DateTime(2026, 9, 16, 12);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ConsumptionHistoryChart(
+            points: [
+              ConsumptionHistoryPoint(
+                capturedAt: date,
+                consumptionKwh: 0,
+                costFcfa: 0,
+              ),
+              ConsumptionHistoryPoint(
+                capturedAt: date,
+                consumptionKwh: 100,
+                costFcfa: 8200,
+              ),
+              ConsumptionHistoryPoint(
+                capturedAt: date,
+                consumptionKwh: 200,
+                costFcfa: 19124.5,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    for (final cost in [false, true]) {
+      await tester.tap(find.text(cost ? 'Coût' : 'Consommation'));
+      await tester.pumpAndSettle();
+      final spots = tester
+          .widget<LineChart>(find.byType(LineChart))
+          .data
+          .lineBarsData
+          .single
+          .spots;
+      expect(spots.map((p) => p.x), [0, 1, 2]);
+      expect(spots.map((p) => p.y), cost ? [0, 8200, 19124.5] : [0, 100, 200]);
+      expect(tester.takeException(), isNull);
+    }
+  });
+
   for (final count in [1, 3]) {
     testWidgets('switches both ways with $count snapshots on mobile', (
       tester,

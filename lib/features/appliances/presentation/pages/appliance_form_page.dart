@@ -284,6 +284,10 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
       return 'Le nom doit contenir au moins 2 caractères.';
     }
 
+    if (name.length > 100) {
+      return 'Le nom ne doit pas dépasser 100 caractères.';
+    }
+
     return null;
   }
 
@@ -292,6 +296,10 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
 
     if (power == null) {
       return 'La puissance est requise.';
+    }
+
+    if (!power.isFinite) {
+      return 'Veuillez saisir une puissance valide.';
     }
 
     if (power <= 0) {
@@ -320,6 +328,10 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
 
     if (hours == null) {
       return 'Les heures d’utilisation sont requises.';
+    }
+
+    if (!hours.isFinite) {
+      return 'Veuillez saisir une durée valide.';
     }
 
     if (hours <= 0 || hours > 24) {
@@ -386,6 +398,10 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
 
     try {
       final appliance = _buildAppliance();
+
+      if (!appliance.monthlyConsumptionKwh.isFinite) {
+        throw const FormatException('Consommation hors limites numériques.');
+      }
 
       if (_isEditMode) {
         final updateAppliance = ref.read(updateApplianceProvider);

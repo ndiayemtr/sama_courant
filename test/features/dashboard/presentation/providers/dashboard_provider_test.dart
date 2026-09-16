@@ -41,6 +41,31 @@ Future<DashboardSummary> summaryFor(List<Appliance> appliances) async {
 }
 
 void main() {
+  test(
+    'very high consumption and an active zero preserve finite cost shares',
+    () async {
+      final summary = await summaryFor([
+        appliance('Très puissant', 1e9),
+        appliance('Second', 5e8),
+        appliance('Zéro actif', 0),
+      ]);
+      expect(summary.consumptionKwh, 4.5e8);
+      expect(summary.costFcfa.isFinite, isTrue);
+      expect(
+        summary.consumptionShares
+            .singleWhere((s) => s.name == 'Zéro actif')
+            .allocatedCostFcfa,
+        0,
+      );
+      expect(
+        summary.consumptionShares.fold<double>(
+          0,
+          (sum, s) => sum + s.allocatedCostFcfa,
+        ),
+        closeTo(summary.costFcfa, 0.001),
+      );
+    },
+  );
   test('recommendations cover empty and zero consumption safely', () async {
     expect(
       (await summaryFor([])).recommendations.single.message,

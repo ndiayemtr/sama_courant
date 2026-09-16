@@ -190,6 +190,12 @@ void main() {
     expect(find.text('Aucun historique enregistré'), findsNothing);
     expect(find.byType(ConsumptionHistoryChart), findsNothing);
     expect(find.text('Aller au Dashboard'), findsNothing);
+    await tester.tap(find.text('7 jours'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Aucun état enregistré sur cette période.'),
+      findsOneWidget,
+    );
     await tester.tap(find.text('Tout'));
     await tester.pumpAndSettle();
     expect(find.byType(ConsumptionHistoryChart), findsOneWidget);

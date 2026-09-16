@@ -105,6 +105,99 @@ Future<void> tapSave(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('validates MVP numeric and name boundaries', (tester) async {
+    final repository = FakeApplianceRepository();
+    final router = createTestRouter();
+    addTearDown(router.dispose);
+    await tester.pumpWidget(createTestWidget(repository, router));
+    router.push('/appliances/add');
+    await tester.pumpAndSettle();
+    final cases = <String, ({List<String> valid, List<String> invalid})>{
+      'Nom': (
+        valid: ['Lampe', 'A' * 100],
+        invalid: ['', '   ', 'A' * 101, 'A' * 1000],
+      ),
+      'Puissance': (
+        valid: ['0.1', '1000000000'],
+        invalid: ['0', 'abc', 'NaN', 'Infinity', '1e309'],
+      ),
+      'Quantité': (
+        valid: ['1', '9223372036854775807'],
+        invalid: ['0', '1.5', 'abc', '9223372036854775808'],
+      ),
+      'Heures/j': (
+        valid: ['0.1', '24'],
+        invalid: ['0', '25', 'abc', 'NaN', 'Infinity'],
+      ),
+      'Jours/mois': (valid: ['1', '31'], invalid: ['0', '32', 'abc', '1.5']),
+    };
+    final acceptedInvalidValues = <String>[];
+    for (final entry in cases.entries) {
+      final field = find.widgetWithText(
+        TextFormField,
+        entry.key,
+        skipOffstage: false,
+      );
+      await tester.scrollUntilVisible(
+        field,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      final validate = tester.widget<TextFormField>(field).validator!;
+      for (final value in entry.value.valid) {
+        expect(validate(value), isNull, reason: '${entry.key}: $value');
+      }
+      for (final value in entry.value.invalid) {
+        if (validate(value) == null) {
+          acceptedInvalidValues.add('${entry.key}: $value');
+        }
+      }
+    }
+    expect(acceptedInvalidValues, isEmpty);
+  });
+
+  for (final input in [
+    (power: '1e308', quantity: '1', overflow: true),
+    (power: '2e306', quantity: '1', overflow: false),
+    (power: '100', quantity: '9223372036854775807', overflow: false),
+  ]) {
+    testWidgets('saves only finite monthly consumption $input', (tester) async {
+      final repository = FakeApplianceRepository();
+      final router = createTestRouter();
+      addTearDown(router.dispose);
+      await tester.pumpWidget(createTestWidget(repository, router));
+      router.push('/appliances/add');
+      await tester.pumpAndSettle();
+      await enterField(tester, 'Nom', 'Lampe');
+      final category = find.byType(DropdownButtonFormField<String>);
+      await tester.ensureVisible(category);
+      await tester.pumpAndSettle();
+      await tester.tap(category);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cuisine').last);
+      await enterField(tester, 'Puissance', input.power);
+      await enterField(tester, 'Quantité', input.quantity);
+      await enterField(tester, 'Heures/j', '24');
+      await tapSave(tester);
+      await tester.pumpAndSettle();
+      if (input.overflow) {
+        expect(repository.createdAppliance, isNull);
+        expect(
+          find.text('Impossible d’enregistrer l’appareil. Veuillez réessayer.'),
+          findsOneWidget,
+        );
+      } else {
+        expect(repository.createdAppliance, isNotNull);
+        expect(
+          repository.createdAppliance!.monthlyConsumptionKwh.isFinite,
+          isTrue,
+        );
+      }
+      expect(find.textContaining('Infinity'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  }
   for (final edit in [false, true]) {
     for (final fail in [false, true]) {
       testWidgets('form feedback edit=$edit fail=$fail', (tester) async {
