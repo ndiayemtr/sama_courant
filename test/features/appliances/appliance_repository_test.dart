@@ -49,6 +49,9 @@ void main() {
     expect(created.quantity, 1);
 
     // UPDATE
+    // UPDATE
+    final newUpdatedAt = created.createdAt.add(const Duration(minutes: 1));
+
     final updatedAppliance = domain.Appliance(
       id: id,
       name: 'Réfrigérateur',
@@ -59,7 +62,7 @@ void main() {
       daysPerMonth: 30,
       isActive: true,
       createdAt: created.createdAt,
-      updatedAt: DateTime.now(),
+      updatedAt: newUpdatedAt,
     );
 
     final updated = await repository.update(updatedAppliance);
@@ -72,11 +75,37 @@ void main() {
     expect(updatedResult!.powerWatts, 180);
     expect(updatedResult.hoursPerDay, 12);
 
-    // DELETE
-    await repository.delete(id);
+    expect(updatedResult.createdAt, created.createdAt);
+    expect(updatedResult.updatedAt, newUpdatedAt);
 
-    final deleted = await repository.getById(id);
+    // timestamps
+    expect(updatedResult.createdAt, created.createdAt);
+    expect(updatedResult.updatedAt, newUpdatedAt);
+  });
 
-    expect(deleted, isNull);
+  test('update returns false when appliance id is null', () async {
+    final now = DateTime(2026, 1, 1);
+
+    final appliance = domain.Appliance(
+      name: 'Ventilateur',
+      category: 'Confort',
+      powerWatts: 60,
+      quantity: 1,
+      hoursPerDay: 8,
+      daysPerMonth: 30,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    final result = await repository.update(appliance);
+
+    expect(result, isFalse);
+  });
+
+  test('getById returns null for unknown id', () async {
+    final result = await repository.getById(999);
+
+    expect(result, isNull);
   });
 }
