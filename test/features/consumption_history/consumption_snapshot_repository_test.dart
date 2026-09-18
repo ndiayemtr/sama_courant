@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sama_courant/core/database/app_database.dart';
@@ -84,5 +86,90 @@ void main() {
     final provided = container.read(consumptionSnapshotRepositoryProvider);
     final id = await provided.create(snapshot(11));
     expect((await repository.getById(id))?.id, id);
+  });
+
+  test('snapshot persists after database restart', () async {
+    driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
+    final tempDir = await Directory.systemTemp.createTemp(
+      'sama_courant_snapshot_persistence_',
+    );
+
+    AppDatabase? firstDatabase;
+    AppDatabase? secondDatabase;
+
+    try {
+      final dbFile = File('${tempDir.path}/sama_courant.sqlite');
+
+      final original = domain.ConsumptionSnapshot(
+        capturedAt: DateTime(2026, 9, 18, 14, 30),
+        totalMonthlyConsumptionKwh: 125.75,
+        totalMonthlyCostFcfa: 9876.50,
+        activeAppliancesCount: 4,
+        tariffConfigurationName: 'Woyofal DPP 2026',
+        createdAt: DateTime(2026, 9, 18, 14, 31),
+      );
+
+      // Première ouverture : création
+      firstDatabase = AppDatabase.forFile(dbFile);
+
+      final firstRepository = DriftConsumptionSnapshotRepository(firstDatabase);
+
+      final id = await firstRepository.create(original);
+
+      expect(id, greaterThan(0));
+
+      await firstDatabase.close();
+      firstDatabase = null;
+
+      // Simulation d'un redémarrage de l'application
+      secondDatabase = AppDatabase.forFile(dbFile);
+
+      final secondRepository = DriftConsumptionSnapshotRepository(
+        secondDatabase,
+      );
+
+      final persisted = await secondRepository.getById(id);
+
+      expect(persisted, isNotNull);
+
+      expect(persisted!.id, id);
+      expect(persisted.capturedAt, original.capturedAt);
+      expect(
+        persisted.totalMonthlyConsumptionKwh,
+        original.totalMonthlyConsumptionKwh,
+      );
+      expect(persisted.totalMonthlyCostFcfa, original.totalMonthlyCostFcfa);
+      expect(persisted.activeAppliancesCount, original.activeAppliancesCount);
+      expect(
+        persisted.tariffConfigurationName,
+        original.tariffConfigurationName,
+      );
+      expect(persisted.createdAt, original.createdAt);
+
+      final all = await secondRepository.getAll();
+
+      expect(all, hasLength(1));
+      expect(all.single.id, id);
+
+      final latest = await secondRepository.getLatest();
+
+      expect(latest, isNotNull);
+      expect(latest!.id, id);
+    } finally {
+      if (firstDatabase != null) {
+        await firstDatabase.close();
+      }
+
+      if (secondDatabase != null) {
+        await secondDatabase.close();
+      }
+
+      driftRuntimeOptions.dontWarnAboutMultipleDatabases = false;
+
+      if (await tempDir.exists()) {
+        await tempDir.delete(recursive: true);
+      }
+    }
   });
 }
