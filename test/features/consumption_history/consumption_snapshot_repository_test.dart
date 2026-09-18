@@ -8,6 +8,9 @@ import 'package:sama_courant/features/consumption_history/domain/entities/consum
     as domain;
 import 'package:sama_courant/features/consumption_history/data/repositories/drift_consumption_snapshot_repository.dart';
 import 'package:sama_courant/features/consumption_history/data/providers/consumption_snapshot_repository_provider.dart';
+import 'package:sama_courant/features/appliances/data/repositories/drift_appliance_repository.dart';
+import 'package:sama_courant/features/appliances/domain/entities/appliance.dart'
+    as appliance_domain;
 
 void main() {
   late AppDatabase database;
@@ -172,4 +175,74 @@ void main() {
       }
     }
   });
+
+  test(
+    'deleting all appliances does not delete existing consumption history',
+    () async {
+      final applianceRepository = DriftApplianceRepository(database);
+
+      final createdAt = DateTime(2026, 9, 18, 10);
+
+      final firstApplianceId = await applianceRepository.create(
+        appliance_domain.Appliance(
+          name: 'Réfrigérateur',
+          category: 'Cuisine',
+          powerWatts: 150,
+          quantity: 1,
+          hoursPerDay: 10,
+          daysPerMonth: 30,
+          isActive: true,
+          createdAt: createdAt,
+          updatedAt: createdAt,
+        ),
+      );
+
+      final secondApplianceId = await applianceRepository.create(
+        appliance_domain.Appliance(
+          name: 'Ventilateur',
+          category: 'Confort',
+          powerWatts: 60,
+          quantity: 1,
+          hoursPerDay: 8,
+          daysPerMonth: 30,
+          isActive: true,
+          createdAt: createdAt,
+          updatedAt: createdAt,
+        ),
+      );
+
+      expect(await applianceRepository.getAll(), hasLength(2));
+
+      final snapshotId = await repository.create(
+        domain.ConsumptionSnapshot(
+          capturedAt: DateTime(2026, 9, 18, 12),
+          totalMonthlyConsumptionKwh: 189.0,
+          totalMonthlyCostFcfa: 17600.0,
+          activeAppliancesCount: 2,
+          tariffConfigurationName: 'Woyofal DPP 2026',
+          createdAt: DateTime(2026, 9, 18, 12),
+        ),
+      );
+
+      await applianceRepository.delete(firstApplianceId);
+      await applianceRepository.delete(secondApplianceId);
+
+      final remainingAppliances = await applianceRepository.getAll();
+
+      expect(remainingAppliances, isEmpty);
+
+      final persistedSnapshot = await repository.getById(snapshotId);
+
+      expect(persistedSnapshot, isNotNull);
+      expect(persistedSnapshot!.activeAppliancesCount, 2);
+      expect(persistedSnapshot.tariffConfigurationName, 'Woyofal DPP 2026');
+      expect(persistedSnapshot.totalMonthlyConsumptionKwh, 189.0);
+      expect(persistedSnapshot.totalMonthlyCostFcfa, 17600.0);
+
+      final latest = await repository.getLatest();
+
+      expect(latest, isNotNull);
+      expect(latest!.id, snapshotId);
+    },
+  );
 }
