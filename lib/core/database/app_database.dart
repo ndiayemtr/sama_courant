@@ -20,6 +20,9 @@ class AppDatabase extends _$AppDatabase {
 
   AppDatabase.forTesting() : super(NativeDatabase.memory());
 
+  AppDatabase.forFile(File file)
+    : super(NativeDatabase.createInBackground(file));
+
   @override
   int get schemaVersion => 2;
 

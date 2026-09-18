@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sama_courant/core/database/app_database.dart';
@@ -107,5 +108,55 @@ void main() {
     final result = await repository.getById(999);
 
     expect(result, isNull);
+  });
+
+  test('appliance persists after database restart', () async {
+    final tempDir = await Directory.systemTemp.createTemp(
+      'sama_courant_persistence_test_',
+    );
+
+    final dbFile = File('${tempDir.path}/sama_courant.sqlite');
+
+    final createdAt = DateTime(2026, 9, 18, 10, 0);
+    final updatedAt = DateTime(2026, 9, 18, 10, 0);
+
+    var firstDatabase = AppDatabase.forFile(dbFile);
+    var firstRepository = DriftApplianceRepository(firstDatabase);
+
+    final id = await firstRepository.create(
+      domain.Appliance(
+        name: 'Réfrigérateur',
+        category: 'Cuisine',
+        powerWatts: 150,
+        quantity: 1,
+        hoursPerDay: 10,
+        daysPerMonth: 30,
+        isActive: true,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      ),
+    );
+
+    await firstDatabase.close();
+
+    final secondDatabase = AppDatabase.forFile(dbFile);
+    final secondRepository = DriftApplianceRepository(secondDatabase);
+
+    final persisted = await secondRepository.getById(id);
+
+    expect(persisted, isNotNull);
+    expect(persisted!.id, id);
+    expect(persisted.name, 'Réfrigérateur');
+    expect(persisted.category, 'Cuisine');
+    expect(persisted.powerWatts, 150);
+    expect(persisted.quantity, 1);
+    expect(persisted.hoursPerDay, 10);
+    expect(persisted.daysPerMonth, 30);
+    expect(persisted.isActive, isTrue);
+    expect(persisted.createdAt, createdAt);
+    expect(persisted.updatedAt, updatedAt);
+
+    await secondDatabase.close();
+    await tempDir.delete(recursive: true);
   });
 }
