@@ -1,0 +1,77 @@
+﻿SAMA COURANT — TEST BÊTA
+
+Merci de tester l’application comme si vous l’utilisiez chez vous.
+
+1. Installez et ouvrez Sama Courant.
+
+2. Ajoutez au moins 3 appareils de votre maison.
+Exemples :
+- Réfrigérateur
+- Ventilateur
+- Télévision
+- Climatiseur
+- Fer à repasser
+
+3. Pour chaque appareil, renseignez :
+- Puissance
+- Quantité
+- Heures d’utilisation par jour
+- Jours d’utilisation par mois
+
+4. Vérifiez le Dashboard :
+- Consommation mensuelle estimée
+- Coût mensuel estimé
+- Appareil le plus énergivore
+- Conseil affiché
+
+5. Ouvrez Mes appareils :
+- Vérifiez les consommations
+- Ouvrez la Part mensuelle estimée
+- Modifiez un appareil
+- Désactivez puis réactivez un appareil
+
+6. Ouvrez Analyse :
+- Regardez la répartition de consommation
+- Identifiez les principaux consommateurs
+- Lisez les conseils
+
+7. Sur le Dashboard, utilisez Enregistrer l’état actuel.
+
+8. Ouvrez Historique :
+- Vérifiez que l’état enregistré apparaît
+- Testez 7 jours / 30 jours / Tout
+- Testez Consommation puis Coût
+
+9. Ouvrez Paramètres > Tarification.
+Vérifiez que les informations tarifaires sont compréhensibles.
+
+10. Fermez complètement Sama Courant puis relancez l’application.
+Vérifiez que vos appareils et votre historique sont toujours présents.
+
+FEEDBACK
+
+Merci de répondre à ces questions :
+
+- Qu’est-ce qui vous a semblé facile ?
+- Qu’est-ce qui vous a semblé difficile ?
+- Y a-t-il quelque chose que vous n’avez pas compris ?
+- Un chiffre vous semble-t-il étrange ?
+- Un bouton ou une page vous a-t-il posé problème ?
+- Quelle fonctionnalité aimeriez-vous ajouter en priorité ?
+
+NOTES
+
+Facilité d’utilisation : /5
+Compréhension des estimations : /5
+Utilité de l’application : /5
+Design : /5
+Envie de continuer à l’utiliser : /5
+
+EN CAS DE BUG
+
+Téléphone :
+Version Android :
+Action réalisée :
+Résultat attendu :
+Résultat obtenu :
+Capture d’écran si possible :
