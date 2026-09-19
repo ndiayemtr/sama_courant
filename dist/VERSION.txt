@@ -1,0 +1,5 @@
+Sama Courant
+Version: 1.0.0
+Build: 2
+Canal: Beta
+Fichier: SamaCourant-1.0.0-beta2.apk
