@@ -75,3 +75,11 @@ Action réalisée :
 Résultat attendu :
 Résultat obtenu :
 Capture d’écran si possible :
+
+ENVOYER VOTRE FEEDBACK
+
+Après le test, merci de remplir le formulaire :
+
+https://docs.google.com/forms/d/e/1FAIpQLSfdvYvRKNnAy1V5UnrkGUI2YjV1S11-qjdwrEVtjWmcmo80bg/viewform
+
+En cas de bug, vous pouvez également envoyer une capture d’écran.
