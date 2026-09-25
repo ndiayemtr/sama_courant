@@ -756,30 +756,45 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
+
       await openAnalytics(tester, [
         appliance('Réfrigérateur', 150),
         appliance('Ventilateur', 30),
         appliance('Inactif', 9999, active: false),
       ]);
+
       final first = find.byKey(const ValueKey('top-consumer-0'));
       final second = find.byKey(const ValueKey('top-consumer-1'));
-      final separator = width == 320 ? '•' : '/';
       final fcfa = NumberFormat.decimalPattern('fr_FR');
+
+      expect(
+        find.descendant(of: first, matching: find.text('45,00 kWh')),
+        findsOneWidget,
+      );
+
       expect(
         find.descendant(
           of: first,
-          matching: find.text('45,00 kWh $separator ${fcfa.format(3690)} FCFA'),
+          matching: find.text('${fcfa.format(3690)} FCFA'),
         ),
         findsOneWidget,
       );
+
+      expect(
+        find.descendant(of: second, matching: find.text('9,00 kWh')),
+        findsOneWidget,
+      );
+
       expect(
         find.descendant(
           of: second,
-          matching: find.text('9,00 kWh $separator ${fcfa.format(738)} FCFA'),
+          matching: find.text('${fcfa.format(738)} FCFA'),
         ),
         findsOneWidget,
       );
+
       await tester.ensureVisible(second);
+
       expect(tester.takeException(), isNull);
     });
   }
@@ -791,11 +806,14 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
+
       await openAnalytics(tester, [
         for (var i = 1; i <= 7; i++) appliance('Appareil $i', i * 100),
         appliance('Inactif', 9999, active: false),
       ]);
+
       final card = find.byType(TopConsumersCard);
+
       expect(
         find.descendant(
           of: card,
@@ -803,12 +821,15 @@ void main() {
         ),
         findsNWidgets(5),
       );
+
       for (var i = 0; i < 5; i++) {
         final row = find.byKey(ValueKey('top-consumer-$i'));
+
         expect(
           find.descendant(of: row, matching: find.text('Appareil ${7 - i}')),
           findsOneWidget,
         );
+
         expect(
           find.descendant(
             of: row,
@@ -818,23 +839,37 @@ void main() {
           ),
           findsOneWidget,
         );
+
         final bar = tester.widget<LinearProgressIndicator>(
           find.descendant(
             of: row,
             matching: find.byType(LinearProgressIndicator),
           ),
         );
+
         expect(bar.value, closeTo((7 - i) / 7, 1e-9));
+
+        final colorDot = tester.widget<Container>(
+          find.byKey(ValueKey('top-consumer-color-$i')),
+        );
+
+        final decoration = colorDot.decoration! as BoxDecoration;
+
+        expect(bar.color, decoration.color);
       }
+
       expect(
         find.descendant(of: card, matching: find.text('Autres')),
         findsNothing,
       );
+
       expect(
         find.descendant(of: card, matching: find.text('Inactif')),
         findsNothing,
       );
+
       await tester.ensureVisible(find.byKey(const ValueKey('top-consumer-4')));
+
       expect(tester.takeException(), isNull);
     },
   );

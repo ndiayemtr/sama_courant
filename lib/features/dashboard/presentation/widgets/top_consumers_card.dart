@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sama_courant/features/dashboard/presentation/utils/appliance_chart_colors.dart';
+import '../utils/appliance_chart_colors.dart';
 
 import '../providers/dashboard_provider.dart';
 
@@ -34,85 +35,90 @@ class TopConsumersCard extends StatelessWidget {
               ),
             ] else ...[
               for (var i = 0; i < consumers.length; i++)
-                Padding(
-                  key: ValueKey('top-consumer-$i'),
-                  padding: const EdgeInsets.only(top: 10),
-                  child: Column(
-                    children: [
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final name = Text(
-                            consumers[i].name,
-                            style: theme.textTheme.bodyMedium,
-                          );
-                          final consumption =
-                              '${decimal.format(consumers[i].consumptionKwh)} kWh';
-                          final cost =
-                              '${fcfa.format(consumers[i].allocatedCostFcfa.round())} FCFA';
-                          final valueStyle = theme.textTheme.bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.w600);
-                          final namePainter = TextPainter(
-                            text: TextSpan(
-                              text: consumers[i].name,
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                            textDirection: Directionality.of(context),
-                            textScaler: MediaQuery.textScalerOf(context),
-                          )..layout();
-                          final valuePainter = TextPainter(
-                            text: TextSpan(
-                              text: '$consumption / $cost',
-                              style: valueStyle,
-                            ),
-                            textDirection: Directionality.of(context),
-                            textScaler: MediaQuery.textScalerOf(context),
-                          )..layout();
-                          final fits =
-                              namePainter.width + 12 + valuePainter.width <=
-                              constraints.maxWidth;
-                          namePainter.dispose();
-                          valuePainter.dispose();
-                          if (fits) {
-                            return Row(
+                Builder(
+                  builder: (context) {
+                    final consumer = consumers[i];
+                    final color = ApplianceChartColors.forApplianceId(
+                      consumer.applianceId,
+                      consumer.name,
+                    );
+
+                    final consumption =
+                        '${decimal.format(consumer.consumptionKwh)} kWh';
+
+                    final cost =
+                        '${fcfa.format(consumer.allocatedCostFcfa.round())} FCFA';
+
+                    return Padding(
+                      key: ValueKey('top-consumer-$i'),
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Container(
+                                key: ValueKey('top-consumer-color-$i'),
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  consumer.name,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 5),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 20),
+                            child: Wrap(
+                              spacing: 6,
+                              runSpacing: 2,
                               children: [
-                                Expanded(child: name),
-                                const SizedBox(width: 12),
                                 Text(
-                                  '$consumption / $cost',
-                                  style: valueStyle,
-                                  textAlign: TextAlign.right,
+                                  consumption,
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                                Text('•', style: theme.textTheme.bodySmall),
+                                Text(
+                                  cost,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ],
-                            );
-                          }
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              name,
-                              const SizedBox(height: 2),
-                              Text('$consumption • $cost', style: valueStyle),
-                            ],
-                          );
-                        },
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 20),
+                            child: LinearProgressIndicator(
+                              value: maximum <= 0
+                                  ? 0
+                                  : consumer.consumptionKwh / maximum,
+                              minHeight: 8,
+                              borderRadius: BorderRadius.circular(6),
+                              color: color,
+                              backgroundColor:
+                                  theme.colorScheme.surfaceContainerHighest,
+                              semanticsLabel:
+                                  '${consumer.name} : consommation relative au plus gros consommateur',
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      LinearProgressIndicator(
-                        value: maximum <= 0
-                            ? 0
-                            : consumers[i].consumptionKwh / maximum,
-                        minHeight: 6,
-                        borderRadius: BorderRadius.circular(4),
-                        color: ApplianceChartColors.forApplianceId(
-                          consumers[i].applianceId,
-                          consumers[i].name,
-                        ),
-                        backgroundColor:
-                            theme.colorScheme.surfaceContainerHighest,
-                        semanticsLabel:
-                            '${consumers[i].name} : consommation relative au plus gros consommateur',
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
             ],
           ],
