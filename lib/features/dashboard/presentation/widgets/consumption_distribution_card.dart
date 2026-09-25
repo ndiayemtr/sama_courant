@@ -52,7 +52,7 @@ class _ConsumptionDistributionCardState
     return Card.filled(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -62,9 +62,7 @@ class _ConsumptionDistributionCardState
               const SizedBox(height: 12),
               const Text('Aucune consommation à afficher.'),
               const SizedBox(height: 4),
-              const Text(
-                'Ajoutez ou activez un appareil pour voir sa répartition.',
-              ),
+              const Text('Ajoutez ou activez un appareil.'),
             ] else ...[
               const SizedBox(height: 4),
               SizedBox(

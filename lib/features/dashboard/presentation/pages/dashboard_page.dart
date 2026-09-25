@@ -101,7 +101,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       icon: Icons.bolt_outlined,
                       title: 'Bienvenue dans Sama Courant',
                       message:
-                          'Ajoutez vos appareils pour commencer à estimer votre consommation et votre coût mensuel.',
+                          'Ajoutez vos appareils pour estimer votre consommation et votre coût.',
                       actionLabel: 'Ajouter mon premier appareil',
                       onAction: () => context.push('/appliances/add'),
                     )

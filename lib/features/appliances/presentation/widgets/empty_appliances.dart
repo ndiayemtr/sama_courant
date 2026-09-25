@@ -11,7 +11,7 @@ class EmptyAppliances extends StatelessWidget {
       icon: Icons.electrical_services_outlined,
       title: 'Aucun appareil enregistré',
       message:
-          'Ajoutez votre premier appareil pour commencer à estimer votre consommation.',
+          'Ajoutez votre premier appareil pour estimer votre consommation.',
       actionLabel: 'Ajouter un appareil',
       onAction: onAdd,
     ),
