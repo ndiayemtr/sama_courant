@@ -167,7 +167,10 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: _MonthlySummaryCard(
-              activeAppliancesCount: activeAppliances.length,
+              activeAppliancesCount: activeAppliances.fold<int>(
+                0,
+                (total, appliance) => total + appliance.quantity,
+              ),
               totalConsumptionKwh: totalMonthlyConsumptionKwh,
               totalCostFcfa: totalTariffResult.totalCost,
             ),

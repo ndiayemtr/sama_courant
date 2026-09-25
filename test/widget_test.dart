@@ -362,6 +362,7 @@ void main() {
               mostConsuming: null,
               consumptionShares: [],
               recommendations: [],
+              activeUnitsCount: 0,
             ),
           ),
         ],

@@ -5,6 +5,7 @@ import 'package:sama_courant/features/appliances/domain/providers/appliance_usec
 import 'package:sama_courant/features/appliances/domain/usecases/get_appliances.dart';
 import 'package:sama_courant/features/appliances/presentation/providers/appliances_provider.dart';
 import 'package:sama_courant/features/dashboard/presentation/providers/dashboard_provider.dart';
+import '../../../../widget_test.dart';
 import '../../../appliances/fakes/fake_appliance_repository.dart';
 
 Appliance appliance(
@@ -317,4 +318,46 @@ void main() {
     expect(summary.costFcfa, 0);
     expect(summary.consumptionShares, isEmpty);
   });
+
+  testWidgets('Dashboard counts active physical units using quantity', (
+    tester,
+  ) async {
+    await openDashboard(tester, [
+      appliance('Ventilateur', 60, quantity: 3),
+      appliance('Télévision', 100, quantity: 2),
+      appliance('Inactif', 500, active: false, quantity: 4),
+    ]);
+
+    expect(find.text('5'), findsOneWidget);
+  });
+
+  test(
+    'dashboard distinguishes active entries from active physical units',
+    () async {
+      final summary = await summaryFor([
+        appliance('Ventilateur', 60, quantity: 3),
+        appliance('Télévision', 100, quantity: 2),
+        appliance('Inactif', 500, active: false, quantity: 4),
+      ]);
+
+      expect(summary.activeCount, 2);
+      expect(summary.activeUnitsCount, 5);
+    },
+  );
+
+  test(
+    'analysis still treats one active entry with multiple units as one appliance type',
+    () async {
+      final summary = await summaryFor([
+        appliance('Ventilateurs', 60, quantity: 3),
+      ]);
+
+      expect(summary.activeCount, 1);
+      expect(summary.activeUnitsCount, 3);
+      expect(
+        summary.analysisSummary,
+        'Ventilateurs représente 100 % de votre consommation actuelle.',
+      );
+    },
+  );
 }

@@ -130,7 +130,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                     _SummaryRow(
                                       icon: Icons.electrical_services,
                                       label: 'Appareils actifs',
-                                      value: '${summary.activeCount}',
+                                      value: '${summary.activeUnitsCount}',
                                     ),
                                     _SummaryRow(
                                       icon: Icons.bolt_outlined,

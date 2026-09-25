@@ -133,7 +133,7 @@ void main() {
       expect(engine.configurations.single, same(configuration));
       expect(saved.totalMonthlyConsumptionKwh, 330);
       expect(saved.totalMonthlyCostFcfa, closeTo(38833.656, 1e-8));
-      expect(saved.activeAppliancesCount, 2);
+      expect(saved.activeAppliancesCount, 3);
       expect(saved.capturedAt, saved.createdAt);
       expect(saved.tariffConfigurationName, configuration.name);
     },
@@ -175,4 +175,34 @@ void main() {
       expect(engine.consumptions, [30]);
     },
   );
+
+  test('capture stores the total number of active physical units', () async {
+    await service.capture(
+      appliances: [
+        appliance(60, quantity: 3),
+        appliance(100, quantity: 2),
+        appliance(500, active: false, quantity: 4),
+      ],
+      configuration: configuration,
+    );
+
+    final saved = repository.saved.single;
+
+    expect(saved.activeAppliancesCount, 5);
+  });
+
+  test('capture stores the total number of active physical units', () async {
+    await service.capture(
+      appliances: [
+        appliance(60, quantity: 3),
+        appliance(100, quantity: 2),
+        appliance(500, active: false, quantity: 4),
+      ],
+      configuration: configuration,
+    );
+
+    final saved = repository.saved.single;
+
+    expect(saved.activeAppliancesCount, 5);
+  });
 }

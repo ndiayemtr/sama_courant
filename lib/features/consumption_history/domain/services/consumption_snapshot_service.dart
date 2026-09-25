@@ -37,7 +37,10 @@ class ConsumptionSnapshotService {
         capturedAt: capturedAt ?? now,
         totalMonthlyConsumptionKwh: consumption,
         totalMonthlyCostFcfa: cost,
-        activeAppliancesCount: active.length,
+        activeAppliancesCount: active.fold<int>(
+          0,
+          (total, appliance) => total + appliance.quantity,
+        ),
         tariffConfigurationName: configuration.name,
         createdAt: now,
       ),

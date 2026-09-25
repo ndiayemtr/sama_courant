@@ -13,6 +13,11 @@ final dashboardProvider = Provider<DashboardSummary>((ref) {
       .appliances
       .where((appliance) => appliance.isActive)
       .toList();
+  final activeUnitsCount = active.fold<int>(
+    0,
+    (total, appliance) => total + appliance.quantity,
+  );
+
   final consumption = active.fold<double>(
     0,
     (total, appliance) => total + appliance.monthlyConsumptionKwh,
@@ -73,6 +78,7 @@ final dashboardProvider = Provider<DashboardSummary>((ref) {
     costFcfa: result.totalCost,
     mostConsuming: mostConsuming,
     consumptionShares: List.unmodifiable(shares),
+    activeUnitsCount: activeUnitsCount,
     recommendations: const DashboardRecommendationService().generate(
       appliances: active,
       totalConsumptionKwh: consumption,
@@ -87,6 +93,7 @@ class DashboardSummary {
   final Appliance? mostConsuming;
   final List<ApplianceConsumptionShare> consumptionShares;
   final List<DashboardRecommendation> recommendations;
+  final int activeUnitsCount;
 
   String get analysisSummary {
     if (activeCount == 0) {
@@ -122,6 +129,7 @@ class DashboardSummary {
     required this.mostConsuming,
     required this.consumptionShares,
     required this.recommendations,
+    required this.activeUnitsCount,
   });
 }
 
