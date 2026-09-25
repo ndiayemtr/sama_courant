@@ -74,7 +74,7 @@ void main() {
   test('recommendations cover empty and zero consumption safely', () async {
     expect(
       (await summaryFor([])).recommendations.single.message,
-      'Activez ou ajoutez des appareils pour obtenir des conseils personnalisés.',
+      'Ajoutez ou activez un appareil pour recevoir des conseils.',
     );
     expect(
       (await summaryFor([appliance('Zéro', 0)])).recommendations.single.title,
@@ -99,7 +99,7 @@ void main() {
       appliance('B', 120),
       appliance('C', 120),
     ]);
-    expect(summary.recommendations.single.message, contains('12 h par jour'));
+    expect(summary.recommendations.single.message, contains('12 h/jour'));
   });
   test('recommendations cover multiple units at thirty percent', () async {
     final summary = await summaryFor([
@@ -118,7 +118,7 @@ void main() {
     ]);
     expect(
       summary.recommendations.single.message,
-      contains('A et B représentent 80,0 %'),
+      contains('A et B : 80,0 % du total'),
     );
   });
   test(

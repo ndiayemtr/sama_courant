@@ -22,7 +22,7 @@ class DashboardRecommendationService {
       return const [
         DashboardRecommendation(
           'Pour commencer',
-          'Activez ou ajoutez des appareils pour obtenir des conseils personnalisés.',
+          'Ajoutez ou activez un appareil pour recevoir des conseils.',
           RecommendationPriority.low,
         ),
       ];
@@ -31,7 +31,7 @@ class DashboardRecommendationService {
       return const [
         DashboardRecommendation(
           'Consommation nulle',
-          'Vérifiez les durées et les jours d’utilisation renseignés pour vos appareils actifs.',
+          'Vérifiez le temps d’utilisation de vos appareils.',
           RecommendationPriority.low,
         ),
       ];
@@ -55,7 +55,8 @@ class DashboardRecommendationService {
       recommendations.add(
         DashboardRecommendation(
           first.name,
-          '${first.name} représente ${percentage.format(share(first))} % de votre consommation. Vérifiez sa durée d’utilisation et son efficacité énergétique.',
+          '${percentage.format(share(first))} % de votre consommation. '
+          'Vérifiez son temps d’utilisation.',
           RecommendationPriority.high,
         ),
       );
@@ -63,7 +64,9 @@ class DashboardRecommendationService {
       recommendations.add(
         DashboardRecommendation(
           'Deux appareils prioritaires',
-          '${first.name} et ${sorted[1].name} représentent ${percentage.format(share(first) + share(sorted[1]))} % de votre consommation. Pensez à vérifier en priorité leurs durées d’utilisation.',
+          '${first.name} et ${sorted[1].name} : '
+              '${percentage.format(share(first) + share(sorted[1]))} % du total. '
+              'Vérifiez leur temps d’utilisation.',
           RecommendationPriority.high,
         ),
       );
@@ -74,7 +77,8 @@ class DashboardRecommendationService {
         recommendations.add(
           DashboardRecommendation(
             a.name,
-            'Les ${a.quantity} unités de « ${a.name} » représentent ${percentage.format(share(a))} % de votre consommation. Vérifiez si elles doivent toutes fonctionner simultanément.',
+            '${a.quantity} unités • ${percentage.format(share(a))} % du total. '
+            'Vérifiez si elles doivent toutes fonctionner.',
             RecommendationPriority.medium,
           ),
         );
@@ -85,7 +89,8 @@ class DashboardRecommendationService {
         recommendations.add(
           DashboardRecommendation(
             a.name,
-            '${a.name} est renseigné pour ${number.format(a.hoursPerDay)} h par jour. Si son usage le permet, réduire cette durée pourrait diminuer la consommation.',
+            '${number.format(a.hoursPerDay)} h/jour. '
+            'Réduire cette durée peut diminuer la consommation.',
             RecommendationPriority.low,
           ),
         );
@@ -95,7 +100,7 @@ class DashboardRecommendationService {
       recommendations.add(
         const DashboardRecommendation(
           'Répartition équilibrée',
-          'Votre consommation est relativement bien répartie entre vos appareils.',
+          'Votre consommation est bien répartie.',
           RecommendationPriority.low,
         ),
       );

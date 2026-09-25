@@ -721,7 +721,7 @@ void main() {
     );
     final message = find.descendant(
       of: card,
-      matching: find.textContaining('Vérifiez sa durée'),
+      matching: find.textContaining('Vérifiez son temps d’utilisation'),
     );
     await tester.ensureVisible(message);
     expect(message, findsOneWidget);
