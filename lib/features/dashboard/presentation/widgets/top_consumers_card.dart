@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sama_courant/features/dashboard/presentation/utils/appliance_chart_colors.dart';
 
 import '../providers/dashboard_provider.dart';
 
@@ -105,7 +106,10 @@ class TopConsumersCard extends StatelessWidget {
                             : consumers[i].consumptionKwh / maximum,
                         minHeight: 6,
                         borderRadius: BorderRadius.circular(4),
-                        color: theme.colorScheme.primary,
+                        color: ApplianceChartColors.forApplianceId(
+                          consumers[i].applianceId,
+                          consumers[i].name,
+                        ),
                         backgroundColor:
                             theme.colorScheme.surfaceContainerHighest,
                         semanticsLabel:

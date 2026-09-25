@@ -46,6 +46,7 @@ final dashboardProvider = Provider<DashboardSummary>((ref) {
     for (final appliance in sorted.take(5)) {
       shares.add(
         ApplianceConsumptionShare(
+          applianceId: appliance.id,
           name: appliance.name,
           consumptionKwh: appliance.monthlyConsumptionKwh,
           percentage: appliance.monthlyConsumptionKwh / consumption * 100,
@@ -63,6 +64,7 @@ final dashboardProvider = Provider<DashboardSummary>((ref) {
           );
       shares.add(
         ApplianceConsumptionShare(
+          applianceId: null,
           name: 'Autres',
           consumptionKwh: others,
           percentage: others / consumption * 100,
@@ -134,12 +136,14 @@ class DashboardSummary {
 }
 
 class ApplianceConsumptionShare {
+  final int? applianceId;
   final String name;
   final double consumptionKwh;
   final double percentage;
   final double allocatedCostFcfa;
 
   const ApplianceConsumptionShare({
+    required this.applianceId,
     required this.name,
     required this.consumptionKwh,
     required this.percentage,

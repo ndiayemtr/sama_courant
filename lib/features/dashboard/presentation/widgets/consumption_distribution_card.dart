@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../providers/dashboard_provider.dart';
+import '../utils/appliance_chart_colors.dart';
 
 class ConsumptionDistributionCard extends StatefulWidget {
   final DashboardSummary summary;
@@ -38,14 +39,7 @@ class _ConsumptionDistributionCardState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final palette = [
-      colors.primary,
-      colors.tertiary,
-      colors.secondary,
-      colors.primaryContainer,
-      colors.tertiaryContainer,
-      colors.secondaryContainer,
-    ];
+
     final percentage = NumberFormat('0.0', 'fr_FR');
     final decimal = NumberFormat('0.00', 'fr_FR');
     final shares = widget.summary.consumptionShares;
@@ -104,7 +98,10 @@ class _ConsumptionDistributionCardState
                             for (final i in visibleIndices)
                               PieChartSectionData(
                                 value: shares[i].consumptionKwh,
-                                color: palette[i],
+                                color: ApplianceChartColors.forApplianceId(
+                                  shares[i].applianceId,
+                                  shares[i].name,
+                                ),
                                 radius: _selectedIndex == i ? 22 : 16,
                                 showTitle: false,
                               ),
@@ -183,7 +180,10 @@ class _ConsumptionDistributionCardState
                               width: 10,
                               height: 10,
                               decoration: BoxDecoration(
-                                color: palette[i],
+                                color: ApplianceChartColors.forApplianceId(
+                                  shares[i].applianceId,
+                                  shares[i].name,
+                                ),
                                 shape: BoxShape.circle,
                                 border: Border.all(
                                   color: colors.outlineVariant,

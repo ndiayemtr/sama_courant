@@ -1,3 +1,5 @@
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sama_courant/features/appliances/domain/entities/appliance.dart';
@@ -5,6 +7,8 @@ import 'package:sama_courant/features/appliances/domain/providers/appliance_usec
 import 'package:sama_courant/features/appliances/domain/usecases/get_appliances.dart';
 import 'package:sama_courant/features/appliances/presentation/providers/appliances_provider.dart';
 import 'package:sama_courant/features/dashboard/presentation/providers/dashboard_provider.dart';
+import 'package:sama_courant/features/dashboard/presentation/widgets/consumption_distribution_card.dart';
+import 'package:sama_courant/features/dashboard/presentation/widgets/top_consumers_card.dart';
 import '../../../../widget_test.dart';
 import '../../../appliances/fakes/fake_appliance_repository.dart';
 
@@ -358,6 +362,51 @@ void main() {
         summary.analysisSummary,
         'Ventilateurs représente 100 % de votre consommation actuelle.',
       );
+    },
+  );
+
+  testWidgets('donut legend and top consumer use the same appliance color', (
+    tester,
+  ) async {
+    await openAnalytics(tester, [
+      appliance('Grand', 900),
+      appliance('Petit', 100),
+    ]);
+
+    final distribution = tester.widget<ConsumptionDistributionCard>(
+      find.byType(ConsumptionDistributionCard),
+    );
+
+    final topConsumers = tester.widget<TopConsumersCard>(
+      find.byType(TopConsumersCard),
+    );
+
+    expect(
+      topConsumers.summary.consumptionShares.first.applianceId,
+      distribution.summary.consumptionShares.first.applianceId,
+    );
+  });
+
+  testWidgets(
+    'same appliance keeps same rendered color across donut and top consumers',
+    (tester) async {
+      await openAnalytics(tester, [
+        appliance('Grand', 900),
+        appliance('Petit', 100),
+      ]);
+
+      final pieChart = tester.widget<PieChart>(find.byType(PieChart));
+
+      final topBar = tester.widget<LinearProgressIndicator>(
+        find.descendant(
+          of: find.byKey(const ValueKey('top-consumer-0')),
+          matching: find.byType(LinearProgressIndicator),
+        ),
+      );
+
+      final donutColor = pieChart.data.sections.first.color;
+
+      expect(topBar.color, donutColor);
     },
   );
 }
