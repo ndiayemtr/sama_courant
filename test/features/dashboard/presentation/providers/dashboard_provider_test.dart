@@ -152,19 +152,16 @@ void main() {
   });
 
   test('analysis handles no active appliances and zero consumption', () async {
-    expect(
-      (await summaryFor([])).analysisSummary,
-      'Aucun appareil actif pour analyser la consommation.',
-    );
+    expect((await summaryFor([])).analysisSummary, 'Aucun appareil actif.');
     expect(
       (await summaryFor([
         appliance('Inactif', 900, active: false),
       ])).analysisSummary,
-      'Aucun appareil actif pour analyser la consommation.',
+      'Aucun appareil actif.',
     );
     expect(
       (await summaryFor([appliance('Zéro', 0)])).analysisSummary,
-      'La consommation actuelle des appareils actifs est nulle.',
+      'Aucune consommation à analyser.',
     );
   });
 
@@ -176,7 +173,7 @@ void main() {
           appliance('Réfrigérateur', 150),
           appliance('Inactif', 900, active: false),
         ])).analysisSummary,
-        'Réfrigérateur représente 100 % de votre consommation actuelle.',
+        'Réfrigérateur représente toute votre consommation.',
       );
     },
   );
@@ -189,14 +186,14 @@ void main() {
           appliance('Petit', 300),
           appliance('Grand', 700),
         ])).analysisSummary,
-        'Votre consommation est très concentrée sur Grand, qui représente 70,0 % du total.',
+        'Grand consomme le plus : 70,0 %.',
       );
       expect(
         (await summaryFor([
           appliance('Grand', 500),
           appliance('Petit', 100),
         ])).analysisSummary,
-        'Votre consommation est très concentrée sur Grand, qui représente 83,3 % du total.',
+        'Grand consomme le plus : 83,3 %.',
       );
     },
   );
@@ -210,7 +207,7 @@ void main() {
           appliance('Deuxième', 300),
           appliance('Premier', 500),
         ])).analysisSummary,
-        'Premier et Deuxième représentent ensemble 80,0 % de votre consommation.',
+        'Premier et Deuxième dominent : 80,0 %.',
       );
     },
   );
@@ -222,7 +219,7 @@ void main() {
         (await summaryFor([
           for (var i = 0; i < 6; i++) appliance('Appareil $i', 100),
         ])).analysisSummary,
-        'Votre consommation est répartie entre plusieurs appareils.',
+        'Consommation répartie entre plusieurs appareils.',
       );
     },
   );
@@ -360,7 +357,7 @@ void main() {
       expect(summary.activeUnitsCount, 3);
       expect(
         summary.analysisSummary,
-        'Ventilateurs représente 100 % de votre consommation actuelle.',
+        'Ventilateurs représente toute votre consommation.',
       );
     },
   );
