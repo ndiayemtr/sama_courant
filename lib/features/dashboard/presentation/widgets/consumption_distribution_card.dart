@@ -56,12 +56,8 @@ class _ConsumptionDistributionCardState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Répartition de la consommation',
-              style: theme.textTheme.titleSmall,
-            ),
+            Text('Répartition', style: theme.textTheme.titleSmall),
             const SizedBox(height: 2),
-            Text('Ce mois-ci', style: theme.textTheme.bodySmall),
             if (shares.isEmpty) ...[
               const SizedBox(height: 12),
               const Text('Aucune consommation à afficher.'),

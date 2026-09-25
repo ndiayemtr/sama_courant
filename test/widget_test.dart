@@ -298,7 +298,7 @@ void main() {
         ]);
         await tester.tap(find.text('Analyse'));
         await tester.pumpAndSettle();
-        expect(find.text('Pas encore de données à analyser'), findsOneWidget);
+        expect(find.text('Aucune donnée'), findsOneWidget);
         expect(find.byType(PieChart), findsNothing);
         final cta = find.text('Voir mes appareils');
         await tester.ensureVisible(cta);
@@ -375,7 +375,7 @@ void main() {
       findsNothing,
     );
     expect(find.text('Conseils'), findsNothing);
-    expect(find.text('Pas encore de données à analyser'), findsOneWidget);
+    expect(find.text('Aucune donnée'), findsOneWidget);
   });
   for (final loading in [true, false]) {
     testWidgets('Analysis handles ${loading ? 'loading' : 'error'}', (
@@ -434,7 +434,10 @@ void main() {
     expect(find.byType(NavigationBar), findsOneWidget);
 
     // Titre de la page.
-    expect(find.text('Analyse énergétique'), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: find.text('Analyse')),
+      findsOneWidget,
+    );
 
     // L'ancien sous-titre a été volontairement supprimé.
     expect(find.text('Comprenez où part votre consommation.'), findsNothing);
@@ -570,10 +573,16 @@ void main() {
       expect(find.byType(AppBar), findsOneWidget);
       expect(find.byType(NavigationDestination), findsNWidgets(4));
       if (index == 2) {
-        expect(find.text('Analyse énergétique'), findsOneWidget);
-        expect(find.text('Pas encore de données à analyser'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(AppBar),
+            matching: find.text('Analyse'),
+          ),
+          findsOneWidget,
+        );
+
+        expect(find.text('Aucune donnée'), findsOneWidget);
         expect(find.text('Voir mes appareils'), findsOneWidget);
-        expect(find.text('Pas encore de données à analyser'), findsOneWidget);
       }
       expect(tester.takeException(), isNull);
     }

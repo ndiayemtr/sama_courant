@@ -36,7 +36,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
       appBar: pageAppBar(
         context: context,
         automaticallyImplyLeading: false,
-        title: 'Analyse énergétique',
+        title: 'Analyse',
       ),
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -54,9 +54,8 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                   if (summary.consumptionKwh <= 0) ...[
                     EmptyStateCard(
                       icon: Icons.insights_outlined,
-                      title: 'Pas encore de données à analyser',
-                      message:
-                          'Ajoutez et activez des appareils pour voir la répartition de votre consommation.',
+                      title: 'Aucune donnée',
+                      message: 'Ajoutez ou activez un appareil pour commencer.',
                       actionLabel: 'Voir mes appareils',
                       onAction: () => context.go('/appliances'),
                     ),

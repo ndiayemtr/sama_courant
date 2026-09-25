@@ -33,10 +33,6 @@ class TopConsumersCard extends StatelessWidget {
                     : 'Aucune consommation à comparer.',
               ),
             ] else ...[
-              Text(
-                'Comparaison au plus gros consommateur',
-                style: theme.textTheme.bodySmall,
-              ),
               for (var i = 0; i < consumers.length; i++)
                 Padding(
                   key: ValueKey('top-consumer-$i'),
