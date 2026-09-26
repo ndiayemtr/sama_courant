@@ -36,6 +36,9 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   bool _isSaving = false;
   bool _isActive = true;
 
+  double _usageDurationMinutesValue = 30;
+  int _usageCountValue = 1;
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -50,14 +53,37 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   @override
   void initState() {
     super.initState();
-
     _initializeForm();
+  }
+
+  String _formatUsageDuration(double minutesValue) {
+    final minutes = minutesValue.round();
+
+    if (minutes <= 0) {
+      return '0 min';
+    }
+
+    final hours = minutes ~/ 60;
+    final remainingMinutes = minutes % 60;
+
+    if (hours == 0) {
+      return '$minutes min';
+    }
+
+    if (remainingMinutes == 0) {
+      return '${hours}h';
+    }
+
+    return '${hours}h ${remainingMinutes}m';
   }
 
   void _initializeForm() {
     final appliance = widget.appliance;
 
     if (appliance == null) {
+      _usageDurationMinutesValue = 30;
+      _usageCountValue = 1;
+      _selectedUsageFrequency = UsageFrequency.daily;
       return;
     }
 
@@ -65,18 +91,19 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     _selectedCategory = appliance.category;
     _powerController.text = appliance.powerWatts.toString();
     _quantityController.text = appliance.quantity.toString();
-    if (appliance.usesNewUsageModel) {
-      _usageDurationMinutesController.text = appliance.usageDurationMinutes
-          .toString();
 
-      _usageCountController.text = appliance.usageCount.toString();
+    if (appliance.usesNewUsageModel) {
+      _usageDurationMinutesValue = appliance.usageDurationMinutes!.toDouble();
+
+      _usageCountValue = appliance.usageCount!;
 
       _selectedUsageFrequency = appliance.usageFrequency!;
     } else {
-      _usageDurationMinutesController.clear();
-      _usageCountController.text = '1';
+      _usageDurationMinutesValue = 30;
+      _usageCountValue = 1;
       _selectedUsageFrequency = UsageFrequency.daily;
     }
+
     _isActive = appliance.isActive;
   }
 
@@ -154,92 +181,176 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
               context,
               icon: Icons.schedule,
               title: 'Utilisation',
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isNarrow = constraints.maxWidth < 330;
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Durée', style: Theme.of(context).textTheme.labelLarge),
+                  const SizedBox(height: 8),
 
-                  final durationField = _buildTextField(
-                    controller: _usageDurationMinutesController,
-                    label: 'Durée',
-                    hint: 'Ex. 30',
-                    icon: Icons.timer_outlined,
-                    suffixText: 'min',
-                    keyboardType: TextInputType.number,
-                    validator: _validateUsageDurationMinutes,
-                  );
-
-                  final countField = _buildTextField(
-                    controller: _usageCountController,
-                    label: 'Nombre de fois',
-                    hint: 'Ex. 2',
-                    icon: Icons.repeat,
-                    keyboardType: TextInputType.number,
-                    validator: _validateUsageCount,
-                  );
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (isNarrow) ...[
-                        durationField,
-                        const SizedBox(height: 12),
-                        countField,
-                      ] else
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(child: durationField),
-                            const SizedBox(width: 12),
-                            Expanded(child: countField),
+                            Icon(
+                              Icons.timer_outlined,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _formatUsageDuration(_usageDurationMinutesValue),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            trackHeight: 4,
+                            thumbShape: const RoundSliderThumbShape(
+                              enabledThumbRadius: 9,
+                            ),
+                            overlayShape: const RoundSliderOverlayShape(
+                              overlayRadius: 18,
+                            ),
+                          ),
+                          child: Slider(
+                            value: _usageDurationMinutesValue,
+                            min: 5,
+                            max: 1440,
+                            divisions: 96, // pas de 15 minutes
+                            label: _formatUsageDuration(
+                              _usageDurationMinutesValue,
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                _usageDurationMinutesValue = value;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Text(
+                    'Nombre de fois',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.repeat,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '$_usageCountValue fois',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
                           ],
                         ),
 
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 8),
 
-                      DropdownButtonFormField<UsageFrequency>(
-                        initialValue: _selectedUsageFrequency,
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Fréquence',
-                          prefixIcon: Icon(Icons.calendar_month_outlined),
-                          border: OutlineInputBorder(),
+                        Slider(
+                          value: _usageCountValue.toDouble(),
+                          min: 1,
+                          max: 30,
+                          divisions: 29,
+                          label: '$_usageCountValue',
+                          onChanged: (value) {
+                            setState(() {
+                              _usageCountValue = value.round();
+                            });
+                          },
                         ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: UsageFrequency.daily,
-                            child: Text('Par jour'),
-                          ),
-                          DropdownMenuItem(
-                            value: UsageFrequency.weekly,
-                            child: Text('Par semaine'),
-                          ),
-                          DropdownMenuItem(
-                            value: UsageFrequency.monthly,
-                            child: Text('Par mois'),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          if (value == null) {
-                            return;
-                          }
+                      ],
+                    ),
+                  ),
 
-                          setState(() {
-                            _selectedUsageFrequency = value;
-                          });
-                        },
+                  const SizedBox(height: 16),
+
+                  DropdownButtonFormField<UsageFrequency>(
+                    initialValue: _selectedUsageFrequency,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Fréquence',
+                      prefixIcon: Icon(Icons.calendar_month_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: UsageFrequency.daily,
+                        child: Text('Par jour'),
                       ),
-
-                      const SizedBox(height: 8),
-
-                      Text(
-                        _usageFrequencyHelpText,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      DropdownMenuItem(
+                        value: UsageFrequency.weekly,
+                        child: Text('Par semaine'),
+                      ),
+                      DropdownMenuItem(
+                        value: UsageFrequency.monthly,
+                        child: Text('Par mois'),
                       ),
                     ],
-                  );
-                },
+                    onChanged: (value) {
+                      if (value == null) {
+                        return;
+                      }
+
+                      setState(() {
+                        _selectedUsageFrequency = value;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    switch (_selectedUsageFrequency) {
+                      UsageFrequency.daily =>
+                        'Combien de fois utilisez-vous cet appareil chaque jour ?',
+                      UsageFrequency.weekly =>
+                        'Combien de fois utilisez-vous cet appareil chaque semaine ?',
+                      UsageFrequency.monthly =>
+                        'Combien de fois utilisez-vous cet appareil chaque mois ?',
+                    },
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
             ),
             if (_isEditMode) ...[
@@ -380,14 +491,13 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
       powerWatts: double.parse(_powerController.text.trim()),
       quantity: int.parse(_quantityController.text.trim()),
 
-      // Champs legacy conservés temporairement pour compatibilité.
+      // Champs legacy obligatoires pour le moment.
       hoursPerDay: existingAppliance?.hoursPerDay ?? 0,
       daysPerMonth: existingAppliance?.daysPerMonth ?? 30,
 
-      usageDurationMinutes: int.parse(
-        _usageDurationMinutesController.text.trim(),
-      ),
-      usageCount: int.parse(_usageCountController.text.trim()),
+      // Nouveau modèle d'utilisation.
+      usageDurationMinutes: _usageDurationMinutesValue.round(),
+      usageCount: _usageCountValue,
       usageFrequency: _selectedUsageFrequency,
 
       isActive: _isActive,
@@ -642,54 +752,54 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     );
   }
 
-  String get _usageFrequencyHelpText {
-    switch (_selectedUsageFrequency) {
-      case UsageFrequency.daily:
-        return 'Combien de fois utilisez-vous cet appareil chaque jour ?';
-      case UsageFrequency.weekly:
-        return 'Combien de fois utilisez-vous cet appareil chaque semaine ?';
-      case UsageFrequency.monthly:
-        return 'Combien de fois utilisez-vous cet appareil chaque mois ?';
-    }
-  }
+  // String get _usageFrequencyHelpText {
+  //   switch (_selectedUsageFrequency) {
+  //     case UsageFrequency.daily:
+  //       return 'Combien de fois utilisez-vous cet appareil chaque jour ?';
+  //     case UsageFrequency.weekly:
+  //       return 'Combien de fois utilisez-vous cet appareil chaque semaine ?';
+  //     case UsageFrequency.monthly:
+  //       return 'Combien de fois utilisez-vous cet appareil chaque mois ?';
+  //   }
+  // }
 
-  String? _validateUsageDurationMinutes(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Durée requise';
-    }
+  // String? _validateUsageDurationMinutes(String? value) {
+  //   if (value == null || value.trim().isEmpty) {
+  //     return 'Durée requise';
+  //   }
 
-    final minutes = int.tryParse(value.trim());
+  //   final minutes = int.tryParse(value.trim());
 
-    if (minutes == null) {
-      return 'Entrez un nombre valide';
-    }
+  //   if (minutes == null) {
+  //     return 'Entrez un nombre valide';
+  //   }
 
-    if (minutes <= 0) {
-      return 'La durée doit être supérieure à 0';
-    }
+  //   if (minutes <= 0) {
+  //     return 'La durée doit être supérieure à 0';
+  //   }
 
-    if (minutes > 1440) {
-      return 'Maximum 1440 min';
-    }
+  //   if (minutes > 1440) {
+  //     return 'Maximum 1440 min';
+  //   }
 
-    return null;
-  }
+  //   return null;
+  // }
 
-  String? _validateUsageCount(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Nombre requis';
-    }
+  // String? _validateUsageCount(String? value) {
+  //   if (value == null || value.trim().isEmpty) {
+  //     return 'Nombre requis';
+  //   }
 
-    final count = int.tryParse(value.trim());
+  //   final count = int.tryParse(value.trim());
 
-    if (count == null) {
-      return 'Entrez un nombre valide';
-    }
+  //   if (count == null) {
+  //     return 'Entrez un nombre valide';
+  //   }
 
-    if (count <= 0) {
-      return 'Minimum 1';
-    }
+  //   if (count <= 0) {
+  //     return 'Minimum 1';
+  //   }
 
-    return null;
-  }
+  //   return null;
+  // }
 }

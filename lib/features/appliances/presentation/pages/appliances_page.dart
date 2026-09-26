@@ -160,7 +160,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     );
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 30),
       itemCount: state.appliances.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {

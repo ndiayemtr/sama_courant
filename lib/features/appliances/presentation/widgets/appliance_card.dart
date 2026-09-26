@@ -151,7 +151,7 @@ class ApplianceCard extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
             Container(
               width: double.infinity,
@@ -162,9 +162,6 @@ class ApplianceCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.bolt_outlined, color: theme.colorScheme.primary),
-                  const SizedBox(width: 12),
-
                   Expanded(
                     child: _InfoItem(label: 'Utilisation', value: usageText),
                   ),
@@ -176,6 +173,8 @@ class ApplianceCard extends StatelessWidget {
                       label: 'Conso / mois',
                       value:
                           '${decimalFormatter.format(appliance.monthlyConsumptionKwh)} kWh',
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      textAlign: TextAlign.right,
                     ),
                   ),
                 ],
@@ -310,21 +309,33 @@ enum _ApplianceAction { edit, delete }
 class _InfoItem extends StatelessWidget {
   final String label;
   final String value;
+  final CrossAxisAlignment crossAxisAlignment;
+  final TextAlign textAlign;
 
-  const _InfoItem({required this.label, required this.value});
+  const _InfoItem({
+    required this.label,
+    required this.value,
+    this.crossAxisAlignment = CrossAxisAlignment.start,
+    this.textAlign = TextAlign.start,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: crossAxisAlignment,
       children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
+        Text(label, textAlign: textAlign, style: theme.textTheme.bodySmall),
         const SizedBox(height: 4),
         Text(
           value,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+          textAlign: textAlign,
+          maxLines: 2,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            height: 1.2,
+          ),
         ),
       ],
     );
