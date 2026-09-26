@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
 
 import '../../domain/entities/appliance.dart';
 
@@ -23,6 +24,7 @@ class ApplianceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final fcfaFormatter = NumberFormat.decimalPattern('fr_FR');
     final decimalFormatter = NumberFormat('0.00', 'fr_FR');
+    final usageText = _buildUsageText(appliance);
     final theme = Theme.of(context);
 
     return Card(
@@ -164,11 +166,7 @@ class ApplianceCard extends StatelessWidget {
                   const SizedBox(width: 12),
 
                   Expanded(
-                    child: _InfoItem(
-                      label: 'Conso / jour',
-                      value:
-                          '${decimalFormatter.format(appliance.dailyConsumptionKwh)} kWh',
-                    ),
+                    child: _InfoItem(label: 'Utilisation', value: usageText),
                   ),
 
                   const SizedBox(width: 12),
@@ -258,6 +256,52 @@ class ApplianceCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _buildUsageText(Appliance appliance) {
+    if (!appliance.usesNewUsageModel) {
+      return _buildLegacyUsageText(appliance);
+    }
+
+    final duration = _formatDuration(appliance.usageDurationMinutes!);
+
+    final count = appliance.usageCount!;
+    final frequency = _frequencyLabel(appliance.usageFrequency!);
+
+    return '$duration • $count fois $frequency';
+  }
+
+  String _buildLegacyUsageText(Appliance appliance) {
+    final hoursFormatter = NumberFormat('0.##', 'fr_FR');
+
+    return '${hoursFormatter.format(appliance.hoursPerDay)} h/j'
+        ' • ${appliance.daysPerMonth} j/mois';
+  }
+
+  String _formatDuration(int minutes) {
+    if (minutes < 60) {
+      return '$minutes min';
+    }
+
+    final hours = minutes ~/ 60;
+    final remainingMinutes = minutes % 60;
+
+    if (remainingMinutes == 0) {
+      return '$hours h';
+    }
+
+    return '$hours h $remainingMinutes min';
+  }
+
+  String _frequencyLabel(UsageFrequency frequency) {
+    switch (frequency) {
+      case UsageFrequency.daily:
+        return '/ jour';
+      case UsageFrequency.weekly:
+        return '/ semaine';
+      case UsageFrequency.monthly:
+        return '/ mois';
+    }
   }
 }
 

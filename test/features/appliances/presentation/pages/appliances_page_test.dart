@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sama_courant/features/appliances/domain/entities/appliance.dart';
+import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
 import 'package:sama_courant/features/appliances/domain/providers/appliance_usecase_providers.dart';
 import 'package:sama_courant/features/appliances/domain/repositories/appliance_repository.dart';
 import 'package:sama_courant/features/appliances/domain/usecases/create_appliance.dart';
@@ -234,7 +235,7 @@ void main() {
     // Informations principales.
     expect(find.text('Réfrigérateur'), findsOneWidget);
     expect(find.text('Actif'), findsOneWidget);
-    expect(find.text('1,50 kWh'), findsOneWidget);
+    expect(find.text('10 h/j • 30 j/mois'), findsOneWidget);
     expect(find.text('45,00 kWh'), findsOneWidget);
     expect(find.text('Part mensuelle estimée'), findsOneWidget);
     expect(find.textContaining('FCFA'), findsOneWidget);
@@ -297,7 +298,7 @@ void main() {
 
     expect(find.text('Mes appareils'), findsOneWidget);
     expect(find.text('Réfrigérateur'), findsOneWidget);
-    expect(find.text('1,50 kWh'), findsOneWidget);
+    expect(find.text('10 h/j • 30 j/mois'), findsOneWidget);
     expect(
       find.descendant(
         of: find.byType(ApplianceCard),
@@ -377,5 +378,53 @@ void main() {
     await tester.pumpAndSettle();
 
     container.dispose();
+  });
+
+  testWidgets('appliance card displays new usage model correctly', (
+    tester,
+  ) async {
+    final appliance = Appliance(
+      id: 2,
+      name: 'Fer à repasser',
+      category: 'Cuisine',
+      powerWatts: 1600,
+      quantity: 1,
+
+      // Legacy conservé mais non utilisé pour le calcul principal.
+      hoursPerDay: 0,
+      daysPerMonth: 30,
+
+      usageDurationMinutes: 30,
+      usageCount: 2,
+      usageFrequency: UsageFrequency.weekly,
+
+      isActive: true,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ApplianceCard(appliance: appliance, monthlyCostFcfa: 600),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Fer à repasser'), findsOneWidget);
+
+    expect(find.text('Utilisation'), findsOneWidget);
+
+    expect(find.text('30 min • 2 fois / semaine'), findsOneWidget);
+
+    expect(find.text('Conso / mois'), findsOneWidget);
+
+    expect(find.text('6,93 kWh'), findsOneWidget);
+
+    expect(find.text('Conso / jour'), findsNothing);
+
+    expect(tester.takeException(), isNull);
   });
 }
