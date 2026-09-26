@@ -24,13 +24,21 @@ class AppDatabase extends _$AppDatabase {
     : super(NativeDatabase.createInBackground(file));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onUpgrade: (migrator, from, to) async {
-      if (from < 2) {
+      if (from < 2 && to >= 2) {
         await migrator.createTable(consumptionSnapshots);
+      }
+
+      if (from < 3 && to >= 3) {
+        await migrator.addColumn(appliances, appliances.usageDurationMinutes);
+
+        await migrator.addColumn(appliances, appliances.usageCount);
+
+        await migrator.addColumn(appliances, appliances.usageFrequency);
       }
     },
   );

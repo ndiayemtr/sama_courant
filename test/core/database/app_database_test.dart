@@ -48,7 +48,7 @@ void main() {
       expect(row.tariffConfigurationName, 'Woyofal DPP 2026');
       final nextId = await db.into(db.consumptionSnapshots).insert(companion);
       expect(nextId, greaterThan(id));
-      expect(db.schemaVersion, 2);
+      expect(db.schemaVersion, 3);
     },
   );
 

@@ -5,6 +5,7 @@ import 'package:sama_courant/core/database/app_database.dart';
 import 'package:sama_courant/features/appliances/data/repositories/drift_appliance_repository.dart';
 import 'package:sama_courant/features/appliances/domain/entities/appliance.dart'
     as domain;
+import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
 
 void main() {
   // TestWidgetsFlutterBinding.ensureInitialized();
@@ -125,12 +126,15 @@ void main() {
 
     final id = await firstRepository.create(
       domain.Appliance(
-        name: 'Réfrigérateur',
-        category: 'Cuisine',
-        powerWatts: 150,
+        name: 'Fer à repasser',
+        category: 'Électroménager',
+        powerWatts: 1600,
         quantity: 1,
-        hoursPerDay: 10,
+        hoursPerDay: 0,
         daysPerMonth: 30,
+        usageDurationMinutes: 30,
+        usageCount: 2,
+        usageFrequency: UsageFrequency.weekly,
         isActive: true,
         createdAt: createdAt,
         updatedAt: updatedAt,
@@ -146,17 +150,116 @@ void main() {
 
     expect(persisted, isNotNull);
     expect(persisted!.id, id);
-    expect(persisted.name, 'Réfrigérateur');
-    expect(persisted.category, 'Cuisine');
-    expect(persisted.powerWatts, 150);
+    expect(persisted.name, 'Fer à repasser');
+    expect(persisted.category, 'Électroménager');
+    expect(persisted.powerWatts, 1600);
     expect(persisted.quantity, 1);
-    expect(persisted.hoursPerDay, 10);
+    expect(persisted.hoursPerDay, 0);
     expect(persisted.daysPerMonth, 30);
     expect(persisted.isActive, isTrue);
     expect(persisted.createdAt, createdAt);
     expect(persisted.updatedAt, updatedAt);
+    expect(persisted.usageDurationMinutes, 30);
+    expect(persisted.usageCount, 2);
+    expect(persisted.usageFrequency, UsageFrequency.weekly);
+    expect(persisted.usesNewUsageModel, isTrue);
+    expect(persisted.monthlyConsumptionKwh, closeTo(6.928, 0.0001));
 
     await secondDatabase.close();
     await tempDir.delete(recursive: true);
+  });
+
+  test('legacy appliance keeps new usage fields null', () async {
+    final now = DateTime(2026, 9, 26, 9, 0);
+
+    final id = await repository.create(
+      domain.Appliance(
+        name: 'Télévision',
+        category: 'Salon',
+        powerWatts: 120,
+        quantity: 1,
+        hoursPerDay: 5,
+        daysPerMonth: 30,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    final persisted = await repository.getById(id);
+
+    expect(persisted, isNotNull);
+    expect(persisted!.usageDurationMinutes, isNull);
+    expect(persisted.usageCount, isNull);
+    expect(persisted.usageFrequency, isNull);
+    expect(persisted.usesNewUsageModel, isFalse);
+
+    // Vérifie que le fallback legacy reste fonctionnel.
+    expect(persisted.monthlyConsumptionKwh, closeTo(18.0, 0.0001));
+  });
+
+  test('legacy appliance keeps new usage fields null', () async {
+    final now = DateTime(2026, 9, 26, 9, 0);
+
+    final id = await repository.create(
+      domain.Appliance(
+        name: 'Télévision',
+        category: 'Salon',
+        powerWatts: 120,
+        quantity: 1,
+        hoursPerDay: 5,
+        daysPerMonth: 30,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    final persisted = await repository.getById(id);
+
+    expect(persisted, isNotNull);
+    expect(persisted!.usageDurationMinutes, isNull);
+    expect(persisted.usageCount, isNull);
+    expect(persisted.usageFrequency, isNull);
+    expect(persisted.usesNewUsageModel, isFalse);
+
+    // Vérifie que le fallback legacy reste fonctionnel.
+    expect(persisted.monthlyConsumptionKwh, closeTo(18.0, 0.0001));
+  });
+
+  test('new usage model persists and reloads correctly', () async {
+    final now = DateTime(2026, 9, 26, 9, 0);
+
+    final id = await repository.create(
+      domain.Appliance(
+        name: 'Fer à repasser',
+        category: 'Électroménager',
+        powerWatts: 1600,
+        quantity: 1,
+
+        // Legacy conservé temporairement pour compatibilité.
+        hoursPerDay: 0,
+        daysPerMonth: 30,
+
+        usageDurationMinutes: 30,
+        usageCount: 2,
+        usageFrequency: UsageFrequency.weekly,
+
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    final persisted = await repository.getById(id);
+
+    expect(persisted, isNotNull);
+
+    expect(persisted!.usageDurationMinutes, 30);
+    expect(persisted.usageCount, 2);
+    expect(persisted.usageFrequency, UsageFrequency.weekly);
+    expect(persisted.usesNewUsageModel, isTrue);
+
+    expect(persisted.monthlyConsumptionKwh, closeTo(6.928, 0.0001));
   });
 }

@@ -96,6 +96,38 @@ class $AppliancesTable extends Appliances
     requiredDuringInsert: false,
     defaultValue: const Constant(30),
   );
+  static const VerificationMeta _usageDurationMinutesMeta =
+      const VerificationMeta('usageDurationMinutes');
+  @override
+  late final GeneratedColumn<int> usageDurationMinutes = GeneratedColumn<int>(
+    'usage_duration_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _usageCountMeta = const VerificationMeta(
+    'usageCount',
+  );
+  @override
+  late final GeneratedColumn<int> usageCount = GeneratedColumn<int>(
+    'usage_count',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _usageFrequencyMeta = const VerificationMeta(
+    'usageFrequency',
+  );
+  @override
+  late final GeneratedColumn<String> usageFrequency = GeneratedColumn<String>(
+    'usage_frequency',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
   );
@@ -142,6 +174,9 @@ class $AppliancesTable extends Appliances
     quantity,
     hoursPerDay,
     daysPerMonth,
+    usageDurationMinutes,
+    usageCount,
+    usageFrequency,
     isActive,
     createdAt,
     updatedAt,
@@ -211,6 +246,30 @@ class $AppliancesTable extends Appliances
         ),
       );
     }
+    if (data.containsKey('usage_duration_minutes')) {
+      context.handle(
+        _usageDurationMinutesMeta,
+        usageDurationMinutes.isAcceptableOrUnknown(
+          data['usage_duration_minutes']!,
+          _usageDurationMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('usage_count')) {
+      context.handle(
+        _usageCountMeta,
+        usageCount.isAcceptableOrUnknown(data['usage_count']!, _usageCountMeta),
+      );
+    }
+    if (data.containsKey('usage_frequency')) {
+      context.handle(
+        _usageFrequencyMeta,
+        usageFrequency.isAcceptableOrUnknown(
+          data['usage_frequency']!,
+          _usageFrequencyMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_active')) {
       context.handle(
         _isActiveMeta,
@@ -270,6 +329,18 @@ class $AppliancesTable extends Appliances
         DriftSqlType.int,
         data['${effectivePrefix}days_per_month'],
       )!,
+      usageDurationMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}usage_duration_minutes'],
+      ),
+      usageCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}usage_count'],
+      ),
+      usageFrequency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}usage_frequency'],
+      ),
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
@@ -299,6 +370,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
   final int quantity;
   final double hoursPerDay;
   final int daysPerMonth;
+  final int? usageDurationMinutes;
+  final int? usageCount;
+  final String? usageFrequency;
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -310,6 +384,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     required this.quantity,
     required this.hoursPerDay,
     required this.daysPerMonth,
+    this.usageDurationMinutes,
+    this.usageCount,
+    this.usageFrequency,
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
@@ -324,6 +401,15 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     map['quantity'] = Variable<int>(quantity);
     map['hours_per_day'] = Variable<double>(hoursPerDay);
     map['days_per_month'] = Variable<int>(daysPerMonth);
+    if (!nullToAbsent || usageDurationMinutes != null) {
+      map['usage_duration_minutes'] = Variable<int>(usageDurationMinutes);
+    }
+    if (!nullToAbsent || usageCount != null) {
+      map['usage_count'] = Variable<int>(usageCount);
+    }
+    if (!nullToAbsent || usageFrequency != null) {
+      map['usage_frequency'] = Variable<String>(usageFrequency);
+    }
     map['is_active'] = Variable<bool>(isActive);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -339,6 +425,15 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       quantity: Value(quantity),
       hoursPerDay: Value(hoursPerDay),
       daysPerMonth: Value(daysPerMonth),
+      usageDurationMinutes: usageDurationMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(usageDurationMinutes),
+      usageCount: usageCount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(usageCount),
+      usageFrequency: usageFrequency == null && nullToAbsent
+          ? const Value.absent()
+          : Value(usageFrequency),
       isActive: Value(isActive),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -358,6 +453,11 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       quantity: serializer.fromJson<int>(json['quantity']),
       hoursPerDay: serializer.fromJson<double>(json['hoursPerDay']),
       daysPerMonth: serializer.fromJson<int>(json['daysPerMonth']),
+      usageDurationMinutes: serializer.fromJson<int?>(
+        json['usageDurationMinutes'],
+      ),
+      usageCount: serializer.fromJson<int?>(json['usageCount']),
+      usageFrequency: serializer.fromJson<String?>(json['usageFrequency']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -374,6 +474,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       'quantity': serializer.toJson<int>(quantity),
       'hoursPerDay': serializer.toJson<double>(hoursPerDay),
       'daysPerMonth': serializer.toJson<int>(daysPerMonth),
+      'usageDurationMinutes': serializer.toJson<int?>(usageDurationMinutes),
+      'usageCount': serializer.toJson<int?>(usageCount),
+      'usageFrequency': serializer.toJson<String?>(usageFrequency),
       'isActive': serializer.toJson<bool>(isActive),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -388,6 +491,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     int? quantity,
     double? hoursPerDay,
     int? daysPerMonth,
+    Value<int?> usageDurationMinutes = const Value.absent(),
+    Value<int?> usageCount = const Value.absent(),
+    Value<String?> usageFrequency = const Value.absent(),
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -399,6 +505,13 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     quantity: quantity ?? this.quantity,
     hoursPerDay: hoursPerDay ?? this.hoursPerDay,
     daysPerMonth: daysPerMonth ?? this.daysPerMonth,
+    usageDurationMinutes: usageDurationMinutes.present
+        ? usageDurationMinutes.value
+        : this.usageDurationMinutes,
+    usageCount: usageCount.present ? usageCount.value : this.usageCount,
+    usageFrequency: usageFrequency.present
+        ? usageFrequency.value
+        : this.usageFrequency,
     isActive: isActive ?? this.isActive,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -418,6 +531,15 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       daysPerMonth: data.daysPerMonth.present
           ? data.daysPerMonth.value
           : this.daysPerMonth,
+      usageDurationMinutes: data.usageDurationMinutes.present
+          ? data.usageDurationMinutes.value
+          : this.usageDurationMinutes,
+      usageCount: data.usageCount.present
+          ? data.usageCount.value
+          : this.usageCount,
+      usageFrequency: data.usageFrequency.present
+          ? data.usageFrequency.value
+          : this.usageFrequency,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -434,6 +556,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
           ..write('quantity: $quantity, ')
           ..write('hoursPerDay: $hoursPerDay, ')
           ..write('daysPerMonth: $daysPerMonth, ')
+          ..write('usageDurationMinutes: $usageDurationMinutes, ')
+          ..write('usageCount: $usageCount, ')
+          ..write('usageFrequency: $usageFrequency, ')
           ..write('isActive: $isActive, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -450,6 +575,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     quantity,
     hoursPerDay,
     daysPerMonth,
+    usageDurationMinutes,
+    usageCount,
+    usageFrequency,
     isActive,
     createdAt,
     updatedAt,
@@ -465,6 +593,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
           other.quantity == this.quantity &&
           other.hoursPerDay == this.hoursPerDay &&
           other.daysPerMonth == this.daysPerMonth &&
+          other.usageDurationMinutes == this.usageDurationMinutes &&
+          other.usageCount == this.usageCount &&
+          other.usageFrequency == this.usageFrequency &&
           other.isActive == this.isActive &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -478,6 +609,9 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
   final Value<int> quantity;
   final Value<double> hoursPerDay;
   final Value<int> daysPerMonth;
+  final Value<int?> usageDurationMinutes;
+  final Value<int?> usageCount;
+  final Value<String?> usageFrequency;
   final Value<bool> isActive;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -489,6 +623,9 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     this.quantity = const Value.absent(),
     this.hoursPerDay = const Value.absent(),
     this.daysPerMonth = const Value.absent(),
+    this.usageDurationMinutes = const Value.absent(),
+    this.usageCount = const Value.absent(),
+    this.usageFrequency = const Value.absent(),
     this.isActive = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -501,6 +638,9 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     this.quantity = const Value.absent(),
     required double hoursPerDay,
     this.daysPerMonth = const Value.absent(),
+    this.usageDurationMinutes = const Value.absent(),
+    this.usageCount = const Value.absent(),
+    this.usageFrequency = const Value.absent(),
     this.isActive = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -518,6 +658,9 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     Expression<int>? quantity,
     Expression<double>? hoursPerDay,
     Expression<int>? daysPerMonth,
+    Expression<int>? usageDurationMinutes,
+    Expression<int>? usageCount,
+    Expression<String>? usageFrequency,
     Expression<bool>? isActive,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -530,6 +673,10 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
       if (quantity != null) 'quantity': quantity,
       if (hoursPerDay != null) 'hours_per_day': hoursPerDay,
       if (daysPerMonth != null) 'days_per_month': daysPerMonth,
+      if (usageDurationMinutes != null)
+        'usage_duration_minutes': usageDurationMinutes,
+      if (usageCount != null) 'usage_count': usageCount,
+      if (usageFrequency != null) 'usage_frequency': usageFrequency,
       if (isActive != null) 'is_active': isActive,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -544,6 +691,9 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     Value<int>? quantity,
     Value<double>? hoursPerDay,
     Value<int>? daysPerMonth,
+    Value<int?>? usageDurationMinutes,
+    Value<int?>? usageCount,
+    Value<String?>? usageFrequency,
     Value<bool>? isActive,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -556,6 +706,9 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
       quantity: quantity ?? this.quantity,
       hoursPerDay: hoursPerDay ?? this.hoursPerDay,
       daysPerMonth: daysPerMonth ?? this.daysPerMonth,
+      usageDurationMinutes: usageDurationMinutes ?? this.usageDurationMinutes,
+      usageCount: usageCount ?? this.usageCount,
+      usageFrequency: usageFrequency ?? this.usageFrequency,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -586,6 +739,15 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     if (daysPerMonth.present) {
       map['days_per_month'] = Variable<int>(daysPerMonth.value);
     }
+    if (usageDurationMinutes.present) {
+      map['usage_duration_minutes'] = Variable<int>(usageDurationMinutes.value);
+    }
+    if (usageCount.present) {
+      map['usage_count'] = Variable<int>(usageCount.value);
+    }
+    if (usageFrequency.present) {
+      map['usage_frequency'] = Variable<String>(usageFrequency.value);
+    }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
@@ -608,6 +770,9 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
           ..write('quantity: $quantity, ')
           ..write('hoursPerDay: $hoursPerDay, ')
           ..write('daysPerMonth: $daysPerMonth, ')
+          ..write('usageDurationMinutes: $usageDurationMinutes, ')
+          ..write('usageCount: $usageCount, ')
+          ..write('usageFrequency: $usageFrequency, ')
           ..write('isActive: $isActive, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -2142,6 +2307,9 @@ typedef $$AppliancesTableCreateCompanionBuilder =
       Value<int> quantity,
       required double hoursPerDay,
       Value<int> daysPerMonth,
+      Value<int?> usageDurationMinutes,
+      Value<int?> usageCount,
+      Value<String?> usageFrequency,
       Value<bool> isActive,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -2155,6 +2323,9 @@ typedef $$AppliancesTableUpdateCompanionBuilder =
       Value<int> quantity,
       Value<double> hoursPerDay,
       Value<int> daysPerMonth,
+      Value<int?> usageDurationMinutes,
+      Value<int?> usageCount,
+      Value<String?> usageFrequency,
       Value<bool> isActive,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -2201,6 +2372,21 @@ class $$AppliancesTableFilterComposer
 
   ColumnFilters<int> get daysPerMonth => $composableBuilder(
     column: $table.daysPerMonth,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get usageDurationMinutes => $composableBuilder(
+    column: $table.usageDurationMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get usageCount => $composableBuilder(
+    column: $table.usageCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get usageFrequency => $composableBuilder(
+    column: $table.usageFrequency,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2264,6 +2450,21 @@ class $$AppliancesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get usageDurationMinutes => $composableBuilder(
+    column: $table.usageDurationMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get usageCount => $composableBuilder(
+    column: $table.usageCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get usageFrequency => $composableBuilder(
+    column: $table.usageFrequency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isActive => $composableBuilder(
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
@@ -2316,6 +2517,21 @@ class $$AppliancesTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get usageDurationMinutes => $composableBuilder(
+    column: $table.usageDurationMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get usageCount => $composableBuilder(
+    column: $table.usageCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get usageFrequency => $composableBuilder(
+    column: $table.usageFrequency,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
 
@@ -2364,6 +2580,9 @@ class $$AppliancesTableTableManager
                 Value<int> quantity = const Value.absent(),
                 Value<double> hoursPerDay = const Value.absent(),
                 Value<int> daysPerMonth = const Value.absent(),
+                Value<int?> usageDurationMinutes = const Value.absent(),
+                Value<int?> usageCount = const Value.absent(),
+                Value<String?> usageFrequency = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -2375,6 +2594,9 @@ class $$AppliancesTableTableManager
                 quantity: quantity,
                 hoursPerDay: hoursPerDay,
                 daysPerMonth: daysPerMonth,
+                usageDurationMinutes: usageDurationMinutes,
+                usageCount: usageCount,
+                usageFrequency: usageFrequency,
                 isActive: isActive,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -2388,6 +2610,9 @@ class $$AppliancesTableTableManager
                 Value<int> quantity = const Value.absent(),
                 required double hoursPerDay,
                 Value<int> daysPerMonth = const Value.absent(),
+                Value<int?> usageDurationMinutes = const Value.absent(),
+                Value<int?> usageCount = const Value.absent(),
+                Value<String?> usageFrequency = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -2399,6 +2624,9 @@ class $$AppliancesTableTableManager
                 quantity: quantity,
                 hoursPerDay: hoursPerDay,
                 daysPerMonth: daysPerMonth,
+                usageDurationMinutes: usageDurationMinutes,
+                usageCount: usageCount,
+                usageFrequency: usageFrequency,
                 isActive: isActive,
                 createdAt: createdAt,
                 updatedAt: updatedAt,

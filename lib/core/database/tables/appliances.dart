@@ -15,6 +15,12 @@ class Appliances extends Table {
 
   IntColumn get daysPerMonth => integer().withDefault(const Constant(30))();
 
+  IntColumn get usageDurationMinutes => integer().nullable()();
+
+  IntColumn get usageCount => integer().nullable()();
+
+  TextColumn get usageFrequency => text().nullable()();
+
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
 
   DateTimeColumn get createdAt => dateTime()();
