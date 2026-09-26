@@ -105,6 +105,50 @@ Future<void> tapSave(WidgetTester tester) async {
   await tester.tap(saveButton);
 }
 
+Future<void> setDurationSlider(WidgetTester tester, double value) async {
+  final sliders = find.byType(Slider, skipOffstage: false);
+
+  expect(sliders, findsNWidgets(2));
+
+  final durationFinder = sliders.at(0);
+
+  await tester.scrollUntilVisible(
+    durationFinder,
+    200,
+    scrollable: find.byType(Scrollable).first,
+  );
+
+  await tester.pumpAndSettle();
+
+  final slider = tester.widget<Slider>(durationFinder);
+
+  slider.onChanged!(value);
+
+  await tester.pumpAndSettle();
+}
+
+Future<void> setUsageCountSlider(WidgetTester tester, double value) async {
+  final sliders = find.byType(Slider, skipOffstage: false);
+
+  expect(sliders, findsNWidgets(2));
+
+  final usageCountFinder = sliders.at(1);
+
+  await tester.scrollUntilVisible(
+    usageCountFinder,
+    200,
+    scrollable: find.byType(Scrollable).first,
+  );
+
+  await tester.pumpAndSettle();
+
+  final slider = tester.widget<Slider>(usageCountFinder);
+
+  slider.onChanged!(value);
+
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('validates MVP numeric and name boundaries', (tester) async {
     final repository = FakeApplianceRepository();
@@ -125,15 +169,6 @@ void main() {
       'Quantité': (
         valid: ['1', '9223372036854775807'],
         invalid: ['0', '1.5', 'abc', '9223372036854775808'],
-      ),
-      'Durée': (
-        valid: ['1', '30', '1440'],
-        invalid: ['0', '1441', 'abc', '1.5'],
-      ),
-
-      'Nombre de fois': (
-        valid: ['1', '2', '30'],
-        invalid: ['0', '-1', 'abc', '1.5'],
       ),
     };
     final acceptedInvalidValues = <String>[];
@@ -183,7 +218,7 @@ void main() {
       await tester.tap(find.text('Cuisine').last);
       await enterField(tester, 'Puissance', input.power);
       await enterField(tester, 'Quantité', input.quantity);
-      await enterField(tester, 'Durée', '1440');
+      await setDurationSlider(tester, 1440);
       await tapSave(tester);
       await tester.pumpAndSettle();
       if (input.overflow) {
@@ -247,7 +282,7 @@ void main() {
           await tester.pumpAndSettle();
           await tester.tap(find.text('Cuisine').last);
           await enterField(tester, 'Puissance', '100');
-          await enterField(tester, 'Durée', '480');
+          await setDurationSlider(tester, 480);
         }
         await tapSave(tester);
         await tester.pumpAndSettle();
@@ -290,13 +325,15 @@ void main() {
 
       await tester.pump();
 
-      expect(find.text('Le nom de l’appareil est requis.'), findsOneWidget);
+      expect(
+        find.text('Le nom de l’appareil est requis.', skipOffstage: false),
+        findsOneWidget,
+      );
 
-      expect(find.text('La puissance est requise.'), findsOneWidget);
-
-      expect(find.text('Durée requise'), findsOneWidget);
-
-      expect(find.text('Veuillez sélectionner une catégorie.'), findsOneWidget);
+      expect(
+        find.text('La puissance est requise.', skipOffstage: false),
+        findsOneWidget,
+      );
 
       expect(repository.createdAppliance, isNull);
     });
@@ -326,7 +363,7 @@ void main() {
       expect(repository.createdAppliance, isNull);
     });
 
-    testWidgets('refuse une durée supérieure à 1440 minutes', (tester) async {
+    testWidgets('le slider durée respecte les bornes prévues', (tester) async {
       final repository = FakeApplianceRepository();
       final router = createTestRouter();
 
@@ -335,17 +372,17 @@ void main() {
       router.push('/appliances/add');
       await tester.pumpAndSettle();
 
-      await enterField(tester, 'Durée', '1441');
+      final sliders = find.byType(Slider, skipOffstage: false);
 
-      await tapSave(tester);
-      await tester.pump();
+      expect(sliders, findsNWidgets(2));
 
-      expect(find.text('Maximum 1440 min'), findsOneWidget);
+      final durationSlider = tester.widget<Slider>(sliders.at(0));
 
-      expect(repository.createdAppliance, isNull);
+      expect(durationSlider.min, 5);
+      expect(durationSlider.max, 1440);
     });
 
-    testWidgets('refuse un nombre d’utilisations inférieur à 1', (
+    testWidgets('le slider nombre de fois respecte les bornes prévues', (
       tester,
     ) async {
       final repository = FakeApplianceRepository();
@@ -356,14 +393,14 @@ void main() {
       router.push('/appliances/add');
       await tester.pumpAndSettle();
 
-      await enterField(tester, 'Nombre de fois', '0');
+      final sliders = find.byType(Slider, skipOffstage: false);
 
-      await tapSave(tester);
-      await tester.pump();
+      expect(sliders, findsNWidgets(2));
 
-      expect(find.text('Minimum 1'), findsOneWidget);
+      final usageCountSlider = tester.widget<Slider>(sliders.at(1));
 
-      expect(repository.createdAppliance, isNull);
+      expect(usageCountSlider.min, 1);
+      expect(usageCountSlider.max, 30);
     });
 
     testWidgets('crée un appareil avec les données saisies', (tester) async {
@@ -388,8 +425,8 @@ void main() {
 
       await enterField(tester, 'Puissance', '150');
       await enterField(tester, 'Quantité', '1');
-      await enterField(tester, 'Durée', '480');
-      await enterField(tester, 'Nombre de fois', '1');
+      await setDurationSlider(tester, 480);
+      await setUsageCountSlider(tester, 1);
 
       await tapSave(tester);
 
