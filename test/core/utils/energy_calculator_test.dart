@@ -65,4 +65,40 @@ void main() {
       expect(result, closeTo(366.0, 0.0001));
     });
   });
+
+  test('calculates monthly consumption for daily usage', () {
+    final result = EnergyCalculator.calculateMonthlyConsumptionFromUsage(
+      powerWatts: 1000,
+      usageDurationMinutes: 60,
+      usageCount: 1,
+      monthlyFrequencyMultiplier: 30,
+      quantity: 1,
+    );
+
+    expect(result, closeTo(30, 0.0001));
+  });
+
+  test('calculates monthly consumption for weekly usage', () {
+    final result = EnergyCalculator.calculateMonthlyConsumptionFromUsage(
+      powerWatts: 1600,
+      usageDurationMinutes: 30,
+      usageCount: 2,
+      monthlyFrequencyMultiplier: 4.33,
+      quantity: 1,
+    );
+
+    expect(result, closeTo(6.928, 0.0001));
+  });
+
+  test('takes quantity into account with new usage model', () {
+    final result = EnergyCalculator.calculateMonthlyConsumptionFromUsage(
+      powerWatts: 100,
+      usageDurationMinutes: 120,
+      usageCount: 1,
+      monthlyFrequencyMultiplier: 30,
+      quantity: 3,
+    );
+
+    expect(result, closeTo(18, 0.0001));
+  });
 }

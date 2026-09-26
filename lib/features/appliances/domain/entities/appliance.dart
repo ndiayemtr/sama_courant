@@ -1,4 +1,5 @@
 import '../../../../core/utils/energy_calculator.dart';
+import 'usage_frequency.dart';
 
 class Appliance {
   final int? id;
@@ -11,6 +12,9 @@ class Appliance {
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final int? usageDurationMinutes;
+  final int? usageCount;
+  final UsageFrequency? usageFrequency;
 
   const Appliance({
     this.id,
@@ -23,6 +27,9 @@ class Appliance {
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
+    this.usageDurationMinutes,
+    this.usageCount,
+    this.usageFrequency,
   });
 
   double get hourlyConsumptionKwh {
@@ -41,6 +48,16 @@ class Appliance {
   }
 
   double get monthlyConsumptionKwh {
+    if (usesNewUsageModel) {
+      return EnergyCalculator.calculateMonthlyConsumptionFromUsage(
+        powerWatts: powerWatts,
+        usageDurationMinutes: usageDurationMinutes!,
+        usageCount: usageCount!,
+        monthlyFrequencyMultiplier: monthlyFrequencyMultiplier,
+        quantity: quantity,
+      );
+    }
+
     return EnergyCalculator.calculateMonthlyConsumption(
       powerWatts: powerWatts,
       hoursPerDay: hoursPerDay,
@@ -55,5 +72,24 @@ class Appliance {
       hoursPerDay: hoursPerDay,
       quantity: quantity,
     );
+  }
+
+  bool get usesNewUsageModel {
+    return usageDurationMinutes != null &&
+        usageCount != null &&
+        usageFrequency != null;
+  }
+
+  double get monthlyFrequencyMultiplier {
+    switch (usageFrequency) {
+      case UsageFrequency.daily:
+        return 30;
+      case UsageFrequency.weekly:
+        return 4.33;
+      case UsageFrequency.monthly:
+        return 1;
+      case null:
+        return 0;
+    }
   }
 }
