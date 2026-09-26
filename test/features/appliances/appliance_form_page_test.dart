@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sama_courant/features/appliances/data/providers/appliance_repository_provider.dart';
 import 'package:sama_courant/features/appliances/domain/entities/appliance.dart';
+import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
 import 'package:sama_courant/features/appliances/domain/repositories/appliance_repository.dart';
 import 'package:sama_courant/features/appliances/presentation/pages/appliance_form_page.dart';
 
@@ -125,11 +126,15 @@ void main() {
         valid: ['1', '9223372036854775807'],
         invalid: ['0', '1.5', 'abc', '9223372036854775808'],
       ),
-      'Heures/j': (
-        valid: ['0.1', '24'],
-        invalid: ['0', '25', 'abc', 'NaN', 'Infinity'],
+      'Durée': (
+        valid: ['1', '30', '1440'],
+        invalid: ['0', '1441', 'abc', '1.5'],
       ),
-      'Jours/mois': (valid: ['1', '31'], invalid: ['0', '32', 'abc', '1.5']),
+
+      'Nombre de fois': (
+        valid: ['1', '2', '30'],
+        invalid: ['0', '-1', 'abc', '1.5'],
+      ),
     };
     final acceptedInvalidValues = <String>[];
     for (final entry in cases.entries) {
@@ -159,7 +164,7 @@ void main() {
 
   for (final input in [
     (power: '1e308', quantity: '1', overflow: true),
-    (power: '2e306', quantity: '1', overflow: false),
+    (power: '2e305', quantity: '1', overflow: false),
     (power: '100', quantity: '9223372036854775807', overflow: false),
   ]) {
     testWidgets('saves only finite monthly consumption $input', (tester) async {
@@ -178,7 +183,7 @@ void main() {
       await tester.tap(find.text('Cuisine').last);
       await enterField(tester, 'Puissance', input.power);
       await enterField(tester, 'Quantité', input.quantity);
-      await enterField(tester, 'Heures/j', '24');
+      await enterField(tester, 'Durée', '1440');
       await tapSave(tester);
       await tester.pumpAndSettle();
       if (input.overflow) {
@@ -222,6 +227,9 @@ void main() {
                   quantity: 1,
                   hoursPerDay: 8,
                   daysPerMonth: 30,
+                  usageDurationMinutes: 480,
+                  usageCount: 1,
+                  usageFrequency: UsageFrequency.daily,
                   isActive: true,
                   createdAt: DateTime(2026),
                   updatedAt: DateTime(2026),
@@ -239,7 +247,7 @@ void main() {
           await tester.pumpAndSettle();
           await tester.tap(find.text('Cuisine').last);
           await enterField(tester, 'Puissance', '100');
-          await enterField(tester, 'Heures/j', '8');
+          await enterField(tester, 'Durée', '480');
         }
         await tapSave(tester);
         await tester.pumpAndSettle();
@@ -286,10 +294,7 @@ void main() {
 
       expect(find.text('La puissance est requise.'), findsOneWidget);
 
-      expect(
-        find.text('Les heures d’utilisation sont requises.'),
-        findsOneWidget,
-      );
+      expect(find.text('Durée requise'), findsOneWidget);
 
       expect(find.text('Veuillez sélectionner une catégorie.'), findsOneWidget);
 
@@ -321,50 +326,42 @@ void main() {
       expect(repository.createdAppliance, isNull);
     });
 
-    testWidgets('refuse une durée supérieure à 24 heures', (tester) async {
+    testWidgets('refuse une durée supérieure à 1440 minutes', (tester) async {
       final repository = FakeApplianceRepository();
       final router = createTestRouter();
 
       await tester.pumpWidget(createTestWidget(repository, router));
 
       router.push('/appliances/add');
-
       await tester.pumpAndSettle();
 
-      await enterField(tester, 'Heures/j', '25');
+      await enterField(tester, 'Durée', '1441');
 
       await tapSave(tester);
-
       await tester.pump();
 
-      expect(
-        find.text('Les heures doivent être comprises entre 0 et 24.'),
-        findsOneWidget,
-      );
+      expect(find.text('Maximum 1440 min'), findsOneWidget);
 
       expect(repository.createdAppliance, isNull);
     });
 
-    testWidgets('refuse un nombre de jours supérieur à 31', (tester) async {
+    testWidgets('refuse un nombre d’utilisations inférieur à 1', (
+      tester,
+    ) async {
       final repository = FakeApplianceRepository();
       final router = createTestRouter();
 
       await tester.pumpWidget(createTestWidget(repository, router));
 
       router.push('/appliances/add');
-
       await tester.pumpAndSettle();
 
-      await enterField(tester, 'Jours/mois', '32');
+      await enterField(tester, 'Nombre de fois', '0');
 
       await tapSave(tester);
-
       await tester.pump();
 
-      expect(
-        find.text('Les jours doivent être compris entre 1 et 31.'),
-        findsOneWidget,
-      );
+      expect(find.text('Minimum 1'), findsOneWidget);
 
       expect(repository.createdAppliance, isNull);
     });
@@ -391,8 +388,8 @@ void main() {
 
       await enterField(tester, 'Puissance', '150');
       await enterField(tester, 'Quantité', '1');
-      await enterField(tester, 'Heures/j', '8');
-      await enterField(tester, 'Jours/mois', '30');
+      await enterField(tester, 'Durée', '480');
+      await enterField(tester, 'Nombre de fois', '1');
 
       await tapSave(tester);
 
@@ -406,7 +403,12 @@ void main() {
       expect(appliance.category, 'Cuisine');
       expect(appliance.powerWatts, 150);
       expect(appliance.quantity, 1);
-      expect(appliance.hoursPerDay, 8);
+      expect(appliance.usageDurationMinutes, 480);
+      expect(appliance.usageCount, 1);
+      expect(appliance.usageFrequency, UsageFrequency.daily);
+      expect(appliance.usesNewUsageModel, isTrue);
+
+      expect(appliance.hoursPerDay, 0);
       expect(appliance.daysPerMonth, 30);
       expect(appliance.isActive, isTrue);
     });

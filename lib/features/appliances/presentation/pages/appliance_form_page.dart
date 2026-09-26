@@ -1,3 +1,5 @@
+import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
+
 import '../../../../core/widgets/page_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,8 +26,10 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   final _nameController = TextEditingController();
   final _powerController = TextEditingController();
   final _quantityController = TextEditingController(text: '1');
-  final _hoursPerDayController = TextEditingController();
-  final _daysPerMonthController = TextEditingController(text: '30');
+  final _usageDurationMinutesController = TextEditingController();
+  final _usageCountController = TextEditingController(text: '1');
+
+  UsageFrequency _selectedUsageFrequency = UsageFrequency.daily;
 
   String? _selectedCategory;
 
@@ -37,8 +41,8 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     _nameController.dispose();
     _powerController.dispose();
     _quantityController.dispose();
-    _hoursPerDayController.dispose();
-    _daysPerMonthController.dispose();
+    _usageDurationMinutesController.dispose();
+    _usageCountController.dispose();
 
     super.dispose();
   }
@@ -61,8 +65,18 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     _selectedCategory = appliance.category;
     _powerController.text = appliance.powerWatts.toString();
     _quantityController.text = appliance.quantity.toString();
-    _hoursPerDayController.text = appliance.hoursPerDay.toString();
-    _daysPerMonthController.text = appliance.daysPerMonth.toString();
+    if (appliance.usesNewUsageModel) {
+      _usageDurationMinutesController.text = appliance.usageDurationMinutes
+          .toString();
+
+      _usageCountController.text = appliance.usageCount.toString();
+
+      _selectedUsageFrequency = appliance.usageFrequency!;
+    } else {
+      _usageDurationMinutesController.clear();
+      _usageCountController.text = '1';
+      _selectedUsageFrequency = UsageFrequency.daily;
+    }
     _isActive = appliance.isActive;
   }
 
@@ -144,59 +158,83 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
                 builder: (context, constraints) {
                   final isNarrow = constraints.maxWidth < 330;
 
-                  if (isNarrow) {
-                    return Column(
-                      children: [
-                        _buildTextField(
-                          controller: _hoursPerDayController,
-                          label: 'Heures/j',
-                          hint: 'Ex. 8',
-                          icon: Icons.access_time,
-                          suffixText: 'h',
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          validator: _validateHoursPerDay,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildTextField(
-                          controller: _daysPerMonthController,
-                          label: 'Jours/mois',
-                          hint: 'Ex. 30',
-                          icon: Icons.calendar_month,
-                          suffixText: 'j',
-                          keyboardType: TextInputType.number,
-                          validator: _validateDaysPerMonth,
-                        ),
-                      ],
-                    );
-                  }
+                  final durationField = _buildTextField(
+                    controller: _usageDurationMinutesController,
+                    label: 'Durée',
+                    hint: 'Ex. 30',
+                    icon: Icons.timer_outlined,
+                    suffixText: 'min',
+                    keyboardType: TextInputType.number,
+                    validator: _validateUsageDurationMinutes,
+                  );
 
-                  return Row(
+                  final countField = _buildTextField(
+                    controller: _usageCountController,
+                    label: 'Nombre de fois',
+                    hint: 'Ex. 2',
+                    icon: Icons.repeat,
+                    keyboardType: TextInputType.number,
+                    validator: _validateUsageCount,
+                  );
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(
-                        child: _buildTextField(
-                          controller: _hoursPerDayController,
-                          label: 'Heures/j',
-                          hint: 'Ex. 8',
-                          icon: Icons.access_time,
-                          suffixText: 'h',
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          validator: _validateHoursPerDay,
+                      if (isNarrow) ...[
+                        durationField,
+                        const SizedBox(height: 12),
+                        countField,
+                      ] else
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: durationField),
+                            const SizedBox(width: 12),
+                            Expanded(child: countField),
+                          ],
                         ),
+
+                      const SizedBox(height: 12),
+
+                      DropdownButtonFormField<UsageFrequency>(
+                        initialValue: _selectedUsageFrequency,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Fréquence',
+                          prefixIcon: Icon(Icons.calendar_month_outlined),
+                          border: OutlineInputBorder(),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: UsageFrequency.daily,
+                            child: Text('Par jour'),
+                          ),
+                          DropdownMenuItem(
+                            value: UsageFrequency.weekly,
+                            child: Text('Par semaine'),
+                          ),
+                          DropdownMenuItem(
+                            value: UsageFrequency.monthly,
+                            child: Text('Par mois'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value == null) {
+                            return;
+                          }
+
+                          setState(() {
+                            _selectedUsageFrequency = value;
+                          });
+                        },
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildTextField(
-                          controller: _daysPerMonthController,
-                          label: 'Jours/mois',
-                          hint: 'Ex. 30',
-                          icon: Icons.calendar_month,
-                          suffixText: 'j',
-                          keyboardType: TextInputType.number,
-                          validator: _validateDaysPerMonth,
+
+                      const SizedBox(height: 8),
+
+                      Text(
+                        _usageFrequencyHelpText,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -323,38 +361,6 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     return null;
   }
 
-  String? _validateHoursPerDay(String? value) {
-    final hours = double.tryParse(value?.trim() ?? '');
-
-    if (hours == null) {
-      return 'Les heures d’utilisation sont requises.';
-    }
-
-    if (!hours.isFinite) {
-      return 'Veuillez saisir une durée valide.';
-    }
-
-    if (hours <= 0 || hours > 24) {
-      return 'Les heures doivent être comprises entre 0 et 24.';
-    }
-
-    return null;
-  }
-
-  String? _validateDaysPerMonth(String? value) {
-    final days = int.tryParse(value?.trim() ?? '');
-
-    if (days == null) {
-      return 'Le nombre de jours est requis.';
-    }
-
-    if (days < 1 || days > 31) {
-      return 'Les jours doivent être compris entre 1 et 31.';
-    }
-
-    return null;
-  }
-
   String? _validateCategory(String? value) {
     if (value == null || value.isEmpty) {
       return 'Veuillez sélectionner une catégorie.';
@@ -373,8 +379,17 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
       category: _selectedCategory!,
       powerWatts: double.parse(_powerController.text.trim()),
       quantity: int.parse(_quantityController.text.trim()),
-      hoursPerDay: double.parse(_hoursPerDayController.text.trim()),
-      daysPerMonth: int.parse(_daysPerMonthController.text.trim()),
+
+      // Champs legacy conservés temporairement pour compatibilité.
+      hoursPerDay: existingAppliance?.hoursPerDay ?? 0,
+      daysPerMonth: existingAppliance?.daysPerMonth ?? 30,
+
+      usageDurationMinutes: int.parse(
+        _usageDurationMinutesController.text.trim(),
+      ),
+      usageCount: int.parse(_usageCountController.text.trim()),
+      usageFrequency: _selectedUsageFrequency,
+
       isActive: _isActive,
       createdAt: existingAppliance?.createdAt ?? now,
       updatedAt: now,
@@ -625,5 +640,56 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
       },
       validator: _validateCategory,
     );
+  }
+
+  String get _usageFrequencyHelpText {
+    switch (_selectedUsageFrequency) {
+      case UsageFrequency.daily:
+        return 'Combien de fois utilisez-vous cet appareil chaque jour ?';
+      case UsageFrequency.weekly:
+        return 'Combien de fois utilisez-vous cet appareil chaque semaine ?';
+      case UsageFrequency.monthly:
+        return 'Combien de fois utilisez-vous cet appareil chaque mois ?';
+    }
+  }
+
+  String? _validateUsageDurationMinutes(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Durée requise';
+    }
+
+    final minutes = int.tryParse(value.trim());
+
+    if (minutes == null) {
+      return 'Entrez un nombre valide';
+    }
+
+    if (minutes <= 0) {
+      return 'La durée doit être supérieure à 0';
+    }
+
+    if (minutes > 1440) {
+      return 'Maximum 1440 min';
+    }
+
+    return null;
+  }
+
+  String? _validateUsageCount(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Nombre requis';
+    }
+
+    final count = int.tryParse(value.trim());
+
+    if (count == null) {
+      return 'Entrez un nombre valide';
+    }
+
+    if (count <= 0) {
+      return 'Minimum 1';
+    }
+
+    return null;
   }
 }
