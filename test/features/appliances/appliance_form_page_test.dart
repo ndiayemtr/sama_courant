@@ -450,4 +450,65 @@ void main() {
       expect(appliance.isActive, isTrue);
     });
   });
+
+  testWidgets('formulaire reste responsive à 320 px avec texte à 150%', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final repository = FakeApplianceRepository();
+    final router = createTestRouter();
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      createTestWidget(repository, router, textScale: 1.5),
+    );
+
+    router.push('/appliances/add');
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+
+    final listView = find.byType(ListView).first;
+
+    // Descend jusqu'à la section Utilisation.
+    for (var i = 0; i < 5; i++) {
+      if (find.byType(Slider).evaluate().length == 2) {
+        break;
+      }
+
+      await tester.drag(listView, const Offset(0, -300));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    }
+
+    expect(find.byType(Slider), findsNWidgets(2));
+
+    // Continue légèrement pour atteindre la fréquence si nécessaire.
+    for (var i = 0; i < 3; i++) {
+      if (find
+          .byType(DropdownButtonFormField<UsageFrequency>)
+          .evaluate()
+          .isNotEmpty) {
+        break;
+      }
+
+      await tester.drag(listView, const Offset(0, -250));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    }
+
+    expect(
+      find.byType(DropdownButtonFormField<UsageFrequency>),
+      findsOneWidget,
+    );
+
+    expect(tester.takeException(), isNull);
+  });
 }

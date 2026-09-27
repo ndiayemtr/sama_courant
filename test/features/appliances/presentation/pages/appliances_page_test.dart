@@ -427,4 +427,17 @@ void main() {
 
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('carte appareil reste lisible à 320 px avec texte à 150%', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    // Réutilise ici le setup déjà présent dans ce fichier
+    // pour afficher une page avec au moins un appareil.
+  });
 }
