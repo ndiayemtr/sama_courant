@@ -1,5 +1,6 @@
-import 'package:sama_courant/features/appliances/domain/entities/confidence_level.dart';
-import 'package:sama_courant/features/appliances/domain/entities/power_source.dart';
+import 'confidence_level.dart';
+import 'numeric_range.dart';
+import 'power_source.dart';
 
 class ApplianceScanResult {
   final String rawOcrText;
@@ -9,9 +10,16 @@ class ApplianceScanResult {
   final String? applianceType;
 
   final double? powerWatts;
+
   final double? voltageVolts;
+  final NumericRange? voltageRange;
+
   final double? currentAmps;
+  final NumericRange? currentRange;
+
   final double? frequencyHz;
+  final List<double> frequencyOptions;
+
   final double? powerFactor;
 
   final double? annualConsumptionKwh;
@@ -29,8 +37,11 @@ class ApplianceScanResult {
     this.applianceType,
     this.powerWatts,
     this.voltageVolts,
+    this.voltageRange,
     this.currentAmps,
+    this.currentRange,
     this.frequencyHz,
+    this.frequencyOptions = const [],
     this.powerFactor,
     this.annualConsumptionKwh,
     this.capacity,
