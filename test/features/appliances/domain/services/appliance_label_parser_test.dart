@@ -43,4 +43,30 @@ void main() {
       expect(parser.extractFrequencyHz('frequency 50 hz'), 50);
     });
   });
+
+  group('ranges et valeurs multiples', () {
+    test('extrait une plage de tension', () {
+      final range = parser.extractVoltageRange('input 220-240 v');
+
+      expect(range, isNotNull);
+      expect(range!.min, 220);
+      expect(range.max, 240);
+    });
+
+    test('extrait une plage de courant', () {
+      final range = parser.extractCurrentRange('current 0.8-1.2 a');
+
+      expect(range, isNotNull);
+      expect(range!.min, 0.8);
+      expect(range.max, 1.2);
+    });
+
+    test('extrait les fréquences 50/60 hz', () {
+      expect(parser.extractFrequencyOptions('frequency 50/60 hz'), [50, 60]);
+    });
+
+    test('retourne une liste vide pour une fréquence simple', () {
+      expect(parser.extractFrequencyOptions('frequency 50 hz'), isEmpty);
+    });
+  });
 }
