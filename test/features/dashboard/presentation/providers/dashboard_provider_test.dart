@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sama_courant/features/appliances/domain/entities/appliance.dart';
+import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
 import 'package:sama_courant/features/appliances/domain/providers/appliance_usecase_providers.dart';
 import 'package:sama_courant/features/appliances/domain/usecases/get_appliances.dart';
 import 'package:sama_courant/features/appliances/presentation/providers/appliances_provider.dart';
@@ -99,7 +100,47 @@ void main() {
       appliance('B', 120),
       appliance('C', 120),
     ]);
-    expect(summary.recommendations.single.message, contains('12 h/jour'));
+
+    expect(
+      summary.recommendations.single.message,
+      contains('12 h/jour en moyenne'),
+    );
+  });
+  test('recommendations use new usage model for long daily usage', () async {
+    final longUsage = Appliance(
+      name: 'Climatisation',
+      category: 'Maison',
+      powerWatts: 100,
+      quantity: 1,
+
+      // Legacy volontairement nul :
+      // la recommandation ne doit pas en dépendre.
+      hoursPerDay: 0,
+      daysPerMonth: 30,
+
+      usageDurationMinutes: 360,
+      usageCount: 2,
+      usageFrequency: UsageFrequency.daily,
+
+      isActive: true,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    final summary = await summaryFor([
+      longUsage,
+      appliance('B', 120),
+      appliance('C', 120),
+    ]);
+
+    expect(
+      summary.recommendations.any(
+        (recommendation) =>
+            recommendation.title == 'Climatisation' &&
+            recommendation.message.contains('12 h/jour en moyenne'),
+      ),
+      isTrue,
+    );
   });
   test('recommendations cover multiple units at thirty percent', () async {
     final summary = await summaryFor([

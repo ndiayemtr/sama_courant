@@ -100,4 +100,21 @@ class Appliance {
         return 0;
     }
   }
+
+  double get averageDailyUsageHours {
+    if (!usesNewUsageModel) {
+      return hoursPerDay;
+    }
+
+    final frequencyMultiplier = switch (usageFrequency!) {
+      UsageFrequency.daily => 30.0,
+      UsageFrequency.weekly => 4.33,
+      UsageFrequency.monthly => 1.0,
+    };
+
+    final monthlyUsageHours =
+        (usageDurationMinutes! / 60) * usageCount! * frequencyMultiplier;
+
+    return monthlyUsageHours / 30;
+  }
 }

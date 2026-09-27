@@ -334,4 +334,39 @@ void main() {
       );
     },
   );
+
+  test('averageDailyUsageHours utilise le nouveau modèle complet', () {
+    final appliance = Appliance(
+      name: 'Climatisation',
+      category: 'Maison',
+      powerWatts: 1000,
+      quantity: 1,
+      hoursPerDay: 0,
+      daysPerMonth: 30,
+      usageDurationMinutes: 360,
+      usageCount: 2,
+      usageFrequency: UsageFrequency.daily,
+      isActive: true,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    expect(appliance.averageDailyUsageHours, closeTo(12, 0.0001));
+  });
+
+  test('averageDailyUsageHours conserve le fallback legacy', () {
+    final appliance = Appliance(
+      name: 'Ancien appareil',
+      category: 'Maison',
+      powerWatts: 100,
+      quantity: 1,
+      hoursPerDay: 12,
+      daysPerMonth: 30,
+      isActive: true,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    expect(appliance.averageDailyUsageHours, 12);
+  });
 }

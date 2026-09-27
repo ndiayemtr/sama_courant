@@ -85,11 +85,11 @@ class DashboardRecommendationService {
       }
     }
     for (final a in sorted) {
-      if (a.hoursPerDay >= 12 && a.monthlyConsumptionKwh > 0) {
+      if (a.averageDailyUsageHours >= 12 && a.monthlyConsumptionKwh > 0) {
         recommendations.add(
           DashboardRecommendation(
             a.name,
-            '${number.format(a.hoursPerDay)} h/jour. '
+            '${number.format(a.averageDailyUsageHours)} h/jour en moyenne. '
             'Réduire cette durée peut diminuer la consommation.',
             RecommendationPriority.low,
           ),
