@@ -69,4 +69,53 @@ void main() {
       expect(parser.extractFrequencyOptions('frequency 50 hz'), isEmpty);
     });
   });
+
+  group('power factor', () {
+    test('extrait un facteur de puissance avec PF', () {
+      expect(parser.extractPowerFactor('230 v 2 a pf 0.85'), 0.85);
+    });
+
+    test('extrait un facteur de puissance explicite', () {
+      expect(parser.extractPowerFactor('power factor 0.92'), 0.92);
+    });
+
+    test('rejette un facteur de puissance supérieur à 1', () {
+      expect(parser.extractPowerFactor('pf 1.5'), isNull);
+    });
+  });
+
+  group('consommation annuelle', () {
+    test('extrait kwh par an', () {
+      expect(parser.extractAnnualConsumptionKwh('250 kwh/year'), 250);
+    });
+
+    test('extrait une consommation annuelle en français normalisé', () {
+      expect(
+        parser.extractAnnualConsumptionKwh('consommation annuelle 180 kwh'),
+        180,
+      );
+    });
+
+    test('ne confond pas une simple valeur kwh avec consommation annuelle', () {
+      expect(parser.extractAnnualConsumptionKwh('energy 25 kwh'), isNull);
+    });
+  });
+
+  group('capacity', () {
+    test('extrait une capacité en btu', () {
+      expect(parser.extractCapacity('cooling capacity 12000 btu'), '12000 btu');
+    });
+
+    test('extrait une capacité en litres', () {
+      expect(parser.extractCapacity('capacity 300 l'), '300 l');
+    });
+
+    test('extrait une capacité en kg', () {
+      expect(parser.extractCapacity('wash capacity 8 kg'), '8 kg');
+    });
+
+    test('retourne null sans capacité reconnue', () {
+      expect(parser.extractCapacity('220 v 50 hz 180 w'), isNull);
+    });
+  });
 }
