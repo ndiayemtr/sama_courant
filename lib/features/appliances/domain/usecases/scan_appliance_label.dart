@@ -28,6 +28,17 @@ class ScanApplianceLabel {
 
     final normalizedText = textNormalizer.normalize(rawOcrText);
 
+    final brand = labelParser.extractBrand(normalizedText);
+    final model = labelParser.extractModel(normalizedText);
+
+    final powerFactor = labelParser.extractPowerFactor(normalizedText);
+
+    final annualConsumptionKwh = labelParser.extractAnnualConsumptionKwh(
+      normalizedText,
+    );
+
+    final capacity = labelParser.extractCapacity(normalizedText);
+
     final voltageRange = labelParser.extractVoltageRange(normalizedText);
     final currentRange = labelParser.extractCurrentRange(normalizedText);
     final frequencyOptions = labelParser.extractFrequencyOptions(
@@ -56,7 +67,7 @@ class ScanApplianceLabel {
       currentAmps: currentAmps,
 
       // Pas encore extrait de l'étiquette.
-      powerFactor: null,
+      powerFactor: powerFactor,
     );
 
     if (!powerResult.hasPower) {
@@ -66,8 +77,8 @@ class ScanApplianceLabel {
     return ApplianceScanResult(
       rawOcrText: rawOcrText,
 
-      brand: null,
-      model: null,
+      brand: brand,
+      model: model,
       applianceType: classification.category,
 
       powerWatts: powerResult.powerWatts,
@@ -81,9 +92,9 @@ class ScanApplianceLabel {
       frequencyHz: frequencyHz,
       frequencyOptions: frequencyOptions,
 
-      powerFactor: null,
-      annualConsumptionKwh: null,
-      capacity: null,
+      powerFactor: powerFactor,
+      annualConsumptionKwh: annualConsumptionKwh,
+      capacity: capacity,
 
       powerSource: powerResult.powerSource,
       confidenceLevel: powerResult.confidenceLevel,

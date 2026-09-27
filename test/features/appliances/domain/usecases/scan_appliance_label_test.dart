@@ -106,4 +106,29 @@ void main() {
       expect(result.powerSource, PowerSource.estimated);
     },
   );
+
+  test('remonte les informations complémentaires de l étiquette', () async {
+    final useCase = createUseCase(
+      'BRAND SAMSUNG '
+      'MODEL RT38 '
+      'REFRIGERATOR '
+      '230 V '
+      '2 A '
+      'PF 0.85 '
+      '50 Hz '
+      '250 KWH/YEAR '
+      'CAPACITY 300 L',
+    );
+
+    final result = await useCase('label.jpg');
+
+    expect(result.brand, 'samsung');
+    expect(result.model, 'rt38');
+
+    expect(result.powerFactor, 0.85);
+    expect(result.annualConsumptionKwh, 250);
+    expect(result.capacity, '300 l');
+
+    expect(result.powerWatts, closeTo(391, 0.0001));
+  });
 }
