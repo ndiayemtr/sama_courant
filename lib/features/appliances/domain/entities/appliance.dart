@@ -40,6 +40,10 @@ class Appliance {
   }
 
   double get dailyConsumptionKwh {
+    if (usesNewUsageModel) {
+      return monthlyConsumptionKwh / 30;
+    }
+
     return EnergyCalculator.calculateDailyConsumption(
       powerWatts: powerWatts,
       hoursPerDay: hoursPerDay,
@@ -67,6 +71,10 @@ class Appliance {
   }
 
   double get yearlyConsumptionKwh {
+    if (usesNewUsageModel) {
+      return monthlyConsumptionKwh * 12;
+    }
+
     return EnergyCalculator.calculateYearlyConsumption(
       powerWatts: powerWatts,
       hoursPerDay: hoursPerDay,

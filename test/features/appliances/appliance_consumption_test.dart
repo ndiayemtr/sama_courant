@@ -284,4 +284,54 @@ void main() {
       expect(appliance.monthlyConsumptionKwh, closeTo(36.0, 0.0001));
     },
   );
+
+  test(
+    'dailyConsumptionKwh utilise le nouveau modèle quand il est complet',
+    () {
+      final appliance = Appliance(
+        name: 'Fer',
+        category: 'Cuisine',
+        powerWatts: 1600,
+        quantity: 1,
+        hoursPerDay: 0,
+        daysPerMonth: 30,
+        usageDurationMinutes: 30,
+        usageCount: 2,
+        usageFrequency: UsageFrequency.weekly,
+        isActive: true,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+
+      expect(
+        appliance.dailyConsumptionKwh,
+        closeTo(appliance.monthlyConsumptionKwh / 30, 0.0001),
+      );
+    },
+  );
+
+  test(
+    'yearlyConsumptionKwh utilise le nouveau modèle quand il est complet',
+    () {
+      final appliance = Appliance(
+        name: 'Fer',
+        category: 'Cuisine',
+        powerWatts: 1600,
+        quantity: 1,
+        hoursPerDay: 0,
+        daysPerMonth: 30,
+        usageDurationMinutes: 30,
+        usageCount: 2,
+        usageFrequency: UsageFrequency.weekly,
+        isActive: true,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+
+      expect(
+        appliance.yearlyConsumptionKwh,
+        closeTo(appliance.monthlyConsumptionKwh * 12, 0.0001),
+      );
+    },
+  );
 }
