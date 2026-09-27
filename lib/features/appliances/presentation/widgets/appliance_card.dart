@@ -331,7 +331,6 @@ class _InfoItem extends StatelessWidget {
         Text(
           value,
           textAlign: textAlign,
-          maxLines: 2,
           style: theme.textTheme.bodyLarge?.copyWith(
             fontWeight: FontWeight.w600,
             height: 1.2,
