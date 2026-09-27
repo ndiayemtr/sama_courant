@@ -147,4 +147,30 @@ void main() {
       expect(parser.extractModel('refrigerator 220 v 50 hz 180 w'), isNull);
     });
   });
+
+  group('brand', () {
+    test('extrait une marque avec brand', () {
+      expect(parser.extractBrand('brand samsung model rt38'), 'samsung');
+    });
+
+    test('extrait une marque avec marque', () {
+      expect(parser.extractBrand('marque lg modele abc123'), 'lg');
+    });
+
+    test('extrait une marque avec manufacturer', () {
+      expect(parser.extractBrand('manufacturer haier 220 v'), 'haier');
+    });
+
+    test('extrait une marque avec fabricant', () {
+      expect(parser.extractBrand('fabricant hisense 50 hz'), 'hisense');
+    });
+
+    test('ne devine pas la marque sans libelle explicite', () {
+      expect(parser.extractBrand('samsung refrigerator model rt38'), isNull);
+    });
+
+    test('retourne null si aucune marque n est presente', () {
+      expect(parser.extractBrand('refrigerator 220 v 180 w'), isNull);
+    });
+  });
 }

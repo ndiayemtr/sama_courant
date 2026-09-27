@@ -212,4 +212,31 @@ class ApplianceLabelParser {
 
     return null;
   }
+
+  String? extractBrand(String text) {
+    final patterns = [
+      RegExp(r'\bbrand\b\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b'),
+      RegExp(r'\bmarque\b\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b'),
+      RegExp(r'\bmanufacturer\b\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b'),
+      RegExp(r'\bfabricant\b\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b'),
+    ];
+
+    for (final pattern in patterns) {
+      final match = pattern.firstMatch(text);
+
+      if (match == null) {
+        continue;
+      }
+
+      final brand = match.group(1)?.trim();
+
+      if (brand == null || brand.length < 2) {
+        continue;
+      }
+
+      return brand;
+    }
+
+    return null;
+  }
 }
