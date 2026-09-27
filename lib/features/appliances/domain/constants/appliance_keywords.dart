@@ -1,0 +1,157 @@
+const Map<String, List<String>> strongKeywords = {
+  // 1. Froid & Climatisation
+  'refrigerator': ['refrigerator', 'fridge', 'refrigerateur', 'chambre froide'],
+  'freezer': ['freezer', 'congelateur'],
+  'air_conditioner': [
+    'air conditioner',
+    'air conditioning',
+    'climatiseur',
+    'inverter air conditioner',
+  ],
+  'fan': ['ventilateur', 'ceiling fan', 'table fan', 'stand fan', 'viti'],
+  'dehumidifier_humidifier': [
+    'dehumidifier',
+    'humidifier',
+    'deshumidificateur',
+    'humidificateur',
+  ],
+
+  // 2. Entretien du linge & maison
+  'iron': ['steam iron', 'fer a repasser', 'centrale vapeur'],
+  'washing_machine': [
+    'washing machine',
+    'washer',
+    'lave-linge',
+    'lave linge',
+    'machine a laver',
+  ],
+  'dryer': ['tumble dryer', 'seche-linge', 'seche linge'],
+  'vacuum_cleaner': ['vacuum cleaner', 'aspirateur', 'robot vacuum'],
+
+  // 3. Cuisine & Cuisson
+  'microwave': ['microwave', 'micro-ondes', 'micro ondes', 'microondes'],
+  'electric_oven': ['electric oven', 'four electrique', 'mini oven'],
+  'electric_cooktop': [
+    'cooktop',
+    'plaque de cuisson',
+    'plaque chauffante',
+    'plaque electrique',
+  ],
+  'rice_cooker': ['rice cooker', 'cuiseur de riz', 'marmite electrique'],
+  'air_fryer': ['air fryer', 'airfryer', 'friteuse sans huile'],
+  'kettle': ['water kettle', 'bouilloire', 'bouilloire electrique'],
+  'coffee_maker': ['coffee maker', 'cafetiere', 'nespresso'],
+  'toaster': ['toaster', 'grille-pain', 'grille pain'],
+  'blender_mixer': [
+    'blender',
+    'food processor',
+    'mixeur',
+    'hachoir',
+    'robot menager',
+  ],
+
+  // 4. Multimédia & Informatique
+  'television': [
+    'television',
+    'televiseur',
+    'led tv',
+    'smart tv',
+    'oled tv',
+    'qled tv',
+  ],
+  'decoder_box': ['decoder', 'set-top box', 'decodeur', 'tv box'],
+  'router_modem': ['router', 'modem', 'wifi router', 'routeur'],
+  'computer_laptop': [
+    'laptop',
+    'computer',
+    'desktop computer',
+    'ordinateur',
+    'ordinateur portable',
+  ],
+  'monitor_screen': ['computer monitor', 'moniteur', 'ecran ordinateur'],
+  'gaming_console': ['playstation', 'xbox', 'nintendo'],
+  'audio_system': [
+    'soundbar',
+    'amplifier',
+    'enceinte',
+    'chaine hi-fi',
+    'chaine hifi',
+    'amplificateur',
+  ],
+  'charger': ['charger', 'power adapter', 'chargeur', 'adaptateur secteur'],
+
+  // 5. Eau & Pompage
+  'water_heater': ['water heater', 'chauffe-eau', 'chauffe eau', 'cumulus'],
+  'water_pump': ['water pump', 'pompe a eau', 'surpresseur'],
+  'hair_dryer': ['hair dryer', 'seche-cheveux', 'seche cheveux'],
+
+  // 6. Énergie, Protection & Éclairage
+  'light_bulb': ['light bulb', 'ampoule', 'luminaire'],
+  'voltage_regulator': [
+    'voltage regulator',
+    'stabilizer',
+    'regulateur de tension',
+    'stabilisateur',
+  ],
+  'ups_inverter': [
+    'uninterruptible power supply',
+    'ups inverter',
+    'onduleur',
+    'convertisseur',
+  ],
+};
+
+const Map<String, List<String>> weakKeywords = {
+  'refrigerator': ['defrost', 'refrigerant'],
+  'air_conditioner': ['ac', 'a/c', 'clim', 'split', 'inverter'],
+  'fan': ['fan'],
+  'iron': ['iron'],
+  'dryer': ['dryer'],
+  'vacuum_cleaner': ['vacuum'],
+  'electric_oven': ['oven', 'four'],
+  'electric_cooktop': ['hob', 'induction'],
+  'air_fryer': ['friteuse'],
+  'coffee_maker': ['espresso'],
+  'blender_mixer': ['mixer'],
+  'television': ['tv', 'oled', 'qled'],
+  'computer_laptop': ['pc', 'desktop'],
+  'monitor_screen': ['monitor', 'display', 'screen', 'ecran'],
+  'gaming_console': ['console'],
+  'audio_system': ['speaker'],
+  'water_heater': ['boiler'],
+  'water_pump': ['pump'],
+  'light_bulb': ['bulb', 'lamp', 'led', 'eclairage'],
+  'voltage_regulator': ['regulator', 'regulateur'],
+  'ups_inverter': ['ups', 'inverter', 'converter'],
+};
+
+const Map<String, List<String>> technicalIndicators = {
+  'refrigerator': [
+    'r600a',
+    'r134a',
+    'defrost',
+    'refrigerant',
+    'freezer compartment',
+  ],
+  'freezer': ['r600a', 'r134a', 'freezing capacity', 'freezer compartment'],
+  'air_conditioner': [
+    'btu',
+    'cooling capacity',
+    'heating capacity',
+    'r410a',
+    'r32',
+    'eer',
+    'seer',
+  ],
+  'washing_machine': ['wash capacity', 'spin speed', 'rpm'],
+  'dryer': ['drying capacity', 'tumble'],
+  'microwave': ['microwave output', 'magnetron'],
+  'electric_cooktop': ['induction', 'cooking zone'],
+  'television': ['hdmi', 'display resolution', 'screen size'],
+  'computer_laptop': ['cpu', 'processor', 'ram'],
+  'monitor_screen': ['resolution', 'refresh rate'],
+  'water_heater': ['tank capacity', 'litres', 'liter'],
+  'water_pump': ['head', 'flow rate', 'm3/h'],
+  'voltage_regulator': ['input voltage', 'output voltage'],
+  'ups_inverter': ['va', 'battery', 'backup time'],
+};
