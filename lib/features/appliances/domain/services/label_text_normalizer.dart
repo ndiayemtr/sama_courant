@@ -1,4 +1,5 @@
 class LabelTextNormalizer {
+  const LabelTextNormalizer();
   String normalize(String text) {
     var normalized = text.toLowerCase();
 

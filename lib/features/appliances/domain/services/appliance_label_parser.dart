@@ -2,6 +2,7 @@
 import 'package:sama_courant/features/appliances/domain/entities/numeric_range.dart';
 
 class ApplianceLabelParser {
+  const ApplianceLabelParser();
   double? extractPowerWatts(String text) {
     final match = RegExp(
       r'(?:^|[^0-9.-])(\d+(?:\.\d+)?)\s*(kw|w)\b',
