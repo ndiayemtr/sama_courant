@@ -181,4 +181,35 @@ class ApplianceLabelParser {
 
     return null;
   }
+
+  String? extractModel(String text) {
+    final patterns = [
+      RegExp(
+        r'\bmodel\b\s*(?:no|number)?\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b',
+      ),
+      RegExp(
+        r'\bmodele\b\s*(?:no|numero)?\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b',
+      ),
+      RegExp(r'\breference\b\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b'),
+      RegExp(r'\bref\b\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b'),
+    ];
+
+    for (final pattern in patterns) {
+      final match = pattern.firstMatch(text);
+
+      if (match == null) {
+        continue;
+      }
+
+      final model = match.group(1)?.trim();
+
+      if (model == null || model.length < 2) {
+        continue;
+      }
+
+      return model;
+    }
+
+    return null;
+  }
 }

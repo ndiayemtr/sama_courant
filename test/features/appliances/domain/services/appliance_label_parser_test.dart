@@ -118,4 +118,33 @@ void main() {
       expect(parser.extractCapacity('220 v 50 hz 180 w'), isNull);
     });
   });
+
+  group('model', () {
+    test('extrait un modele avec le libelle model', () {
+      expect(parser.extractModel('samsung model rt38 220 v 50 hz'), 'rt38');
+    });
+
+    test('extrait un modele avec model no', () {
+      expect(parser.extractModel('model no: ac12xyz 230 v'), 'ac12xyz');
+    });
+
+    test('extrait une reference explicite', () {
+      expect(
+        parser.extractModel('reference hwd90-b14959 220 v'),
+        'hwd90-b14959',
+      );
+    });
+
+    test('extrait un modele avec modele en francais normalise', () {
+      expect(parser.extractModel('modele rt42k5000s8 220 v'), 'rt42k5000s8');
+    });
+
+    test('ne devine pas un modele sans libelle explicite', () {
+      expect(parser.extractModel('samsung rt38 refrigerator 220 v'), isNull);
+    });
+
+    test('retourne null si aucun modele n est present', () {
+      expect(parser.extractModel('refrigerator 220 v 50 hz 180 w'), isNull);
+    });
+  });
 }
