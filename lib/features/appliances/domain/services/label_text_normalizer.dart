@@ -3,6 +3,7 @@ class LabelTextNormalizer {
     var normalized = text.toLowerCase();
 
     normalized = normalized
+        .replaceAll(',', '.')
         .replaceAll('à', 'a')
         .replaceAll('â', 'a')
         .replaceAll('ä', 'a')
