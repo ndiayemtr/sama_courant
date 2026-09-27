@@ -26,8 +26,6 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   final _nameController = TextEditingController();
   final _powerController = TextEditingController();
   final _quantityController = TextEditingController(text: '1');
-  final _usageDurationMinutesController = TextEditingController();
-  final _usageCountController = TextEditingController(text: '1');
 
   UsageFrequency _selectedUsageFrequency = UsageFrequency.daily;
 
@@ -44,8 +42,6 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     _nameController.dispose();
     _powerController.dispose();
     _quantityController.dispose();
-    _usageDurationMinutesController.dispose();
-    _usageCountController.dispose();
 
     super.dispose();
   }
@@ -751,55 +747,4 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
       validator: _validateCategory,
     );
   }
-
-  // String get _usageFrequencyHelpText {
-  //   switch (_selectedUsageFrequency) {
-  //     case UsageFrequency.daily:
-  //       return 'Combien de fois utilisez-vous cet appareil chaque jour ?';
-  //     case UsageFrequency.weekly:
-  //       return 'Combien de fois utilisez-vous cet appareil chaque semaine ?';
-  //     case UsageFrequency.monthly:
-  //       return 'Combien de fois utilisez-vous cet appareil chaque mois ?';
-  //   }
-  // }
-
-  // String? _validateUsageDurationMinutes(String? value) {
-  //   if (value == null || value.trim().isEmpty) {
-  //     return 'Durée requise';
-  //   }
-
-  //   final minutes = int.tryParse(value.trim());
-
-  //   if (minutes == null) {
-  //     return 'Entrez un nombre valide';
-  //   }
-
-  //   if (minutes <= 0) {
-  //     return 'La durée doit être supérieure à 0';
-  //   }
-
-  //   if (minutes > 1440) {
-  //     return 'Maximum 1440 min';
-  //   }
-
-  //   return null;
-  // }
-
-  // String? _validateUsageCount(String? value) {
-  //   if (value == null || value.trim().isEmpty) {
-  //     return 'Nombre requis';
-  //   }
-
-  //   final count = int.tryParse(value.trim());
-
-  //   if (count == null) {
-  //     return 'Entrez un nombre valide';
-  //   }
-
-  //   if (count <= 0) {
-  //     return 'Minimum 1';
-  //   }
-
-  //   return null;
-  // }
 }
