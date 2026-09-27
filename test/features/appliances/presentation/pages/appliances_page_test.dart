@@ -437,7 +437,135 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    // Réutilise ici le setup déjà présent dans ce fichier
-    // pour afficher une page avec au moins un appareil.
+    final appliance = Appliance(
+      id: 2,
+      name: 'Fer à repasser',
+      category: 'Cuisine',
+      powerWatts: 1600,
+      quantity: 1,
+
+      // Legacy conservé uniquement pour compatibilité.
+      hoursPerDay: 0,
+      daysPerMonth: 30,
+
+      usageDurationMinutes: 30,
+      usageCount: 2,
+      usageFrequency: UsageFrequency.weekly,
+
+      isActive: true,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, child) {
+          return MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: const TextScaler.linear(1.5)),
+            child: child!,
+          );
+        },
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: ApplianceCard(appliance: appliance, monthlyCostFcfa: 600),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Fer à repasser'), findsOneWidget);
+    expect(find.text('Utilisation'), findsOneWidget);
+    expect(find.text('30 min • 2 fois / semaine'), findsOneWidget);
+    expect(find.text('Conso / mois'), findsOneWidget);
+    expect(find.text('6,93 kWh'), findsOneWidget);
+
+    expect(find.text('Conso / jour'), findsNothing);
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('le bouton Ajouter ne recouvre pas la dernière carte à 320 px', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final appliance = Appliance(
+      id: 2,
+      name: 'Fer à repasser',
+      category: 'Cuisine',
+      powerWatts: 1600,
+      quantity: 1,
+      hoursPerDay: 0,
+      daysPerMonth: 30,
+      usageDurationMinutes: 30,
+      usageCount: 2,
+      usageFrequency: UsageFrequency.weekly,
+      isActive: true,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    final repository = TestApplianceRepository(appliances: [appliance]);
+
+    final container = createContainer(repository);
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          builder: (context, child) {
+            return MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: const TextScaler.linear(1.5)),
+              child: child!,
+            );
+          },
+          home: const AppliancesPage(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+
+    final listView = find.byType(ListView);
+    expect(listView, findsOneWidget);
+
+    for (var i = 0; i < 6; i++) {
+      if (find.byType(ApplianceCard).evaluate().isNotEmpty) {
+        break;
+      }
+
+      await tester.drag(listView, const Offset(0, -250));
+
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    }
+
+    expect(find.byType(ApplianceCard), findsOneWidget);
+
+    await tester.fling(listView, const Offset(0, -1000), 2000);
+
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+
+    final cardRect = tester.getRect(find.byType(ApplianceCard));
+
+    final fabRect = tester.getRect(find.byType(FloatingActionButton));
+
+    expect(cardRect.bottom, lessThanOrEqualTo(fabRect.top));
   });
 }
