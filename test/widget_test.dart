@@ -167,7 +167,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cuisine').last);
     await form.enterField(tester, 'Puissance', '100');
-    await form.enterField(tester, 'Heures/j', '8');
+    await form.setDurationSlider(tester, 480);
     await form.tapSave(tester);
     await tester.pumpAndSettle();
     expect(find.text('Résumé mensuel'), findsOneWidget);
