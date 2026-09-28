@@ -50,7 +50,7 @@ void main() {
       expect(row.tariffConfigurationName, 'Woyofal DPP 2026');
       final nextId = await db.into(db.consumptionSnapshots).insert(companion);
       expect(nextId, greaterThan(id));
-      expect(db.schemaVersion, 4);
+      expect(db.schemaVersion, 5);
     },
   );
 
@@ -223,7 +223,7 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(versionRow.read<int>('user_version'), 4);
+        expect(versionRow.read<int>('user_version'), 5);
 
         final columns = await database
             .customSelect('PRAGMA table_info(appliances)')
@@ -270,6 +270,191 @@ void main() {
         expect(row.read<String?>('usage_frequency'), 'daily');
         expect(row.read<String?>('label_type'), isNull);
         expect(row.read<String?>('power_source'), isNull);
+        expect(row.read<bool>('is_active'), isTrue);
+      } finally {
+        await database.close();
+
+        if (await tempDirectory.exists()) {
+          await tempDirectory.delete(recursive: true);
+        }
+      }
+    },
+  );
+
+  test(
+    'version 4 to 5 migration adds energy consumption metrics without changing existing appliances',
+    () async {
+      final tempDirectory = await Directory.systemTemp.createTemp(
+        'sama_courant_v4_to_v5_',
+      );
+
+      final databaseFile = File(
+        '${tempDirectory.path}${Platform.pathSeparator}sama_courant.sqlite',
+      );
+
+      // ------------------------------------------------------------
+      // 1. Création manuelle d'une base correspondant à la version 4
+      // ------------------------------------------------------------
+      final sqlite = sqlite3.open(databaseFile.path);
+
+      try {
+        sqlite.execute('''
+        CREATE TABLE appliances (
+          id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          category TEXT NOT NULL,
+          power_watts REAL NOT NULL,
+          quantity INTEGER NOT NULL,
+          hours_per_day REAL NOT NULL,
+          days_per_month INTEGER NOT NULL DEFAULT 30,
+          usage_duration_minutes INTEGER NULL,
+          usage_count INTEGER NULL,
+          usage_frequency TEXT NULL,
+          label_type TEXT NULL,
+          power_source TEXT NULL,
+          is_active INTEGER NOT NULL DEFAULT 1,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+      ''');
+
+        sqlite.execute('''
+        INSERT INTO appliances (
+          name,
+          category,
+          power_watts,
+          quantity,
+          hours_per_day,
+          days_per_month,
+          usage_duration_minutes,
+          usage_count,
+          usage_frequency,
+          label_type,
+          power_source,
+          is_active,
+          created_at,
+          updated_at
+        )
+        VALUES (
+          'Réfrigérateur test',
+          'refrigerator',
+          150.0,
+          1,
+          0.0,
+          30,
+          1440,
+          1,
+          'daily',
+          'energyLabel',
+          'detected',
+          1,
+          1759050000000,
+          1759050000000
+        );
+      ''');
+
+        sqlite.execute('PRAGMA user_version = 4;');
+
+        final versionBeforeMigration = sqlite
+            .select('PRAGMA user_version')
+            .single['user_version'];
+
+        expect(versionBeforeMigration, 4);
+
+        final columnsBeforeMigration = sqlite
+            .select('PRAGMA table_info(appliances)')
+            .map((row) => row['name'] as String)
+            .toList();
+
+        // Les colonnes v4 existent déjà.
+        expect(columnsBeforeMigration, contains('label_type'));
+        expect(columnsBeforeMigration, contains('power_source'));
+
+        // La colonne v5 ne doit pas encore exister.
+        expect(
+          columnsBeforeMigration,
+          isNot(contains('energy_consumption_metrics_json')),
+        );
+      } finally {
+        sqlite.close();
+      }
+
+      // ------------------------------------------------------------
+      // 2. Ouverture avec AppDatabase version 5
+      //    => migration automatique v4 -> v5
+      // ------------------------------------------------------------
+      final database = AppDatabase.forFile(databaseFile);
+
+      try {
+        // Force réellement l'ouverture et l'exécution de la migration.
+        await database.customStatement('SELECT 1');
+
+        // ----------------------------------------------------------
+        // 3. Vérification de la version
+        // ----------------------------------------------------------
+        final versionRow = await database
+            .customSelect('PRAGMA user_version')
+            .getSingle();
+
+        expect(versionRow.read<int>('user_version'), 5);
+        expect(database.schemaVersion, 5);
+
+        // ----------------------------------------------------------
+        // 4. Vérification de la nouvelle colonne
+        // ----------------------------------------------------------
+        final columns = await database
+            .customSelect('PRAGMA table_info(appliances)')
+            .get();
+
+        final columnNames = columns
+            .map((row) => row.read<String>('name'))
+            .toList();
+
+        expect(columnNames, contains('energy_consumption_metrics_json'));
+
+        // ----------------------------------------------------------
+        // 5. Vérification que l'ancien appareil est toujours intact
+        // ----------------------------------------------------------
+        final rows = await database.customSelect('''
+        SELECT
+          id,
+          name,
+          category,
+          power_watts,
+          quantity,
+          hours_per_day,
+          days_per_month,
+          usage_duration_minutes,
+          usage_count,
+          usage_frequency,
+          label_type,
+          power_source,
+          energy_consumption_metrics_json,
+          is_active
+        FROM appliances
+      ''').get();
+
+        expect(rows, hasLength(1));
+
+        final row = rows.single;
+
+        expect(row.read<int>('id'), 1);
+        expect(row.read<String>('name'), 'Réfrigérateur test');
+        expect(row.read<String>('category'), 'refrigerator');
+        expect(row.read<double>('power_watts'), 150.0);
+        expect(row.read<int>('quantity'), 1);
+
+        expect(row.read<int?>('usage_duration_minutes'), 1440);
+        expect(row.read<int?>('usage_count'), 1);
+        expect(row.read<String?>('usage_frequency'), 'daily');
+
+        expect(row.read<String?>('label_type'), 'energyLabel');
+        expect(row.read<String?>('power_source'), 'detected');
+
+        // Ancien appareil v4 :
+        // aucune métrique énergie n'existait encore.
+        expect(row.read<String?>('energy_consumption_metrics_json'), isNull);
+
         expect(row.read<bool>('is_active'), isTrue);
       } finally {
         await database.close();
