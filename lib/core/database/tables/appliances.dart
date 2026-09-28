@@ -27,6 +27,8 @@ class Appliances extends Table {
 
   TextColumn get powerSource => text().nullable()();
 
+  TextColumn get energyConsumptionMetricsJson => text().nullable()();
+
   DateTimeColumn get createdAt => dateTime()();
 
   DateTimeColumn get updatedAt => dateTime()();

@@ -165,6 +165,17 @@ class $AppliancesTable extends Appliances
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _energyConsumptionMetricsJsonMeta =
+      const VerificationMeta('energyConsumptionMetricsJson');
+  @override
+  late final GeneratedColumn<String> energyConsumptionMetricsJson =
+      GeneratedColumn<String>(
+        'energy_consumption_metrics_json',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -202,6 +213,7 @@ class $AppliancesTable extends Appliances
     isActive,
     labelType,
     powerSource,
+    energyConsumptionMetricsJson,
     createdAt,
     updatedAt,
   ];
@@ -315,6 +327,15 @@ class $AppliancesTable extends Appliances
         ),
       );
     }
+    if (data.containsKey('energy_consumption_metrics_json')) {
+      context.handle(
+        _energyConsumptionMetricsJsonMeta,
+        energyConsumptionMetricsJson.isAcceptableOrUnknown(
+          data['energy_consumption_metrics_json']!,
+          _energyConsumptionMetricsJsonMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -392,6 +413,10 @@ class $AppliancesTable extends Appliances
         DriftSqlType.string,
         data['${effectivePrefix}power_source'],
       ),
+      energyConsumptionMetricsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}energy_consumption_metrics_json'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -423,6 +448,7 @@ class Appliance extends DataClass implements Insertable<Appliance> {
   final bool isActive;
   final String? labelType;
   final String? powerSource;
+  final String? energyConsumptionMetricsJson;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Appliance({
@@ -439,6 +465,7 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     required this.isActive,
     this.labelType,
     this.powerSource,
+    this.energyConsumptionMetricsJson,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -467,6 +494,11 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     }
     if (!nullToAbsent || powerSource != null) {
       map['power_source'] = Variable<String>(powerSource);
+    }
+    if (!nullToAbsent || energyConsumptionMetricsJson != null) {
+      map['energy_consumption_metrics_json'] = Variable<String>(
+        energyConsumptionMetricsJson,
+      );
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -498,6 +530,10 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       powerSource: powerSource == null && nullToAbsent
           ? const Value.absent()
           : Value(powerSource),
+      energyConsumptionMetricsJson:
+          energyConsumptionMetricsJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(energyConsumptionMetricsJson),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -524,6 +560,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       isActive: serializer.fromJson<bool>(json['isActive']),
       labelType: serializer.fromJson<String?>(json['labelType']),
       powerSource: serializer.fromJson<String?>(json['powerSource']),
+      energyConsumptionMetricsJson: serializer.fromJson<String?>(
+        json['energyConsumptionMetricsJson'],
+      ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -545,6 +584,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       'isActive': serializer.toJson<bool>(isActive),
       'labelType': serializer.toJson<String?>(labelType),
       'powerSource': serializer.toJson<String?>(powerSource),
+      'energyConsumptionMetricsJson': serializer.toJson<String?>(
+        energyConsumptionMetricsJson,
+      ),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -564,6 +606,7 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     bool? isActive,
     Value<String?> labelType = const Value.absent(),
     Value<String?> powerSource = const Value.absent(),
+    Value<String?> energyConsumptionMetricsJson = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Appliance(
@@ -584,6 +627,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     isActive: isActive ?? this.isActive,
     labelType: labelType.present ? labelType.value : this.labelType,
     powerSource: powerSource.present ? powerSource.value : this.powerSource,
+    energyConsumptionMetricsJson: energyConsumptionMetricsJson.present
+        ? energyConsumptionMetricsJson.value
+        : this.energyConsumptionMetricsJson,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -616,6 +662,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       powerSource: data.powerSource.present
           ? data.powerSource.value
           : this.powerSource,
+      energyConsumptionMetricsJson: data.energyConsumptionMetricsJson.present
+          ? data.energyConsumptionMetricsJson.value
+          : this.energyConsumptionMetricsJson,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -637,6 +686,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
           ..write('isActive: $isActive, ')
           ..write('labelType: $labelType, ')
           ..write('powerSource: $powerSource, ')
+          ..write(
+            'energyConsumptionMetricsJson: $energyConsumptionMetricsJson, ',
+          )
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -658,6 +710,7 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     isActive,
     labelType,
     powerSource,
+    energyConsumptionMetricsJson,
     createdAt,
     updatedAt,
   );
@@ -678,6 +731,8 @@ class Appliance extends DataClass implements Insertable<Appliance> {
           other.isActive == this.isActive &&
           other.labelType == this.labelType &&
           other.powerSource == this.powerSource &&
+          other.energyConsumptionMetricsJson ==
+              this.energyConsumptionMetricsJson &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -696,6 +751,7 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
   final Value<bool> isActive;
   final Value<String?> labelType;
   final Value<String?> powerSource;
+  final Value<String?> energyConsumptionMetricsJson;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const AppliancesCompanion({
@@ -712,6 +768,7 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     this.isActive = const Value.absent(),
     this.labelType = const Value.absent(),
     this.powerSource = const Value.absent(),
+    this.energyConsumptionMetricsJson = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -729,6 +786,7 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     this.isActive = const Value.absent(),
     this.labelType = const Value.absent(),
     this.powerSource = const Value.absent(),
+    this.energyConsumptionMetricsJson = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
   }) : name = Value(name),
@@ -751,6 +809,7 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     Expression<bool>? isActive,
     Expression<String>? labelType,
     Expression<String>? powerSource,
+    Expression<String>? energyConsumptionMetricsJson,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
@@ -769,6 +828,8 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
       if (isActive != null) 'is_active': isActive,
       if (labelType != null) 'label_type': labelType,
       if (powerSource != null) 'power_source': powerSource,
+      if (energyConsumptionMetricsJson != null)
+        'energy_consumption_metrics_json': energyConsumptionMetricsJson,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -788,6 +849,7 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     Value<bool>? isActive,
     Value<String?>? labelType,
     Value<String?>? powerSource,
+    Value<String?>? energyConsumptionMetricsJson,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
   }) {
@@ -805,6 +867,8 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
       isActive: isActive ?? this.isActive,
       labelType: labelType ?? this.labelType,
       powerSource: powerSource ?? this.powerSource,
+      energyConsumptionMetricsJson:
+          energyConsumptionMetricsJson ?? this.energyConsumptionMetricsJson,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -852,6 +916,11 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     if (powerSource.present) {
       map['power_source'] = Variable<String>(powerSource.value);
     }
+    if (energyConsumptionMetricsJson.present) {
+      map['energy_consumption_metrics_json'] = Variable<String>(
+        energyConsumptionMetricsJson.value,
+      );
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -877,6 +946,9 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
           ..write('isActive: $isActive, ')
           ..write('labelType: $labelType, ')
           ..write('powerSource: $powerSource, ')
+          ..write(
+            'energyConsumptionMetricsJson: $energyConsumptionMetricsJson, ',
+          )
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -2416,6 +2488,7 @@ typedef $$AppliancesTableCreateCompanionBuilder =
       Value<bool> isActive,
       Value<String?> labelType,
       Value<String?> powerSource,
+      Value<String?> energyConsumptionMetricsJson,
       required DateTime createdAt,
       required DateTime updatedAt,
     });
@@ -2434,6 +2507,7 @@ typedef $$AppliancesTableUpdateCompanionBuilder =
       Value<bool> isActive,
       Value<String?> labelType,
       Value<String?> powerSource,
+      Value<String?> energyConsumptionMetricsJson,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -2509,6 +2583,11 @@ class $$AppliancesTableFilterComposer
 
   ColumnFilters<String> get powerSource => $composableBuilder(
     column: $table.powerSource,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get energyConsumptionMetricsJson => $composableBuilder(
+    column: $table.energyConsumptionMetricsJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2597,6 +2676,12 @@ class $$AppliancesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get energyConsumptionMetricsJson =>
+      $composableBuilder(
+        column: $table.energyConsumptionMetricsJson,
+        builder: (column) => ColumnOrderings(column),
+      );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -2670,6 +2755,12 @@ class $$AppliancesTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get energyConsumptionMetricsJson =>
+      $composableBuilder(
+        column: $table.energyConsumptionMetricsJson,
+        builder: (column) => column,
+      );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -2721,6 +2812,8 @@ class $$AppliancesTableTableManager
                 Value<bool> isActive = const Value.absent(),
                 Value<String?> labelType = const Value.absent(),
                 Value<String?> powerSource = const Value.absent(),
+                Value<String?> energyConsumptionMetricsJson =
+                    const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => AppliancesCompanion(
@@ -2737,6 +2830,7 @@ class $$AppliancesTableTableManager
                 isActive: isActive,
                 labelType: labelType,
                 powerSource: powerSource,
+                energyConsumptionMetricsJson: energyConsumptionMetricsJson,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -2755,6 +2849,8 @@ class $$AppliancesTableTableManager
                 Value<bool> isActive = const Value.absent(),
                 Value<String?> labelType = const Value.absent(),
                 Value<String?> powerSource = const Value.absent(),
+                Value<String?> energyConsumptionMetricsJson =
+                    const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
               }) => AppliancesCompanion.insert(
@@ -2771,6 +2867,7 @@ class $$AppliancesTableTableManager
                 isActive: isActive,
                 labelType: labelType,
                 powerSource: powerSource,
+                energyConsumptionMetricsJson: energyConsumptionMetricsJson,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
