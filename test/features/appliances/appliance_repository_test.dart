@@ -5,6 +5,8 @@ import 'package:sama_courant/core/database/app_database.dart';
 import 'package:sama_courant/features/appliances/data/repositories/drift_appliance_repository.dart';
 import 'package:sama_courant/features/appliances/domain/entities/appliance.dart'
     as domain;
+import 'package:sama_courant/features/appliances/domain/entities/energy_consumption_basis.dart';
+import 'package:sama_courant/features/appliances/domain/entities/energy_consumption_metric.dart';
 import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
 import 'package:sama_courant/features/appliances/domain/entities/appliance_label_type.dart';
 import 'package:sama_courant/features/appliances/domain/entities/power_source.dart';
@@ -292,5 +294,55 @@ void main() {
     expect(stored, isNotNull);
     expect(stored!.labelType, ApplianceLabelType.energyLabel);
     expect(stored.powerSource, PowerSource.detected);
+  });
+
+  test('persists energy consumption metrics', () async {
+    final now = DateTime(2026, 9, 28);
+
+    final appliance = domain.Appliance(
+      name: 'Réfrigérateur énergie',
+      category: 'refrigerator',
+      powerWatts: 150,
+      quantity: 1,
+      hoursPerDay: 0,
+      daysPerMonth: 30,
+      usageDurationMinutes: 1440,
+      usageCount: 1,
+      usageFrequency: UsageFrequency.daily,
+      labelType: ApplianceLabelType.energyLabel,
+      powerSource: PowerSource.detected,
+      energyConsumptionMetrics: const [
+        EnergyConsumptionMetric(
+          valueKwh: 216,
+          basis: EnergyConsumptionBasis.perYear,
+        ),
+        EnergyConsumptionMetric(
+          valueKwh: 25,
+          basis: EnergyConsumptionBasis.per100Cycles,
+        ),
+      ],
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    final id = await repository.create(appliance);
+
+    final stored = await repository.getById(id);
+
+    expect(stored, isNotNull);
+    expect(stored!.energyConsumptionMetrics, hasLength(2));
+
+    expect(stored.energyConsumptionMetrics[0].valueKwh, 216);
+    expect(
+      stored.energyConsumptionMetrics[0].basis,
+      EnergyConsumptionBasis.perYear,
+    );
+
+    expect(stored.energyConsumptionMetrics[1].valueKwh, 25);
+    expect(
+      stored.energyConsumptionMetrics[1].basis,
+      EnergyConsumptionBasis.per100Cycles,
+    );
   });
 }
