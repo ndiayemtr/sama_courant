@@ -1,0 +1,1 @@
+enum MonthlyConsumptionSource { energyMetric, power }
