@@ -345,4 +345,111 @@ void main() {
       EnergyConsumptionBasis.per100Cycles,
     );
   });
+
+  test('scan metadata persists after database restart', () async {
+    final tempDirectory = await Directory.systemTemp.createTemp(
+      'sama_courant_scan_metadata_restart_',
+    );
+
+    final databaseFile = File(
+      '${tempDirectory.path}${Platform.pathSeparator}sama_courant.sqlite',
+    );
+
+    AppDatabase? firstDatabase;
+    AppDatabase? reopenedDatabase;
+
+    try {
+      // ----------------------------------------------------------
+      // 1. Première ouverture de la base
+      // ----------------------------------------------------------
+      firstDatabase = AppDatabase.forFile(databaseFile);
+
+      final firstRepository = DriftApplianceRepository(firstDatabase);
+
+      final now = DateTime(2026, 9, 28, 15);
+
+      final appliance = domain.Appliance(
+        name: 'Réfrigérateur énergie',
+        category: 'refrigerator',
+        powerWatts: 150,
+        quantity: 1,
+        hoursPerDay: 0,
+        daysPerMonth: 30,
+        usageDurationMinutes: 1440,
+        usageCount: 1,
+        usageFrequency: UsageFrequency.daily,
+        labelType: ApplianceLabelType.energyLabel,
+        powerSource: PowerSource.detected,
+        energyConsumptionMetrics: const [
+          EnergyConsumptionMetric(
+            valueKwh: 216,
+            basis: EnergyConsumptionBasis.perYear,
+          ),
+          EnergyConsumptionMetric(
+            valueKwh: 25,
+            basis: EnergyConsumptionBasis.per100Cycles,
+          ),
+        ],
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      final id = await firstRepository.create(appliance);
+
+      expect(id, greaterThan(0));
+
+      // ----------------------------------------------------------
+      // 2. Fermeture complète de la première base
+      // ----------------------------------------------------------
+      await firstDatabase.close();
+      firstDatabase = null;
+
+      // ----------------------------------------------------------
+      // 3. Réouverture du même fichier SQLite
+      // ----------------------------------------------------------
+      reopenedDatabase = AppDatabase.forFile(databaseFile);
+
+      final reopenedRepository = DriftApplianceRepository(reopenedDatabase);
+
+      final restored = await reopenedRepository.getById(id);
+
+      // ----------------------------------------------------------
+      // 4. Vérification de l'appareil rechargé
+      // ----------------------------------------------------------
+      expect(restored, isNotNull);
+
+      expect(restored!.labelType, ApplianceLabelType.energyLabel);
+
+      expect(restored.powerSource, PowerSource.detected);
+
+      expect(restored.energyConsumptionMetrics, hasLength(2));
+
+      expect(restored.energyConsumptionMetrics[0].valueKwh, 216);
+
+      expect(
+        restored.energyConsumptionMetrics[0].basis,
+        EnergyConsumptionBasis.perYear,
+      );
+
+      expect(restored.energyConsumptionMetrics[1].valueKwh, 25);
+
+      expect(
+        restored.energyConsumptionMetrics[1].basis,
+        EnergyConsumptionBasis.per100Cycles,
+      );
+    } finally {
+      if (firstDatabase != null) {
+        await firstDatabase.close();
+      }
+
+      if (reopenedDatabase != null) {
+        await reopenedDatabase.close();
+      }
+
+      if (await tempDirectory.exists()) {
+        await tempDirectory.delete(recursive: true);
+      }
+    }
+  });
 }
