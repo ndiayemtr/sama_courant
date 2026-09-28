@@ -132,4 +132,19 @@ void main() {
 
     expect(result, isNull);
   });
+
+  test('retourne null si le calcul par puissance deborde', () {
+    final result = selector.select(
+      labelType: ApplianceLabelType.technicalPlate,
+      energyMetrics: const [],
+      powerWatts: 1e308,
+      powerSource: PowerSource.detected,
+      quantity: 9223372036854775807,
+      usageDurationMinutes: 60,
+      usageCount: 1,
+      usageFrequency: UsageFrequency.daily,
+    );
+
+    expect(result, isNull);
+  });
 }

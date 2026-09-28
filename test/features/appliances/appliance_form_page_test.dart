@@ -198,7 +198,7 @@ void main() {
   });
 
   for (final input in [
-    (power: '1e308', quantity: '1', overflow: true),
+    (power: '1e308', quantity: '9223372036854775807', overflow: true),
     (power: '2e305', quantity: '1', overflow: false),
     (power: '100', quantity: '9223372036854775807', overflow: false),
   ]) {

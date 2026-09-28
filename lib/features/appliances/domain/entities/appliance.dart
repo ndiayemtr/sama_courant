@@ -63,10 +63,10 @@ class Appliance {
   }
 
   double get monthlyConsumptionKwh {
-    final selected = selectedMonthlyConsumption;
+    if (usesNewUsageModel) {
+      final selected = selectedMonthlyConsumption;
 
-    if (selected != null) {
-      return selected.monthlyKwh;
+      return selected?.monthlyKwh ?? double.nan;
     }
 
     return EnergyCalculator.calculateMonthlyConsumption(

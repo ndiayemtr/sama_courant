@@ -98,11 +98,18 @@ class MonthlyConsumptionSelector {
       UsageFrequency.monthly => 1.0,
     };
 
-    return powerWatts /
+    final monthlyKwh =
+        powerWatts /
         1000 *
         (usageDurationMinutes / 60) *
         usageCount *
         multiplier *
         quantity;
+
+    if (!monthlyKwh.isFinite || monthlyKwh <= 0) {
+      return null;
+    }
+
+    return monthlyKwh;
   }
 }
