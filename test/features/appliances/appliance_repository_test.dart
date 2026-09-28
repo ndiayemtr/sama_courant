@@ -6,6 +6,8 @@ import 'package:sama_courant/features/appliances/data/repositories/drift_applian
 import 'package:sama_courant/features/appliances/domain/entities/appliance.dart'
     as domain;
 import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
+import 'package:sama_courant/features/appliances/domain/entities/appliance_label_type.dart';
+import 'package:sama_courant/features/appliances/domain/entities/power_source.dart';
 
 void main() {
   // TestWidgetsFlutterBinding.ensureInitialized();
@@ -261,5 +263,34 @@ void main() {
     expect(persisted.usesNewUsageModel, isTrue);
 
     expect(persisted.monthlyConsumptionKwh, closeTo(6.928, 0.0001));
+  });
+
+  test('persists label type and power source', () async {
+    final now = DateTime(2026, 9, 28);
+
+    final appliance = domain.Appliance(
+      name: 'Refrigerateur',
+      category: 'refrigerator',
+      powerWatts: 150,
+      quantity: 1,
+      hoursPerDay: 0,
+      daysPerMonth: 30,
+      usageDurationMinutes: 1440,
+      usageCount: 1,
+      usageFrequency: UsageFrequency.daily,
+      labelType: ApplianceLabelType.energyLabel,
+      powerSource: PowerSource.detected,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    final id = await repository.create(appliance);
+
+    final stored = await repository.getById(id);
+
+    expect(stored, isNotNull);
+    expect(stored!.labelType, ApplianceLabelType.energyLabel);
+    expect(stored.powerSource, PowerSource.detected);
   });
 }

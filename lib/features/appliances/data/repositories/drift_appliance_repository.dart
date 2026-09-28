@@ -4,6 +4,8 @@ import 'package:sama_courant/features/appliances/domain/entities/usage_frequency
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/appliance.dart' as domain;
 import '../../domain/repositories/appliance_repository.dart';
+import '../../domain/entities/appliance_label_type.dart';
+import '../../domain/entities/power_source.dart';
 
 class DriftApplianceRepository implements ApplianceRepository {
   final AppDatabase database;
@@ -63,6 +65,12 @@ class DriftApplianceRepository implements ApplianceRepository {
       usageFrequency: row.usageFrequency == null
           ? null
           : UsageFrequency.values.byName(row.usageFrequency!),
+      labelType: row.labelType == null
+          ? ApplianceLabelType.unknown
+          : ApplianceLabelType.values.byName(row.labelType!),
+      powerSource: row.powerSource == null
+          ? null
+          : PowerSource.values.byName(row.powerSource!),
       isActive: row.isActive,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
@@ -81,6 +89,8 @@ class DriftApplianceRepository implements ApplianceRepository {
       usageDurationMinutes: Value(appliance.usageDurationMinutes),
       usageCount: Value(appliance.usageCount),
       usageFrequency: Value(appliance.usageFrequency?.name),
+      labelType: Value(appliance.labelType.name),
+      powerSource: Value(appliance.powerSource?.name),
       isActive: Value(appliance.isActive),
       createdAt: Value(appliance.createdAt),
       updatedAt: Value(appliance.updatedAt),
