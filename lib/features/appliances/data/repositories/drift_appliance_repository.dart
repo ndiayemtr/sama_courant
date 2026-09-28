@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:sama_courant/features/appliances/data/mappers/energy_consumption_metric_codec.dart';
 import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
 
 import '../../../../core/database/app_database.dart';
@@ -9,6 +10,8 @@ import '../../domain/entities/power_source.dart';
 
 class DriftApplianceRepository implements ApplianceRepository {
   final AppDatabase database;
+
+  static const _energyMetricCodec = EnergyConsumptionMetricCodec();
 
   DriftApplianceRepository(this.database);
 
@@ -71,6 +74,9 @@ class DriftApplianceRepository implements ApplianceRepository {
       powerSource: row.powerSource == null
           ? null
           : PowerSource.values.byName(row.powerSource!),
+      energyConsumptionMetrics: _energyMetricCodec.decode(
+        row.energyConsumptionMetricsJson,
+      ),
       isActive: row.isActive,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
@@ -91,6 +97,9 @@ class DriftApplianceRepository implements ApplianceRepository {
       usageFrequency: Value(appliance.usageFrequency?.name),
       labelType: Value(appliance.labelType.name),
       powerSource: Value(appliance.powerSource?.name),
+      energyConsumptionMetricsJson: Value(
+        _energyMetricCodec.encode(appliance.energyConsumptionMetrics),
+      ),
       isActive: Value(appliance.isActive),
       createdAt: Value(appliance.createdAt),
       updatedAt: Value(appliance.updatedAt),
