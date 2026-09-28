@@ -1,3 +1,4 @@
+import 'package:sama_courant/features/appliances/domain/entities/appliance_label_type.dart';
 import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
 
 import '../../../../core/widgets/page_app_bar.dart';
@@ -512,6 +513,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   Appliance _buildAppliance() {
     final now = DateTime.now();
     final existingAppliance = widget.appliance;
+    final scanResult = widget.scanResult;
 
     return Appliance(
       id: existingAppliance?.id,
@@ -528,6 +530,17 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
       usageDurationMinutes: _usageDurationMinutesValue.round(),
       usageCount: _usageCountValue,
       usageFrequency: _selectedUsageFrequency,
+      labelType:
+          existingAppliance?.labelType ??
+          scanResult?.labelType ??
+          ApplianceLabelType.unknown,
+
+      powerSource: existingAppliance?.powerSource ?? scanResult?.powerSource,
+
+      energyConsumptionMetrics:
+          existingAppliance?.energyConsumptionMetrics ??
+          scanResult?.energyConsumptionMetrics ??
+          const [],
 
       isActive: _isActive,
       createdAt: existingAppliance?.createdAt ?? now,
