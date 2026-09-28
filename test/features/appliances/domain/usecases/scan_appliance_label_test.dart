@@ -3,6 +3,7 @@ import 'package:sama_courant/features/appliances/domain/entities/confidence_leve
 import 'package:sama_courant/features/appliances/domain/entities/power_source.dart';
 import 'package:sama_courant/features/appliances/domain/services/appliance_classifier.dart';
 import 'package:sama_courant/features/appliances/domain/services/appliance_label_parser.dart';
+import 'package:sama_courant/features/appliances/domain/services/appliance_label_type_detector.dart';
 import 'package:sama_courant/features/appliances/domain/services/appliance_power_estimator.dart';
 import 'package:sama_courant/features/appliances/domain/services/label_text_normalizer.dart';
 import 'package:sama_courant/features/appliances/domain/services/label_text_recognizer.dart';
@@ -28,6 +29,7 @@ ScanApplianceLabel createUseCase(String ocrText) {
     classifier: const ApplianceClassifier(),
     powerResolver: const PowerResolver(),
     powerEstimator: const AppliancePowerEstimator(),
+    labelTypeDetector: const ApplianceLabelTypeDetector(),
   );
 }
 

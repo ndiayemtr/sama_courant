@@ -1,3 +1,5 @@
+import 'package:sama_courant/features/appliances/domain/services/appliance_label_type_detector.dart';
+
 import '../entities/appliance_scan_result.dart';
 import '../services/appliance_classifier.dart';
 import '../services/appliance_label_parser.dart';
@@ -13,6 +15,7 @@ class ScanApplianceLabel {
   final ApplianceClassifier classifier;
   final PowerResolver powerResolver;
   final AppliancePowerEstimator powerEstimator;
+  final ApplianceLabelTypeDetector labelTypeDetector;
 
   const ScanApplianceLabel({
     required this.textRecognizer,
@@ -21,12 +24,15 @@ class ScanApplianceLabel {
     required this.classifier,
     required this.powerResolver,
     required this.powerEstimator,
+    required this.labelTypeDetector,
   });
 
   Future<ApplianceScanResult> call(String imagePath) async {
     final rawOcrText = await textRecognizer.recognizeText(imagePath);
 
     final normalizedText = textNormalizer.normalize(rawOcrText);
+
+    final labelType = labelTypeDetector.detect(normalizedText);
 
     final brand = labelParser.extractBrand(normalizedText);
     final model = labelParser.extractModel(normalizedText);
@@ -106,6 +112,8 @@ class ScanApplianceLabel {
       confidenceLevel: powerResult.confidenceLevel,
 
       matchedKeywords: classification.matchedKeywords,
+
+      labelType: labelType,
     );
   }
 }

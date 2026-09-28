@@ -1,3 +1,4 @@
+import 'package:sama_courant/features/appliances/domain/entities/appliance_label_type.dart';
 import 'package:sama_courant/features/appliances/domain/entities/capacity_metric.dart';
 import 'package:sama_courant/features/appliances/domain/entities/energy_consumption_metric.dart';
 
@@ -37,6 +38,8 @@ class ApplianceScanResult {
 
   final List<CapacityMetric> capacities;
 
+  final ApplianceLabelType labelType;
+
   const ApplianceScanResult({
     required this.rawOcrText,
     this.brand,
@@ -57,5 +60,6 @@ class ApplianceScanResult {
     this.matchedKeywords = const [],
     this.energyConsumptionMetrics = const [],
     this.capacities = const [],
+    this.labelType = ApplianceLabelType.unknown,
   });
 }
