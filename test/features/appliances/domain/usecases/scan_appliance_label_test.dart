@@ -131,4 +131,19 @@ void main() {
 
     expect(result.powerWatts, closeTo(391, 0.0001));
   });
+
+  test('remonte les metriques energetiques de l etiquette', () async {
+    final useCase = createUseCase(
+      'BRAND BOSCH '
+      'REFRIGERATOR '
+      '216 KWH/ANNUM '
+      '375 L '
+      '105 L',
+    );
+
+    final result = await useCase('label.jpg');
+
+    expect(result.energyConsumptionMetrics, isNotEmpty);
+    expect(result.energyConsumptionMetrics.first.valueKwh, 216);
+  });
 }

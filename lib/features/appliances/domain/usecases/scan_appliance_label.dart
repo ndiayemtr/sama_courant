@@ -37,6 +37,9 @@ class ScanApplianceLabel {
       normalizedText,
     );
 
+    final energyConsumptionMetrics = labelParser
+        .extractEnergyConsumptionMetrics(normalizedText);
+
     final capacity = labelParser.extractCapacity(normalizedText);
 
     final voltageRange = labelParser.extractVoltageRange(normalizedText);
@@ -94,6 +97,7 @@ class ScanApplianceLabel {
 
       powerFactor: powerFactor,
       annualConsumptionKwh: annualConsumptionKwh,
+      energyConsumptionMetrics: energyConsumptionMetrics,
       capacity: capacity,
 
       powerSource: powerResult.powerSource,
