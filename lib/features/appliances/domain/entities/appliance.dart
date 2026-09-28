@@ -1,5 +1,10 @@
 import '../../../../core/utils/energy_calculator.dart';
 import 'usage_frequency.dart';
+import 'appliance_label_type.dart';
+import 'energy_consumption_metric.dart';
+import 'monthly_consumption_result.dart';
+import 'power_source.dart';
+import '../services/monthly_consumption_selector.dart';
 
 class Appliance {
   final int? id;
@@ -15,6 +20,9 @@ class Appliance {
   final int? usageDurationMinutes;
   final int? usageCount;
   final UsageFrequency? usageFrequency;
+  final ApplianceLabelType labelType;
+  final List<EnergyConsumptionMetric> energyConsumptionMetrics;
+  final PowerSource? powerSource;
 
   const Appliance({
     this.id,
@@ -30,6 +38,9 @@ class Appliance {
     this.usageDurationMinutes,
     this.usageCount,
     this.usageFrequency,
+    this.labelType = ApplianceLabelType.unknown,
+    this.energyConsumptionMetrics = const [],
+    this.powerSource,
   });
 
   double get hourlyConsumptionKwh {
@@ -52,14 +63,10 @@ class Appliance {
   }
 
   double get monthlyConsumptionKwh {
-    if (usesNewUsageModel) {
-      return EnergyCalculator.calculateMonthlyConsumptionFromUsage(
-        powerWatts: powerWatts,
-        usageDurationMinutes: usageDurationMinutes!,
-        usageCount: usageCount!,
-        monthlyFrequencyMultiplier: monthlyFrequencyMultiplier,
-        quantity: quantity,
-      );
+    final selected = selectedMonthlyConsumption;
+
+    if (selected != null) {
+      return selected.monthlyKwh;
     }
 
     return EnergyCalculator.calculateMonthlyConsumption(
@@ -116,5 +123,22 @@ class Appliance {
         (usageDurationMinutes! / 60) * usageCount! * frequencyMultiplier;
 
     return monthlyUsageHours / 30;
+  }
+
+  MonthlyConsumptionResult? get selectedMonthlyConsumption {
+    if (!usesNewUsageModel) {
+      return null;
+    }
+
+    return const MonthlyConsumptionSelector().select(
+      labelType: labelType,
+      energyMetrics: energyConsumptionMetrics,
+      powerWatts: powerWatts,
+      powerSource: powerSource,
+      quantity: quantity,
+      usageDurationMinutes: usageDurationMinutes,
+      usageCount: usageCount,
+      usageFrequency: usageFrequency,
+    );
   }
 }

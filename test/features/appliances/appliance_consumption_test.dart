@@ -2,6 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sama_courant/features/appliances/domain/entities/appliance.dart';
 import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
+import 'package:sama_courant/features/appliances/domain/entities/appliance_label_type.dart';
+import 'package:sama_courant/features/appliances/domain/entities/energy_consumption_basis.dart';
+import 'package:sama_courant/features/appliances/domain/entities/energy_consumption_metric.dart';
+import 'package:sama_courant/features/appliances/domain/entities/monthly_consumption_source.dart';
+import 'package:sama_courant/features/appliances/domain/entities/power_source.dart';
 
 void main() {
   group('Appliance - propriétés de consommation', () {
@@ -369,4 +374,97 @@ void main() {
 
     expect(appliance.averageDailyUsageHours, 12);
   });
+
+  test('conserve le calcul legacy sans nouveau modele usage', () {
+    final appliance = Appliance(
+      name: 'Ventilateur',
+      category: 'fan',
+      powerWatts: 100,
+      quantity: 1,
+      hoursPerDay: 10,
+      daysPerMonth: 30,
+      isActive: true,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    expect(appliance.monthlyConsumptionKwh, 30);
+    expect(appliance.selectedMonthlyConsumption, isNull);
+  });
+
+  test('utilise le nouveau modele usage avec la puissance', () {
+    final appliance = Appliance(
+      name: 'Television',
+      category: 'television',
+      powerWatts: 100,
+      quantity: 1,
+      hoursPerDay: 0,
+      daysPerMonth: 30,
+      usageDurationMinutes: 120,
+      usageCount: 1,
+      usageFrequency: UsageFrequency.daily,
+      powerSource: PowerSource.detected,
+      isActive: true,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    expect(appliance.monthlyConsumptionKwh, 6);
+
+    expect(
+      appliance.selectedMonthlyConsumption?.source,
+      MonthlyConsumptionSource.power,
+    );
+  });
+
+  test('priorise la metrique energetique officielle', () {
+    final appliance = Appliance(
+      name: 'Refrigerateur',
+      category: 'refrigerator',
+      powerWatts: 150,
+      quantity: 1,
+      hoursPerDay: 0,
+      daysPerMonth: 30,
+      usageDurationMinutes: 1440,
+      usageCount: 1,
+      usageFrequency: UsageFrequency.daily,
+      labelType: ApplianceLabelType.energyLabel,
+      energyConsumptionMetrics: const [
+        EnergyConsumptionMetric(
+          valueKwh: 216,
+          basis: EnergyConsumptionBasis.perYear,
+        ),
+      ],
+      powerSource: PowerSource.detected,
+      isActive: true,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    expect(appliance.monthlyConsumptionKwh, 18);
+
+    expect(
+      appliance.selectedMonthlyConsumption?.source,
+      MonthlyConsumptionSource.energyMetric,
+    );
+  });
+
+  test(
+    'retombe sur le calcul legacy si le nouveau calcul est indisponible',
+    () {
+      final appliance = Appliance(
+        name: 'Fer',
+        category: 'iron',
+        powerWatts: 1000,
+        quantity: 1,
+        hoursPerDay: 1,
+        daysPerMonth: 20,
+        isActive: true,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+
+      expect(appliance.monthlyConsumptionKwh, 20);
+    },
+  );
 }
