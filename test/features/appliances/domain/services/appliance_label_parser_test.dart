@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sama_courant/features/appliances/domain/entities/energy_consumption_basis.dart';
 import 'package:sama_courant/features/appliances/domain/services/appliance_label_parser.dart';
 
 void main() {
@@ -171,6 +172,78 @@ void main() {
 
     test('retourne null si aucune marque n est presente', () {
       expect(parser.extractBrand('refrigerator 220 v 180 w'), isNull);
+    });
+  });
+
+  group('energy consumption metrics', () {
+    test('extrait une consommation annuelle kwh par annum', () {
+      final metrics = parser.extractEnergyConsumptionMetrics(
+        'energy 216 kwh/annum',
+      );
+
+      expect(metrics, hasLength(1));
+      expect(metrics.single.valueKwh, 216);
+      expect(metrics.single.basis, EnergyConsumptionBasis.perYear);
+    });
+
+    test('extrait une consommation annuelle en francais', () {
+      final metrics = parser.extractEnergyConsumptionMetrics(
+        'consommation annuelle 180 kwh',
+      );
+
+      expect(metrics, hasLength(1));
+      expect(metrics.single.valueKwh, 180);
+      expect(metrics.single.basis, EnergyConsumptionBasis.perYear);
+    });
+
+    test('extrait une consommation pour 100 cycles', () {
+      final metrics = parser.extractEnergyConsumptionMetrics(
+        '55 kwh/100 cycles',
+      );
+
+      expect(metrics, hasLength(1));
+      expect(metrics.single.valueKwh, 55);
+      expect(metrics.single.basis, EnergyConsumptionBasis.per100Cycles);
+    });
+
+    test('extrait une consommation pour 1000 heures', () {
+      final metrics = parser.extractEnergyConsumptionMetrics('65 kwh/1000 h');
+
+      expect(metrics, hasLength(1));
+      expect(metrics.single.valueKwh, 65);
+      expect(metrics.single.basis, EnergyConsumptionBasis.per1000Hours);
+    });
+
+    test('extrait une consommation par cycle', () {
+      final metrics = parser.extractEnergyConsumptionMetrics('0.8 kwh/cycle');
+
+      expect(metrics, hasLength(1));
+      expect(metrics.single.valueKwh, 0.8);
+      expect(metrics.single.basis, EnergyConsumptionBasis.perCycle);
+    });
+
+    test('peut extraire plusieurs metriques du meme texte', () {
+      final metrics = parser.extractEnergyConsumptionMetrics(
+        '55 kwh/100 cycles 0.8 kwh/cycle',
+      );
+
+      expect(metrics, hasLength(2));
+
+      expect(
+        metrics.map((metric) => metric.basis),
+        containsAll([
+          EnergyConsumptionBasis.per100Cycles,
+          EnergyConsumptionBasis.perCycle,
+        ]),
+      );
+    });
+
+    test('ignore une valeur kwh sans base de reference', () {
+      final metrics = parser.extractEnergyConsumptionMetrics(
+        'energy consumption 25 kwh',
+      );
+
+      expect(metrics, isEmpty);
     });
   });
 }

@@ -1,5 +1,7 @@
 // extraction de W, kW, V, A et Hz.
 import 'package:sama_courant/features/appliances/domain/entities/numeric_range.dart';
+import '../entities/energy_consumption_basis.dart';
+import '../entities/energy_consumption_metric.dart';
 
 class ApplianceLabelParser {
   const ApplianceLabelParser();
@@ -238,5 +240,73 @@ class ApplianceLabelParser {
     }
 
     return null;
+  }
+
+  List<EnergyConsumptionMetric> extractEnergyConsumptionMetrics(String text) {
+    final metrics = <EnergyConsumptionMetric>[];
+
+    void addMatches(RegExp pattern, EnergyConsumptionBasis basis) {
+      for (final match in pattern.allMatches(text)) {
+        final value = double.tryParse(match.group(1)!);
+
+        if (value == null || !value.isFinite || value <= 0) {
+          continue;
+        }
+
+        metrics.add(EnergyConsumptionMetric(valueKwh: value, basis: basis));
+      }
+    }
+
+    // kWh/an, kWh/year, kWh/annum...
+    addMatches(
+      RegExp(
+        r'(\d+(?:\.\d+)?)\s*kwh\s*'
+        r'(?:/|per\s+|par\s+)'
+        r'(?:year|yr|annum|an|annee)\b',
+      ),
+      EnergyConsumptionBasis.perYear,
+    );
+
+    // Ex. "annual consumption 216 kWh"
+    addMatches(
+      RegExp(
+        r'(?:annual\s+(?:energy\s+)?consumption|'
+        r'consommation\s+annuelle)\s*'
+        r'[:=]?\s*(\d+(?:\.\d+)?)\s*kwh\b',
+      ),
+      EnergyConsumptionBasis.perYear,
+    );
+
+    // kWh/100 cycles
+    addMatches(
+      RegExp(
+        r'(\d+(?:\.\d+)?)\s*kwh\s*'
+        r'(?:/|per\s+|par\s+)'
+        r'100\s*cycles?\b',
+      ),
+      EnergyConsumptionBasis.per100Cycles,
+    );
+
+    // kWh/1000 h
+    addMatches(
+      RegExp(
+        r'(\d+(?:\.\d+)?)\s*kwh\s*'
+        r'(?:/|per\s+|par\s+)'
+        r'1000\s*(?:h|hours?|heures?)\b',
+      ),
+      EnergyConsumptionBasis.per1000Hours,
+    );
+
+    // kWh/cycle
+    addMatches(
+      RegExp(
+        r'(\d+(?:\.\d+)?)\s*kwh\s*'
+        r'(?:/|per\s+|par\s+)'
+        r'cycles?\b',
+      ),
+      EnergyConsumptionBasis.perCycle,
+    );
+
+    return List.unmodifiable(metrics);
   }
 }
