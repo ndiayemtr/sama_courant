@@ -23,6 +23,10 @@ class Appliances extends Table {
 
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
 
+  TextColumn get labelType => text().nullable()();
+
+  TextColumn get powerSource => text().nullable()();
+
   DateTimeColumn get createdAt => dateTime()();
 
   DateTimeColumn get updatedAt => dateTime()();

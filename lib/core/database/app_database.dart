@@ -40,6 +40,11 @@ class AppDatabase extends _$AppDatabase {
 
         await migrator.addColumn(appliances, appliances.usageFrequency);
       }
+
+      if (from < 4) {
+        await migrator.addColumn(appliances, appliances.labelType);
+        await migrator.addColumn(appliances, appliances.powerSource);
+      }
     },
   );
 }

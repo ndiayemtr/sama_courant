@@ -143,6 +143,28 @@ class $AppliancesTable extends Appliances
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _labelTypeMeta = const VerificationMeta(
+    'labelType',
+  );
+  @override
+  late final GeneratedColumn<String> labelType = GeneratedColumn<String>(
+    'label_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _powerSourceMeta = const VerificationMeta(
+    'powerSource',
+  );
+  @override
+  late final GeneratedColumn<String> powerSource = GeneratedColumn<String>(
+    'power_source',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -178,6 +200,8 @@ class $AppliancesTable extends Appliances
     usageCount,
     usageFrequency,
     isActive,
+    labelType,
+    powerSource,
     createdAt,
     updatedAt,
   ];
@@ -276,6 +300,21 @@ class $AppliancesTable extends Appliances
         isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
       );
     }
+    if (data.containsKey('label_type')) {
+      context.handle(
+        _labelTypeMeta,
+        labelType.isAcceptableOrUnknown(data['label_type']!, _labelTypeMeta),
+      );
+    }
+    if (data.containsKey('power_source')) {
+      context.handle(
+        _powerSourceMeta,
+        powerSource.isAcceptableOrUnknown(
+          data['power_source']!,
+          _powerSourceMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -345,6 +384,14 @@ class $AppliancesTable extends Appliances
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
       )!,
+      labelType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label_type'],
+      ),
+      powerSource: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}power_source'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -374,6 +421,8 @@ class Appliance extends DataClass implements Insertable<Appliance> {
   final int? usageCount;
   final String? usageFrequency;
   final bool isActive;
+  final String? labelType;
+  final String? powerSource;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Appliance({
@@ -388,6 +437,8 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     this.usageCount,
     this.usageFrequency,
     required this.isActive,
+    this.labelType,
+    this.powerSource,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -411,6 +462,12 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       map['usage_frequency'] = Variable<String>(usageFrequency);
     }
     map['is_active'] = Variable<bool>(isActive);
+    if (!nullToAbsent || labelType != null) {
+      map['label_type'] = Variable<String>(labelType);
+    }
+    if (!nullToAbsent || powerSource != null) {
+      map['power_source'] = Variable<String>(powerSource);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -435,6 +492,12 @@ class Appliance extends DataClass implements Insertable<Appliance> {
           ? const Value.absent()
           : Value(usageFrequency),
       isActive: Value(isActive),
+      labelType: labelType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(labelType),
+      powerSource: powerSource == null && nullToAbsent
+          ? const Value.absent()
+          : Value(powerSource),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -459,6 +522,8 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       usageCount: serializer.fromJson<int?>(json['usageCount']),
       usageFrequency: serializer.fromJson<String?>(json['usageFrequency']),
       isActive: serializer.fromJson<bool>(json['isActive']),
+      labelType: serializer.fromJson<String?>(json['labelType']),
+      powerSource: serializer.fromJson<String?>(json['powerSource']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -478,6 +543,8 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       'usageCount': serializer.toJson<int?>(usageCount),
       'usageFrequency': serializer.toJson<String?>(usageFrequency),
       'isActive': serializer.toJson<bool>(isActive),
+      'labelType': serializer.toJson<String?>(labelType),
+      'powerSource': serializer.toJson<String?>(powerSource),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -495,6 +562,8 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     Value<int?> usageCount = const Value.absent(),
     Value<String?> usageFrequency = const Value.absent(),
     bool? isActive,
+    Value<String?> labelType = const Value.absent(),
+    Value<String?> powerSource = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Appliance(
@@ -513,6 +582,8 @@ class Appliance extends DataClass implements Insertable<Appliance> {
         ? usageFrequency.value
         : this.usageFrequency,
     isActive: isActive ?? this.isActive,
+    labelType: labelType.present ? labelType.value : this.labelType,
+    powerSource: powerSource.present ? powerSource.value : this.powerSource,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -541,6 +612,10 @@ class Appliance extends DataClass implements Insertable<Appliance> {
           ? data.usageFrequency.value
           : this.usageFrequency,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      labelType: data.labelType.present ? data.labelType.value : this.labelType,
+      powerSource: data.powerSource.present
+          ? data.powerSource.value
+          : this.powerSource,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -560,6 +635,8 @@ class Appliance extends DataClass implements Insertable<Appliance> {
           ..write('usageCount: $usageCount, ')
           ..write('usageFrequency: $usageFrequency, ')
           ..write('isActive: $isActive, ')
+          ..write('labelType: $labelType, ')
+          ..write('powerSource: $powerSource, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -579,6 +656,8 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     usageCount,
     usageFrequency,
     isActive,
+    labelType,
+    powerSource,
     createdAt,
     updatedAt,
   );
@@ -597,6 +676,8 @@ class Appliance extends DataClass implements Insertable<Appliance> {
           other.usageCount == this.usageCount &&
           other.usageFrequency == this.usageFrequency &&
           other.isActive == this.isActive &&
+          other.labelType == this.labelType &&
+          other.powerSource == this.powerSource &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -613,6 +694,8 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
   final Value<int?> usageCount;
   final Value<String?> usageFrequency;
   final Value<bool> isActive;
+  final Value<String?> labelType;
+  final Value<String?> powerSource;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const AppliancesCompanion({
@@ -627,6 +710,8 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     this.usageCount = const Value.absent(),
     this.usageFrequency = const Value.absent(),
     this.isActive = const Value.absent(),
+    this.labelType = const Value.absent(),
+    this.powerSource = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -642,6 +727,8 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     this.usageCount = const Value.absent(),
     this.usageFrequency = const Value.absent(),
     this.isActive = const Value.absent(),
+    this.labelType = const Value.absent(),
+    this.powerSource = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
   }) : name = Value(name),
@@ -662,6 +749,8 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     Expression<int>? usageCount,
     Expression<String>? usageFrequency,
     Expression<bool>? isActive,
+    Expression<String>? labelType,
+    Expression<String>? powerSource,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
@@ -678,6 +767,8 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
       if (usageCount != null) 'usage_count': usageCount,
       if (usageFrequency != null) 'usage_frequency': usageFrequency,
       if (isActive != null) 'is_active': isActive,
+      if (labelType != null) 'label_type': labelType,
+      if (powerSource != null) 'power_source': powerSource,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -695,6 +786,8 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     Value<int?>? usageCount,
     Value<String?>? usageFrequency,
     Value<bool>? isActive,
+    Value<String?>? labelType,
+    Value<String?>? powerSource,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
   }) {
@@ -710,6 +803,8 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
       usageCount: usageCount ?? this.usageCount,
       usageFrequency: usageFrequency ?? this.usageFrequency,
       isActive: isActive ?? this.isActive,
+      labelType: labelType ?? this.labelType,
+      powerSource: powerSource ?? this.powerSource,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -751,6 +846,12 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
+    if (labelType.present) {
+      map['label_type'] = Variable<String>(labelType.value);
+    }
+    if (powerSource.present) {
+      map['power_source'] = Variable<String>(powerSource.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -774,6 +875,8 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
           ..write('usageCount: $usageCount, ')
           ..write('usageFrequency: $usageFrequency, ')
           ..write('isActive: $isActive, ')
+          ..write('labelType: $labelType, ')
+          ..write('powerSource: $powerSource, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -2311,6 +2414,8 @@ typedef $$AppliancesTableCreateCompanionBuilder =
       Value<int?> usageCount,
       Value<String?> usageFrequency,
       Value<bool> isActive,
+      Value<String?> labelType,
+      Value<String?> powerSource,
       required DateTime createdAt,
       required DateTime updatedAt,
     });
@@ -2327,6 +2432,8 @@ typedef $$AppliancesTableUpdateCompanionBuilder =
       Value<int?> usageCount,
       Value<String?> usageFrequency,
       Value<bool> isActive,
+      Value<String?> labelType,
+      Value<String?> powerSource,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -2392,6 +2499,16 @@ class $$AppliancesTableFilterComposer
 
   ColumnFilters<bool> get isActive => $composableBuilder(
     column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get labelType => $composableBuilder(
+    column: $table.labelType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get powerSource => $composableBuilder(
+    column: $table.powerSource,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2470,6 +2587,16 @@ class $$AppliancesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get labelType => $composableBuilder(
+    column: $table.labelType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get powerSource => $composableBuilder(
+    column: $table.powerSource,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -2535,6 +2662,14 @@ class $$AppliancesTableAnnotationComposer
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
 
+  GeneratedColumn<String> get labelType =>
+      $composableBuilder(column: $table.labelType, builder: (column) => column);
+
+  GeneratedColumn<String> get powerSource => $composableBuilder(
+    column: $table.powerSource,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -2584,6 +2719,8 @@ class $$AppliancesTableTableManager
                 Value<int?> usageCount = const Value.absent(),
                 Value<String?> usageFrequency = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
+                Value<String?> labelType = const Value.absent(),
+                Value<String?> powerSource = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => AppliancesCompanion(
@@ -2598,6 +2735,8 @@ class $$AppliancesTableTableManager
                 usageCount: usageCount,
                 usageFrequency: usageFrequency,
                 isActive: isActive,
+                labelType: labelType,
+                powerSource: powerSource,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -2614,6 +2753,8 @@ class $$AppliancesTableTableManager
                 Value<int?> usageCount = const Value.absent(),
                 Value<String?> usageFrequency = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
+                Value<String?> labelType = const Value.absent(),
+                Value<String?> powerSource = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
               }) => AppliancesCompanion.insert(
@@ -2628,6 +2769,8 @@ class $$AppliancesTableTableManager
                 usageCount: usageCount,
                 usageFrequency: usageFrequency,
                 isActive: isActive,
+                labelType: labelType,
+                powerSource: powerSource,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
