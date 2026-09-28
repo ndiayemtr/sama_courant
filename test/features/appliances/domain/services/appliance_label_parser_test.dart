@@ -246,4 +246,34 @@ void main() {
       expect(metrics, isEmpty);
     });
   });
+
+  group('capacities', () {
+    test('extrait plusieurs capacites en litres', () {
+      final capacities = parser.extractCapacities('375 l 105 l');
+
+      expect(capacities, hasLength(2));
+
+      expect(capacities[0].value, 375);
+      expect(capacities[0].unit, 'l');
+
+      expect(capacities[1].value, 105);
+      expect(capacities[1].unit, 'l');
+    });
+
+    test('extrait une capacite en kg', () {
+      final capacities = parser.extractCapacities('wash capacity 8 kg');
+
+      expect(capacities, hasLength(1));
+      expect(capacities.single.value, 8);
+      expect(capacities.single.unit, 'kg');
+    });
+
+    test('extrait une capacite en btu', () {
+      final capacities = parser.extractCapacities('cooling capacity 12000 btu');
+
+      expect(capacities, hasLength(1));
+      expect(capacities.single.value, 12000);
+      expect(capacities.single.unit, 'btu');
+    });
+  });
 }

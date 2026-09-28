@@ -30,6 +30,7 @@ class ScanApplianceLabel {
 
     final brand = labelParser.extractBrand(normalizedText);
     final model = labelParser.extractModel(normalizedText);
+    final capacities = labelParser.extractCapacities(normalizedText);
 
     final powerFactor = labelParser.extractPowerFactor(normalizedText);
 
@@ -99,6 +100,7 @@ class ScanApplianceLabel {
       annualConsumptionKwh: annualConsumptionKwh,
       energyConsumptionMetrics: energyConsumptionMetrics,
       capacity: capacity,
+      capacities: capacities,
 
       powerSource: powerResult.powerSource,
       confidenceLevel: powerResult.confidenceLevel,

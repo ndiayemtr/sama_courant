@@ -1,3 +1,4 @@
+import 'package:sama_courant/features/appliances/domain/entities/capacity_metric.dart';
 import 'package:sama_courant/features/appliances/domain/entities/energy_consumption_metric.dart';
 
 import 'confidence_level.dart';
@@ -34,6 +35,8 @@ class ApplianceScanResult {
 
   final List<EnergyConsumptionMetric> energyConsumptionMetrics;
 
+  final List<CapacityMetric> capacities;
+
   const ApplianceScanResult({
     required this.rawOcrText,
     this.brand,
@@ -53,5 +56,6 @@ class ApplianceScanResult {
     required this.confidenceLevel,
     this.matchedKeywords = const [],
     this.energyConsumptionMetrics = const [],
+    this.capacities = const [],
   });
 }

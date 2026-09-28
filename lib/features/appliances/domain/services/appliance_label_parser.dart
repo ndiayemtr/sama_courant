@@ -1,4 +1,5 @@
 // extraction de W, kW, V, A et Hz.
+import 'package:sama_courant/features/appliances/domain/entities/capacity_metric.dart';
 import 'package:sama_courant/features/appliances/domain/entities/numeric_range.dart';
 import '../entities/energy_consumption_basis.dart';
 import '../entities/energy_consumption_metric.dart';
@@ -308,5 +309,29 @@ class ApplianceLabelParser {
     );
 
     return List.unmodifiable(metrics);
+  }
+
+  List<CapacityMetric> extractCapacities(String text) {
+    final capacities = <CapacityMetric>[];
+
+    final patterns = <RegExp, String>{
+      RegExp(r'\b(\d+(?:\.\d+)?)\s*btu(?:/h)?\b'): 'btu',
+      RegExp(r'\b(\d+(?:\.\d+)?)\s*(?:l|liter|litre|litres)\b'): 'l',
+      RegExp(r'\b(\d+(?:\.\d+)?)\s*kg\b'): 'kg',
+    };
+
+    for (final entry in patterns.entries) {
+      for (final match in entry.key.allMatches(text)) {
+        final value = double.tryParse(match.group(1)!);
+
+        if (value == null || !value.isFinite || value <= 0) {
+          continue;
+        }
+
+        capacities.add(CapacityMetric(value: value, unit: entry.value));
+      }
+    }
+
+    return List.unmodifiable(capacities);
   }
 }
