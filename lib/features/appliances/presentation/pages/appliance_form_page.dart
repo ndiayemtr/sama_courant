@@ -8,11 +8,13 @@ import 'package:go_router/go_router.dart';
 import '../../domain/entities/appliance.dart';
 import '../../domain/providers/appliance_usecase_providers.dart';
 import '../providers/appliances_provider.dart';
+import '../../domain/entities/appliance_scan_result.dart';
 
 class ApplianceFormPage extends ConsumerStatefulWidget {
   final Appliance? appliance;
+  final ApplianceScanResult? scanResult;
 
-  const ApplianceFormPage({super.key, this.appliance});
+  const ApplianceFormPage({super.key, this.appliance, this.scanResult});
 
   @override
   ConsumerState<ApplianceFormPage> createState() => _ApplianceFormPageState();
@@ -76,13 +78,19 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   void _initializeForm() {
     final appliance = widget.appliance;
 
-    if (appliance == null) {
-      _usageDurationMinutesValue = 30;
-      _usageCountValue = 1;
-      _selectedUsageFrequency = UsageFrequency.daily;
+    if (appliance != null) {
+      _initializeFromAppliance(appliance);
       return;
     }
 
+    final scanResult = widget.scanResult;
+
+    if (scanResult != null) {
+      _initializeFromScanResult(scanResult);
+    }
+  }
+
+  void _initializeFromAppliance(Appliance appliance) {
     _nameController.text = appliance.name;
     _selectedCategory = appliance.category;
     _powerController.text = appliance.powerWatts.toString();
@@ -101,6 +109,31 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     }
 
     _isActive = appliance.isActive;
+  }
+
+  void _initializeFromScanResult(ApplianceScanResult scanResult) {
+    if (scanResult.applianceType != null) {
+      _selectedCategory = scanResult.applianceType;
+    }
+
+    if (scanResult.powerWatts != null) {
+      _powerController.text = scanResult.powerWatts!.toString();
+    }
+
+    final detectedName = [
+      scanResult.brand,
+      scanResult.model,
+    ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' ');
+
+    if (detectedName.isNotEmpty) {
+      _nameController.text = detectedName;
+    }
+
+    _quantityController.text = '1';
+
+    _usageDurationMinutesValue = 30;
+    _usageCountValue = 1;
+    _selectedUsageFrequency = UsageFrequency.daily;
   }
 
   @override
