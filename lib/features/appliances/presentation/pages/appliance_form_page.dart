@@ -113,10 +113,6 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   }
 
   void _initializeFromScanResult(ApplianceScanResult scanResult) {
-    if (scanResult.applianceType != null) {
-      _selectedCategory = scanResult.applianceType;
-    }
-
     if (scanResult.powerWatts != null) {
       _powerController.text = scanResult.powerWatts!.toString();
     }

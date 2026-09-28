@@ -4,9 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sama_courant/features/appliances/data/providers/appliance_repository_provider.dart';
 import 'package:sama_courant/features/appliances/domain/entities/appliance.dart';
+import 'package:sama_courant/features/appliances/domain/entities/confidence_level.dart';
 import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
 import 'package:sama_courant/features/appliances/domain/repositories/appliance_repository.dart';
 import 'package:sama_courant/features/appliances/presentation/pages/appliance_form_page.dart';
+import 'package:sama_courant/features/appliances/domain/entities/appliance_label_type.dart';
+import 'package:sama_courant/features/appliances/domain/entities/appliance_scan_result.dart';
+import 'package:sama_courant/features/appliances/domain/entities/energy_consumption_basis.dart';
+import 'package:sama_courant/features/appliances/domain/entities/energy_consumption_metric.dart';
+import 'package:sama_courant/features/appliances/domain/entities/power_source.dart';
 
 class FakeApplianceRepository implements ApplianceRepository {
   Appliance? createdAppliance;
@@ -56,6 +62,11 @@ GoRouter createTestRouter() {
         path: '/appliances/edit',
         builder: (context, state) =>
             ApplianceFormPage(appliance: state.extra! as Appliance),
+      ),
+      GoRoute(
+        path: '/appliances/add-from-scan',
+        builder: (context, state) =>
+            ApplianceFormPage(scanResult: state.extra! as ApplianceScanResult),
       ),
     ],
   );
@@ -449,6 +460,110 @@ void main() {
       expect(appliance.daysPerMonth, 30);
       expect(appliance.isActive, isTrue);
     });
+
+    testWidgets(
+      'préremplit le formulaire depuis le scan et conserve les métadonnées',
+      (tester) async {
+        final repository = FakeApplianceRepository();
+        final router = createTestRouter();
+
+        addTearDown(router.dispose);
+
+        const scanResult = ApplianceScanResult(
+          rawOcrText: '''
+BOSCH
+MODEL KGN36
+150 W
+216 kWh/annum
+''',
+          brand: 'Bosch',
+          model: 'KGN36',
+          applianceType: 'refrigerator',
+          powerWatts: 150,
+          powerSource: PowerSource.detected,
+          confidenceLevel: ConfidenceLevel.high,
+          labelType: ApplianceLabelType.energyLabel,
+          energyConsumptionMetrics: [
+            EnergyConsumptionMetric(
+              valueKwh: 216,
+              basis: EnergyConsumptionBasis.perYear,
+            ),
+          ],
+        );
+
+        await tester.pumpWidget(createTestWidget(repository, router));
+
+        router.push('/appliances/add-from-scan', extra: scanResult);
+
+        await tester.pumpAndSettle();
+
+        // ----------------------------------------------------------
+        // 1. Vérifier le préremplissage visuel
+        // ----------------------------------------------------------
+
+        final nameField = tester.widget<TextFormField>(
+          find.widgetWithText(TextFormField, 'Nom', skipOffstage: false),
+        );
+
+        expect(nameField.controller?.text, 'Bosch KGN36');
+
+        final powerField = tester.widget<TextFormField>(
+          find.widgetWithText(TextFormField, 'Puissance', skipOffstage: false),
+        );
+
+        expect(powerField.controller?.text, '150.0');
+
+        // ----------------------------------------------------------
+        // 2. La catégorie n'est pas déduite du type OCR
+        //    pour le moment : l'utilisateur la choisit.
+        // ----------------------------------------------------------
+
+        final categoryField = find.byType(DropdownButtonFormField<String>);
+
+        await tester.ensureVisible(categoryField);
+        await tester.tap(categoryField);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Cuisine').last);
+        await tester.pumpAndSettle();
+
+        // ----------------------------------------------------------
+        // 3. Enregistrer l'appareil
+        // ----------------------------------------------------------
+
+        await tapSave(tester);
+        await tester.pumpAndSettle();
+
+        expect(repository.createdAppliance, isNotNull);
+
+        final created = repository.createdAppliance!;
+
+        // ----------------------------------------------------------
+        // 4. Vérifier les données visibles
+        // ----------------------------------------------------------
+
+        expect(created.name, 'Bosch KGN36');
+        expect(created.category, 'Cuisine');
+        expect(created.powerWatts, 150);
+
+        // ----------------------------------------------------------
+        // 5. Vérifier les métadonnées invisibles du scan
+        // ----------------------------------------------------------
+
+        expect(created.labelType, ApplianceLabelType.energyLabel);
+
+        expect(created.powerSource, PowerSource.detected);
+
+        expect(created.energyConsumptionMetrics, hasLength(1));
+
+        expect(created.energyConsumptionMetrics.single.valueKwh, 216);
+
+        expect(
+          created.energyConsumptionMetrics.single.basis,
+          EnergyConsumptionBasis.perYear,
+        );
+      },
+    );
   });
 
   testWidgets('formulaire reste responsive à 320 px avec texte à 150%', (
