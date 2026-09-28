@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../data/services/mlkit_label_text_recognizer.dart';
+import '../../domain/services/appliance_classifier.dart';
+import '../../domain/services/appliance_label_parser.dart';
+import '../../domain/services/appliance_label_type_detector.dart';
+import '../../domain/services/appliance_power_estimator.dart';
+import '../../domain/services/label_text_normalizer.dart';
+import '../../domain/services/power_resolver.dart';
+import '../../domain/usecases/scan_appliance_label.dart';
 
 class OcrDebugPage extends StatefulWidget {
   const OcrDebugPage({super.key});
@@ -12,7 +20,16 @@ class OcrDebugPage extends StatefulWidget {
 
 class _OcrDebugPageState extends State<OcrDebugPage> {
   final _picker = ImagePicker();
-  static const _recognizer = MlKitLabelTextRecognizer();
+
+  static const _scanApplianceLabel = ScanApplianceLabel(
+    textRecognizer: MlKitLabelTextRecognizer(),
+    textNormalizer: LabelTextNormalizer(),
+    labelParser: ApplianceLabelParser(),
+    classifier: ApplianceClassifier(),
+    powerResolver: PowerResolver(),
+    powerEstimator: AppliancePowerEstimator(),
+    labelTypeDetector: ApplianceLabelTypeDetector(),
+  );
 
   String _result = '';
   bool _loading = false;
@@ -33,13 +50,11 @@ class _OcrDebugPageState extends State<OcrDebugPage> {
     });
 
     try {
-      final text = await _recognizer.recognizeText(image.path);
+      final scanResult = await _scanApplianceLabel(image.path);
 
       if (!mounted) return;
 
-      setState(() {
-        _result = text;
-      });
+      context.push('/appliances/add-from-scan', extra: scanResult);
     } catch (e) {
       if (!mounted) return;
 
