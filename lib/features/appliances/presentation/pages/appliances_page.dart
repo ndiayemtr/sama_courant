@@ -34,6 +34,70 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     });
   }
 
+  Future<void> _openAddApplianceOptions(BuildContext context) async {
+    final mode = await showModalBottomSheet<_AddApplianceMode>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Ajouter un appareil',
+                  style: Theme.of(
+                    sheetContext,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Choisissez la méthode la plus simple pour vous.',
+                  style: Theme.of(sheetContext).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 20),
+
+                FilledButton.icon(
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop(_AddApplianceMode.scan);
+                  },
+                  icon: const Icon(Icons.camera_alt_outlined),
+                  label: const Text('Scanner une étiquette'),
+                ),
+
+                const SizedBox(height: 12),
+
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop(_AddApplianceMode.manual);
+                  },
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('Ajouter manuellement'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (!context.mounted || mode == null) {
+      return;
+    }
+
+    switch (mode) {
+      case _AddApplianceMode.scan:
+        context.push('/appliances/scan');
+        break;
+
+      case _AddApplianceMode.manual:
+        context.push('/appliances/add');
+        break;
+    }
+  }
+
   Future<void> _confirmDelete(
     BuildContext context,
     WidgetRef ref,
@@ -102,16 +166,13 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
         title: 'Mes appareils',
       ),
       body: _buildBody(context, ref, state),
-      floatingActionButton: state.appliances.isEmpty
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () {
-                // Le formulaire d'ajout sera ajouté dans une prochaine étape.
-                context.push('/appliances/add');
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Ajouter'),
-            ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          _openAddApplianceOptions(context);
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Ajouter'),
+      ),
     );
   }
 
@@ -136,8 +197,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     if (state.appliances.isEmpty) {
       return EmptyAppliances(
         onAdd: () {
-          // Le formulaire sera connecté dans une prochaine étape.
-          context.push('/appliances/add');
+          _openAddApplianceOptions(context);
         },
       );
     }
@@ -572,3 +632,5 @@ class _MonthlySummaryRow extends StatelessWidget {
     );
   }
 }
+
+enum _AddApplianceMode { scan, manual }
