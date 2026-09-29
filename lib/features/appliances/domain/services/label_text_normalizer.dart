@@ -1,7 +1,7 @@
 class LabelTextNormalizer {
   const LabelTextNormalizer();
 
-  String normalize(String text) {
+  String normalize(String text, {bool preserveLines = false}) {
     var normalized = text.toLowerCase();
 
     normalized = normalized
@@ -34,13 +34,20 @@ class LabelTextNormalizer {
     normalized = normalized
         .replaceAll(RegExp(r'\bkvwhi(?=ano\b|\s|$)'), 'kwh ')
         .replaceAll(RegExp(r'\bkvwh\b'), 'kwh')
-        .replaceAll(RegExp(r'\ba\s+o\b'), 'ano');
+        .replaceAll(RegExp(r'\bk\s+w\s*h\b'), 'kwh')
+        .replaceAll(RegExp(r'(?<=kwh)/a\s+o\b'), '/ano')
+        .replaceAll(RegExp(r'(?<=kwh)/an0\b'), '/ano');
 
     // Supprime les caractères non exploitables.
-    normalized = normalized.replaceAll(RegExp(r'[^a-z0-9\s./+-]'), ' ');
+    normalized = normalized.replaceAll(RegExp(r'[^a-z0-9\s._/+-]'), ' ');
 
     // Réduit les espaces, tabulations et retours à la ligne.
-    normalized = normalized.replaceAll(RegExp(r'\s+'), ' ');
+    normalized = preserveLines
+        ? normalized
+              .split(RegExp(r'[\r\n]+'))
+              .map((line) => line.replaceAll(RegExp(r'\s+'), ' ').trim())
+              .join('\n')
+        : normalized.replaceAll(RegExp(r'\s+'), ' ');
 
     return normalized.trim();
   }

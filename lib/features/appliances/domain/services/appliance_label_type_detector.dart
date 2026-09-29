@@ -48,10 +48,7 @@ class ApplianceLabelTypeDetector {
     var score = 0;
 
     final indicators = [
-      RegExp(
-        r'\b\d+(?:\.\d+)?\s*kwh\s*/\s*'
-        r'(?:year|yr|annum|an|annee|100 cycles?|1000 h|cycles?)\b',
-      ),
+      RegExp(r'\b\d+(?:\.\d+)?\s*kwh\b'),
       RegExp(r'\benergy class\b'),
       RegExp(r'\bclasse energetique\b'),
       RegExp(r'\b\d+(?:\.\d+)?\s*db\b'),

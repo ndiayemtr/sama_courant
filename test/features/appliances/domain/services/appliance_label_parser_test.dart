@@ -354,14 +354,10 @@ void main() {
     expect(result.single.basis, EnergyConsumptionBasis.perYear);
   });
 
-  test('energy metrics reconnait consumo de energia sans suffixe annuel', () {
+  test('energy metrics exige une periode meme avec consumo de energia', () {
     const text = 'consumo de energia en operacion 355 kwh';
-
-    final result = parser.extractEnergyConsumptionMetrics(text);
-
-    expect(result, hasLength(1));
-    expect(result.single.valueKwh, 355);
-    expect(result.single.basis, EnergyConsumptionBasis.perYear);
+    expect(parser.extractEnergyConsumptionMetrics(text), isEmpty);
+    expect(parser.extractAnnualConsumptionKwh(text), isNull);
   });
 
   test(

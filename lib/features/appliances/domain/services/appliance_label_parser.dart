@@ -6,80 +6,63 @@ import '../entities/energy_consumption_metric.dart';
 
 class ApplianceLabelParser {
   const ApplianceLabelParser();
+  // Rated > typical > unqualified > maximum. Secondary loads are excluded.
   double? extractPowerWatts(String text) {
-    final pattern = RegExp(r'(?:^|[^0-9.-])(\d+(?:\.\d+)?)\s*(kw|w)\b');
-
-    final matches = pattern.allMatches(text).toList();
-
-    if (matches.isEmpty) {
+    final candidates =
+        extractPowerCandidates(text).where((c) => c.score >= 0).toList()
+          ..sort((a, b) => b.score.compareTo(a.score));
+    if (candidates.isEmpty) return null;
+    final best = candidates.first;
+    if (candidates.any((c) => c.score == best.score && c.watts != best.watts)) {
       return null;
     }
+    return best.watts;
+  }
 
-    final hasSecondaryPowerIndicator = [
-      'deshielo',
-      'defrost',
-      'degivrage',
-      'heater',
-      'heating',
-      'chauffage',
-      'resistance',
-      'resistencia',
-      'standby',
-      'veille',
-    ].any(text.contains);
-
-    final hasPrimaryPowerIndicator = [
-      'rated power',
-      'rated input',
-      'power input',
-      'input power',
-      'nominal power',
-      'puissance nominale',
-      'puissance absorbee',
-      'potencia nominal',
-      'potencia de entrada',
-    ].any(text.contains);
-
-    if (matches.length == 1 &&
-        hasSecondaryPowerIndicator &&
-        !hasPrimaryPowerIndicator) {
-      return null;
-    }
-
-    _PowerCandidate? bestCandidate;
-
-    for (final match in matches) {
-      final rawValue = double.tryParse(match.group(1)!);
-      final unit = match.group(2);
-
-      if (rawValue == null || !rawValue.isFinite || rawValue <= 0) {
-        continue;
+  List<PowerCandidate> extractPowerCandidates(String text) {
+    final matches = RegExp(
+      r'(?<![0-9.-])(\d+(?:\.\d+)?)\s*(kw|w)\b',
+    ).allMatches(text).toList();
+    final candidates = <PowerCandidate>[];
+    for (var i = 0; i < matches.length; i++) {
+      final match = matches[i];
+      final value = double.tryParse(match.group(1)!);
+      if (value == null || !value.isFinite || value <= 0) continue;
+      final previousEnd = i == 0 ? 0 : matches[i - 1].end;
+      final lineStart = text.lastIndexOf('\n', match.start) + 1;
+      final start = lineStart > previousEnd ? lineStart : previousEnd;
+      final nextLine = text.indexOf('\n', match.end);
+      final lineEnd = nextLine < 0 ? text.length : nextLine;
+      final nextStart = i + 1 < matches.length
+          ? matches[i + 1].start
+          : text.length;
+      var context = text.substring(start, match.end);
+      if (nextStart >= lineEnd) {
+        context += ' ${text.substring(match.end, lineEnd)}';
       }
-
-      final watts = unit == 'kw' ? rawValue * 1000 : rawValue;
-
-      final context = _powerContext(text, match.start, match.end);
-
-      final score = _powerContextScore(context);
-
-      final candidate = _PowerCandidate(watts: watts, score: score);
-
-      if (bestCandidate == null || candidate.score > bestCandidate.score) {
-        bestCandidate = candidate;
+      // A separate adjacent label can describe a bare wattage line.
+      if (_powerContextScore(context) == 10 &&
+          text.substring(lineStart, match.start).trim().isEmpty) {
+        if (nextLine >= 0) {
+          final following = text.substring(nextLine + 1).split('\n').first;
+          if (!RegExp(r'\d').hasMatch(following)) context += ' $following';
+        }
+        if (lineStart > 0) {
+          final preceding = text.substring(0, lineStart - 1).split('\n').last;
+          if (!RegExp(r'\d').hasMatch(preceding)) {
+            context = '$preceding $context';
+          }
+        }
       }
+      candidates.add(
+        PowerCandidate(
+          watts: match.group(2) == 'kw' ? value * 1000 : value,
+          context: context.trim(),
+          score: _powerContextScore(context),
+        ),
+      );
     }
-
-    if (bestCandidate == null) {
-      return null;
-    }
-
-    // Une puissance identifiée uniquement dans un contexte secondaire
-    // ne doit pas devenir la puissance principale de l'appareil.
-    if (bestCandidate.score < 0) {
-      return null;
-    }
-
-    return bestCandidate.watts;
+    return List.unmodifiable(candidates);
   }
 
   double? extractVoltageVolts(String text) {
@@ -182,44 +165,11 @@ class ApplianceLabelParser {
   }
 
   double? extractAnnualConsumptionKwh(String text) {
-    final patterns = [
-      RegExp(
-        r'(\d+(?:\.\d+)?)\s*kwh\s*'
-        r'(?:/|per\s+|par\s+|por\s+|\s+)'
-        r'(?:year|yr|annum|an|annee|ano)\b',
-      ),
-      RegExp(
-        r'(\d+(?:\.\d+)?)\s*kwh\s+(?:per|par|por)\s+'
-        r'(?:year|yr|annum|an|annee|ano)\b',
-      ),
-      RegExp(
-        r'annual\s+(?:energy\s+)?consumption\s*'
-        r'(\d+(?:\.\d+)?)\s*kwh\b',
-      ),
-      RegExp(
-        r'consommation\s+annuelle\s*'
-        r'(\d+(?:\.\d+)?)\s*kwh\b',
-      ),
-      RegExp(
-        r'consumo\s+de\s+energia(?:\s+en\s+operacion)?\s*'
-        r'[:=]?\s*(\d+(?:\.\d+)?)\s*kwh\b',
-      ),
-    ];
-
-    for (final pattern in patterns) {
-      final match = pattern.firstMatch(text);
-
-      if (match == null) {
-        continue;
-      }
-
-      final value = double.tryParse(match.group(1)!);
-
-      if (value != null && value > 0 && value.isFinite) {
-        return value;
+    for (final metric in extractEnergyConsumptionMetrics(text)) {
+      if (metric.basis == EnergyConsumptionBasis.perYear) {
+        return metric.valueKwh;
       }
     }
-
     return null;
   }
 
@@ -247,57 +197,16 @@ class ApplianceLabelParser {
   }
 
   String? extractModel(String text) {
+    // Specific labels win independently of OCR reading order or brand.
     final patterns = [
-      // Anglais — formes précises d'abord.
-      // Ex. "MODEL NO.: AC-GEN-4500S"
       RegExp(
-        r'\bmodel\b\s+(?:no|number)\b\.?\s*[:#-]?\s*'
-        r'([a-z0-9][a-z0-9._/-]{1,})\b',
-      ),
-
-      // Ex. "Model Code: UE55F6400ANXZF"
-      RegExp(
-        r'\bmodel\b\s+code\b\s*[:#-]?\s*'
-        r'([a-z0-9][a-z0-9._/-]{1,})\b',
-      ),
-
-      // Ex. "Model: UESSFG400A" ou "model rt38".
-      RegExp(
-        r'\bmodel\b\s*[:#-]?\s+'
-        r'(?!no\b|number\b|code\b)'
-        r'([a-z0-9][a-z0-9._/-]{1,})\b',
-      ),
-
-      // Français.
-      RegExp(
-        r'\bmodele\b\s+(?:no|numero)\b\.?\s*[:#-]?\s*'
-        r'([a-z0-9][a-z0-9._/-]{1,})\b',
+        r'\bmod[e3]l(?:e|o)?[ \t]+code\b[ \t]*[:#.-]?[ \t]*([a-z0-9][a-z0-9._/-]+)\b',
       ),
       RegExp(
-        r'\bmodele\b\s*[:#-]?\s+'
-        r'(?!no\b|numero\b)'
-        r'([a-z0-9][a-z0-9._/-]{1,})\b',
-      ),
-
-      // Espagnol.
-      RegExp(
-        r'\bmodelo\b\s+(?:no|numero)\b\.?\s*[:#-]?\s*'
-        r'([a-z0-9][a-z0-9._/-]{1,})\b',
+        r'\bmod[e3]l(?:e|o)?[ \t]+(?:no|number|numero)\b\.?[ \t]*[:#-]?[ \t]*([a-z0-9][a-z0-9._/-]+)\b',
       ),
       RegExp(
-        r'\bmodelo\b\s*[:#-]?\s+'
-        r'(?!no\b|numero\b)'
-        r'([a-z0-9][a-z0-9._/-]{1,})\b',
-      ),
-
-      // Référence explicite uniquement.
-      RegExp(
-        r'\breference\b\s*[:#-]?\s+'
-        r'([a-z0-9][a-z0-9._/-]{1,})\b',
-      ),
-      RegExp(
-        r'\bref\b\s*[:#-]?\s+'
-        r'([a-z0-9][a-z0-9._/-]{1,})\b',
+        r'\b(?:mod[e3]l(?:e|o)?|reference|ref)\b\.?[ \t]*[:#-]?[ \t]*(?!no\b|number\b|numero\b|code\b)([a-z0-9][a-z0-9._/-]+)\b',
       ),
     ];
 
@@ -431,7 +340,7 @@ class ApplianceLabelParser {
     addMatches(
       RegExp(
         r'(\d+(?:\.\d+)?)\s*kwh\s*'
-        r'(?:/|per\s+|par\s+|por\s+)'
+        r'(?:/\s*|per\s+|par\s+|por\s+|\s+)'
         r'(?:year|yr|annum|an|annee|ano)\b',
       ),
       EnergyConsumptionBasis.perYear,
@@ -447,20 +356,11 @@ class ApplianceLabelParser {
       EnergyConsumptionBasis.perYear,
     );
 
-    // Ex. "consumo de energia en operacion 355 kWh"
-    addMatches(
-      RegExp(
-        r'(?:consumo\s+de\s+energia(?:\s+en\s+operacion)?)\s*'
-        r'[:=]?\s*(\d+(?:\.\d+)?)\s*kwh\b',
-      ),
-      EnergyConsumptionBasis.perYear,
-    );
-
     // kWh/100 cycles
     addMatches(
       RegExp(
         r'(\d+(?:\.\d+)?)\s*kwh\s*'
-        r'(?:/|per\s+|par\s+)'
+        r'(?:/\s*|per\s+|par\s+)'
         r'100\s*cycles?\b',
       ),
       EnergyConsumptionBasis.per100Cycles,
@@ -470,7 +370,7 @@ class ApplianceLabelParser {
     addMatches(
       RegExp(
         r'(\d+(?:\.\d+)?)\s*kwh\s*'
-        r'(?:/|per\s+|par\s+)'
+        r'(?:/\s*|per\s+|par\s+)'
         r'1000\s*(?:h|hours?|heures?)\b',
       ),
       EnergyConsumptionBasis.per1000Hours,
@@ -480,7 +380,7 @@ class ApplianceLabelParser {
     addMatches(
       RegExp(
         r'(\d+(?:\.\d+)?)\s*kwh\s*'
-        r'(?:/|per\s+|par\s+)'
+        r'(?:/\s*|per\s+|par\s+)'
         r'cycles?\b',
       ),
       EnergyConsumptionBasis.perCycle,
@@ -513,99 +413,31 @@ class ApplianceLabelParser {
     return List.unmodifiable(capacities);
   }
 
-  String _powerContext(String text, int matchStart, int matchEnd) {
-    const charsBefore = 40;
-
-    final start = matchStart - charsBefore < 0 ? 0 : matchStart - charsBefore;
-
-    return text.substring(start, matchEnd);
-  }
-
   int _powerContextScore(String context) {
-    var score = 0;
-
-    const primaryIndicators = [
-      'rated power',
-      'rated input',
-      'power input',
-      'input power',
-      'nominal power',
-      'puissance nominale',
-      'puissance absorbee',
-      'potencia nominal',
-      'potencia de entrada',
-
-      // --- Variantes en Français (avec et sans accents pour l'OCR) ---
-      'puissance',
-      'puissance absorbée',
-      'puissance d\'entrée',
-      'puissance max',
-      'puissance maximum',
-      'p. nominale',
-      'p. absorbée',
-      'p. absorbee',
-      'puissance de raccordement',
-
-      // --- Variantes en Anglais ---
-      'power rating',
-      'max power',
-      'maximum power',
-      'input rating',
-      'total input',
-      'power consum', // Coupe pour matcher "power consumption" ou "power consumed"
-      'consumption power',
-
-      // --- Variantes en Espagnol / Portugais ---
-      'potência nominal',
-      'potência máxima',
-      'potencia maxima',
-      'potência de entrada',
-      'potencia absorbida',
-      'consumo nominal',
-
-      // --- Abréviations techniques universelles (Plaques signalétiques) ---
-      'tot. power',
-      'tot. input',
-      'input pwr',
-      'rated pwr',
-      'p.max',
-      'pmax',
-      'p.nom',
-      'pnom',
-    ];
-
-    const secondaryIndicators = [
-      'deshielo',
-      'defrost',
-      'degivrage',
-      'heater',
-      'heating',
-      'chauffage',
-      'resistance',
-      'resistencia',
-      'standby',
-      'veille',
-    ];
-
-    for (final indicator in primaryIndicators) {
-      if (context.contains(indicator)) {
-        score += 10;
-      }
+    if (RegExp(
+      r'\b(defrost|deshielo|degivrage|heater|heating|chauffage|resistance|resistencia|standby|veille)\b',
+    ).hasMatch(context)) {
+      return -1;
     }
-
-    for (final indicator in secondaryIndicators) {
-      if (context.contains(indicator)) {
-        score -= 20;
-      }
+    if (RegExp(r'\b(typical|typique)\b').hasMatch(context)) return 20;
+    if (RegExp(r'\b(max|maximum|maxima|pmax)\b').hasMatch(context)) return 5;
+    if (RegExp(
+      r'\b(rated power|rated input|power input|input power|nominal power|power consumption|power consumed|consumption power|watts|puissance|p\. nominale|p\. absorbee|tot\. power|tot\. input|input pwr|rated pwr|p\.nom|pnom|potencia nominal|potencia de entrada|power rating|input rating|total input|potencia absorbida|consumo nominal)\b',
+    ).hasMatch(context)) {
+      return 30;
     }
-
-    return score;
+    return 10;
   }
 }
 
-class _PowerCandidate {
+class PowerCandidate {
   final double watts;
+  final String context;
   final int score;
 
-  const _PowerCandidate({required this.watts, required this.score});
+  const PowerCandidate({
+    required this.watts,
+    required this.context,
+    required this.score,
+  });
 }

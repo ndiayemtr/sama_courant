@@ -67,7 +67,9 @@ class ScanApplianceLabel {
         ? labelParser.extractFrequencyHz(normalizedText)
         : null;
 
-    final detectedPowerWatts = labelParser.extractPowerWatts(normalizedText);
+    final detectedPowerWatts = labelParser.extractPowerWatts(
+      textNormalizer.normalize(rawOcrText, preserveLines: true),
+    );
 
     final classification = classifier.classify(normalizedText);
 
