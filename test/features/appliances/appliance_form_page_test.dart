@@ -505,7 +505,7 @@ MODEL KGN36
           find.widgetWithText(TextFormField, 'Nom', skipOffstage: false),
         );
 
-        expect(nameField.controller?.text, 'Bosch KGN36');
+        expect(nameField.controller?.text, 'Réfrigérateur Bosch KGN36');
 
         final powerField = tester.widget<TextFormField>(
           find.widgetWithText(TextFormField, 'Puissance', skipOffstage: false),
@@ -542,7 +542,7 @@ MODEL KGN36
         // 4. Vérifier les données visibles
         // ----------------------------------------------------------
 
-        expect(created.name, 'Bosch KGN36');
+        expect(repository.createdAppliance!.name, 'Réfrigérateur Bosch KGN36');
         expect(created.category, 'Cuisine');
         expect(created.powerWatts, 150);
 

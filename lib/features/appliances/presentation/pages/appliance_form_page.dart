@@ -117,10 +117,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
       _powerController.text = scanResult.powerWatts!.toString();
     }
 
-    final detectedName = [
-      scanResult.brand,
-      scanResult.model,
-    ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' ');
+    final detectedName = _buildDetectedApplianceName(scanResult);
 
     if (detectedName.isNotEmpty) {
       _nameController.text = detectedName;
@@ -131,6 +128,95 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     _usageDurationMinutesValue = 30;
     _usageCountValue = 1;
     _selectedUsageFrequency = UsageFrequency.daily;
+  }
+
+  String _buildDetectedApplianceName(ApplianceScanResult scanResult) {
+    final typeName = _displayNameForApplianceType(scanResult.applianceType);
+
+    final brand = _formatDetectedBrand(scanResult.brand);
+    final model = _formatDetectedModel(scanResult.model);
+
+    return [
+      typeName,
+      brand,
+      model,
+    ].whereType<String>().where((value) => value.isNotEmpty).join(' ');
+  }
+
+  String? _displayNameForApplianceType(String? applianceType) {
+    if (applianceType == null) {
+      return null;
+    }
+
+    const names = <String, String>{
+      'refrigerator': 'Réfrigérateur',
+      'freezer': 'Congélateur',
+      'air_conditioner': 'Climatiseur',
+      'fan': 'Ventilateur',
+      'dehumidifier_humidifier': 'Déshumidificateur / humidificateur',
+      'iron': 'Fer à repasser',
+      'washing_machine': 'Machine à laver',
+      'dryer': 'Sèche-linge',
+      'vacuum_cleaner': 'Aspirateur',
+      'microwave': 'Micro-ondes',
+      'electric_oven': 'Four électrique',
+      'electric_cooktop': 'Plaque de cuisson',
+      'rice_cooker': 'Cuiseur de riz',
+      'air_fryer': 'Air fryer',
+      'kettle': 'Bouilloire',
+      'coffee_maker': 'Cafetière',
+      'toaster': 'Grille-pain',
+      'blender_mixer': 'Mixeur',
+      'television': 'Téléviseur',
+      'decoder_box': 'Décodeur',
+      'router_modem': 'Routeur / modem',
+      'computer_laptop': 'Ordinateur',
+      'monitor_screen': 'Écran',
+      'gaming_console': 'Console de jeux',
+      'audio_system': 'Système audio',
+      'charger': 'Chargeur',
+      'water_heater': 'Chauffe-eau',
+      'water_pump': 'Pompe à eau',
+      'hair_dryer': 'Sèche-cheveux',
+      'light_bulb': 'Éclairage',
+      'voltage_regulator': 'Régulateur de tension',
+      'ups_inverter': 'Onduleur',
+    };
+
+    return names[applianceType];
+  }
+
+  String? _formatDetectedBrand(String? brand) {
+    if (brand == null || brand.trim().isEmpty) {
+      return null;
+    }
+
+    final normalized = brand.trim();
+
+    const uppercaseBrands = {'aeg', 'lg', 'tcl', 'hp'};
+
+    if (uppercaseBrands.contains(normalized.toLowerCase())) {
+      return normalized.toUpperCase();
+    }
+
+    return normalized
+        .split(RegExp(r'\s+'))
+        .map((word) {
+          if (word.isEmpty) {
+            return word;
+          }
+
+          return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
+        })
+        .join(' ');
+  }
+
+  String? _formatDetectedModel(String? model) {
+    if (model == null || model.trim().isEmpty) {
+      return null;
+    }
+
+    return model.trim().toUpperCase();
   }
 
   @override
