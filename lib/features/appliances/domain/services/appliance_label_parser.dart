@@ -184,7 +184,8 @@ class ApplianceLabelParser {
   double? extractAnnualConsumptionKwh(String text) {
     final patterns = [
       RegExp(
-        r'(\d+(?:\.\d+)?)\s*kwh\s*/\s*'
+        r'(\d+(?:\.\d+)?)\s*kwh\s*'
+        r'(?:/|per\s+|par\s+|por\s+|\s+)'
         r'(?:year|yr|annum|an|annee|ano)\b',
       ),
       RegExp(
@@ -247,17 +248,57 @@ class ApplianceLabelParser {
 
   String? extractModel(String text) {
     final patterns = [
+      // Anglais — formes précises d'abord.
+      // Ex. "MODEL NO.: AC-GEN-4500S"
       RegExp(
-        r'\bmodel\b\s*(?:no|number)?\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b',
+        r'\bmodel\b\s+(?:no|number)\b\.?\s*[:#-]?\s*'
+        r'([a-z0-9][a-z0-9._/-]{1,})\b',
+      ),
+
+      // Ex. "Model Code: UE55F6400ANXZF"
+      RegExp(
+        r'\bmodel\b\s+code\b\s*[:#-]?\s*'
+        r'([a-z0-9][a-z0-9._/-]{1,})\b',
+      ),
+
+      // Ex. "Model: UESSFG400A" ou "model rt38".
+      RegExp(
+        r'\bmodel\b\s*[:#-]?\s+'
+        r'(?!no\b|number\b|code\b)'
+        r'([a-z0-9][a-z0-9._/-]{1,})\b',
+      ),
+
+      // Français.
+      RegExp(
+        r'\bmodele\b\s+(?:no|numero)\b\.?\s*[:#-]?\s*'
+        r'([a-z0-9][a-z0-9._/-]{1,})\b',
       ),
       RegExp(
-        r'\bmodele\b\s*(?:no|numero)?\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b',
+        r'\bmodele\b\s*[:#-]?\s+'
+        r'(?!no\b|numero\b)'
+        r'([a-z0-9][a-z0-9._/-]{1,})\b',
+      ),
+
+      // Espagnol.
+      RegExp(
+        r'\bmodelo\b\s+(?:no|numero)\b\.?\s*[:#-]?\s*'
+        r'([a-z0-9][a-z0-9._/-]{1,})\b',
       ),
       RegExp(
-        r'\bmodelo\b\s*(?:no|numero)?\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b',
+        r'\bmodelo\b\s*[:#-]?\s+'
+        r'(?!no\b|numero\b)'
+        r'([a-z0-9][a-z0-9._/-]{1,})\b',
       ),
-      RegExp(r'\breference\b\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b'),
-      RegExp(r'\bref\b\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b'),
+
+      // Référence explicite uniquement.
+      RegExp(
+        r'\breference\b\s*[:#-]?\s+'
+        r'([a-z0-9][a-z0-9._/-]{1,})\b',
+      ),
+      RegExp(
+        r'\bref\b\s*[:#-]?\s+'
+        r'([a-z0-9][a-z0-9._/-]{1,})\b',
+      ),
     ];
 
     for (final pattern in patterns) {

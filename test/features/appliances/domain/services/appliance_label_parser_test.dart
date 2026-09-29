@@ -376,4 +376,36 @@ void main() {
       expect(result, isNull);
     },
   );
+
+  test('model extrait MODEL NO avec point', () {
+    const text = 'model no.: ac-gen-4500s';
+
+    final result = parser.extractModel(text);
+
+    expect(result, 'ac-gen-4500s');
+  });
+
+  test('model extrait model code', () {
+    const text = 'model code: ue55f6400anxzf';
+
+    final result = parser.extractModel(text);
+
+    expect(result, 'ue55f6400anxzf');
+  });
+
+  test('model extrait model simple', () {
+    const text = 'model: uessfg400a';
+
+    final result = parser.extractModel(text);
+
+    expect(result, 'uessfg400a');
+  });
+
+  test('model extrait modelo espagnol', () {
+    const text = 'modelo: rt35k5982sl';
+
+    final result = parser.extractModel(text);
+
+    expect(result, 'rt35k5982sl');
+  });
 }

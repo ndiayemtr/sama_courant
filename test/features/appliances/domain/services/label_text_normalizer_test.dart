@@ -25,4 +25,12 @@ void main() {
       'samsung refrigerator 120 w',
     );
   });
+
+  test('normalise une lecture OCR deformee de kWh par an', () {
+    const normalizer = LabelTextNormalizer();
+
+    final result = normalizer.normalize('355 kVWhiaño');
+
+    expect(result, contains('355 kwh'));
+  });
 }
