@@ -1,12 +1,22 @@
 const Map<String, List<String>> strongKeywords = {
   // 1. Froid & Climatisation
-  'refrigerator': ['refrigerator', 'fridge', 'refrigerateur', 'chambre froide'],
-  'freezer': ['freezer', 'congelateur'],
+  'refrigerator': [
+    'refrigerator',
+    'fridge',
+    'refrigerateur',
+    'refrigerador',
+    'frigorifico',
+    'nevera',
+    'chambre froide',
+  ],
+  'freezer': ['freezer', 'congelateur', 'congelador'],
   'air_conditioner': [
     'air conditioner',
     'air conditioning',
     'climatiseur',
     'inverter air conditioner',
+    'aire acondicionado',
+    'acondicionador de aire',
   ],
   'fan': ['ventilateur', 'ceiling fan', 'table fan', 'stand fan', 'viti'],
   'dehumidifier_humidifier': [
@@ -24,8 +34,9 @@ const Map<String, List<String>> strongKeywords = {
     'lave-linge',
     'lave linge',
     'machine a laver',
+    'lavadora',
   ],
-  'dryer': ['tumble dryer', 'seche-linge', 'seche linge'],
+  'dryer': ['tumble dryer', 'seche-linge', 'seche linge', 'secadora'],
   'vacuum_cleaner': ['vacuum cleaner', 'aspirateur', 'robot vacuum'],
 
   // 3. Cuisine & Cuisson
@@ -54,6 +65,7 @@ const Map<String, List<String>> strongKeywords = {
   'television': [
     'television',
     'televiseur',
+    'televisor',
     'led tv',
     'smart tv',
     'oled tv',
@@ -102,7 +114,7 @@ const Map<String, List<String>> strongKeywords = {
 };
 
 const Map<String, List<String>> weakKeywords = {
-  'refrigerator': ['defrost', 'refrigerant'],
+  'refrigerator': ['defrost'],
   'air_conditioner': ['ac', 'a/c', 'clim', 'split', 'inverter'],
   'fan': ['fan'],
   'iron': ['iron'],
@@ -126,20 +138,16 @@ const Map<String, List<String>> weakKeywords = {
 };
 
 const Map<String, List<String>> technicalIndicators = {
-  'refrigerator': [
-    'r600a',
-    'r134a',
-    'defrost',
-    'refrigerant',
-    'freezer compartment',
-  ],
-  'freezer': ['r600a', 'r134a', 'freezing capacity', 'freezer compartment'],
+  'refrigerator': ['r600a', 'r134a', 'freezer compartment'],
+  'freezer': ['freezing capacity', 'freezer compartment'],
   'air_conditioner': [
     'btu',
     'cooling capacity',
     'heating capacity',
     'r410a',
+    'r-410a',
     'r32',
+    'r-32',
     'eer',
     'seer',
   ],

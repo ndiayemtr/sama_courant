@@ -44,6 +44,14 @@ class ApplianceClassifier {
       (current, next) => current > next ? current : next,
     );
 
+    if (highestScore < 3) {
+      return ApplianceClassificationResult(
+        category: null,
+        confidenceLevel: ConfidenceLevel.low,
+        score: highestScore,
+      );
+    }
+
     final bestCategories = scores.entries
         .where((entry) => entry.value == highestScore)
         .map((entry) => entry.key)
