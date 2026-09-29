@@ -193,6 +193,9 @@ class ApplianceLabelParser {
       RegExp(
         r'\bmodele\b\s*(?:no|numero)?\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b',
       ),
+      RegExp(
+        r'\bmodelo\b\s*(?:no|numero)?\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b',
+      ),
       RegExp(r'\breference\b\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b'),
       RegExp(r'\bref\b\s*[:#-]?\s*([a-z0-9][a-z0-9._/-]{1,})\b'),
     ];
@@ -238,6 +241,63 @@ class ApplianceLabelParser {
       }
 
       return brand;
+    }
+
+    const knownBrands = [
+      'samsung',
+      'lg',
+      'hisense',
+      'haier',
+      'bosch',
+      'beko',
+      'whirlpool',
+      'electrolux',
+      'midea',
+      'sharp',
+      'panasonic',
+      'philips',
+      'sony',
+      'tcl',
+      'daikin',
+      // Marques majeures / Premium
+      'miele',
+      'siemens',
+      'aeg',
+      'smeg',
+      'gorenje',
+      'candy',
+      'indesit',
+      'hotpoint',
+      'zanussi',
+      'rowenta',
+      // Traitement de l'air & Chauffage (Climatiseurs, chauffe-eau)
+      'mitsubishi',
+      'carrier',
+      'gree',
+      'toshiba',
+      'fujitsu',
+      'atlantic',
+      'saunier duval',
+      'chaffoteaux',
+      // Petit électroménager courant (Cuisine / Entretien)
+      'moulinex',
+      'tefal',
+      'braun',
+      'kenwood',
+      'delonghi',
+      'krups',
+      'dyson',
+      'taurus',
+    ];
+
+    for (final brand in knownBrands) {
+      final pattern = RegExp(
+        r'(^|[^a-z0-9])' + RegExp.escape(brand) + r'([^a-z0-9]|$)',
+      );
+
+      if (pattern.hasMatch(text)) {
+        return brand;
+      }
     }
 
     return null;

@@ -167,7 +167,26 @@ void main() {
     });
 
     test('ne devine pas la marque sans libelle explicite', () {
-      expect(parser.extractBrand('samsung refrigerator model rt38'), isNull);
+      const text = 'samsung electronics digital appliances';
+
+      final result = parser.extractBrand(text);
+
+      expect(result, 'samsung');
+    });
+    test('reste null si aucune marque connue ou explicite', () {
+      const text = 'refrigerador 127v 60hz 170w';
+
+      final result = parser.extractBrand(text);
+
+      expect(result, isNull);
+    });
+
+    test('model extrait un modele avec le libelle espagnol modelo', () {
+      const text = 'modelo: rt35k5982sl';
+
+      final result = parser.extractModel(text);
+
+      expect(result, 'rt35k5982sl');
     });
 
     test('retourne null si aucune marque n est presente', () {
