@@ -7,26 +7,48 @@ import '../entities/energy_consumption_metric.dart';
 class ApplianceLabelParser {
   const ApplianceLabelParser();
   double? extractPowerWatts(String text) {
-    final match = RegExp(
-      r'(?:^|[^0-9.-])(\d+(?:\.\d+)?)\s*(kw|w)\b',
-    ).firstMatch(text);
+    final pattern = RegExp(r'(?:^|[^0-9.-])(\d+(?:\.\d+)?)\s*(kw|w)\b');
 
-    if (match == null) {
+    final matches = pattern.allMatches(text).toList();
+
+    if (matches.isEmpty) {
       return null;
     }
 
-    final value = double.tryParse(match.group(1)!);
-    final unit = match.group(2);
+    _PowerCandidate? bestCandidate;
 
-    if (value == null) {
+    for (final match in matches) {
+      final rawValue = double.tryParse(match.group(1)!);
+      final unit = match.group(2);
+
+      if (rawValue == null || !rawValue.isFinite || rawValue <= 0) {
+        continue;
+      }
+
+      final watts = unit == 'kw' ? rawValue * 1000 : rawValue;
+
+      final context = _powerContext(text, match.start, match.end);
+
+      final score = _powerContextScore(context);
+
+      final candidate = _PowerCandidate(watts: watts, score: score);
+
+      if (bestCandidate == null || candidate.score > bestCandidate.score) {
+        bestCandidate = candidate;
+      }
+    }
+
+    if (bestCandidate == null) {
       return null;
     }
 
-    if (unit == 'kw') {
-      return value * 1000;
+    // Une puissance identifiée uniquement dans un contexte secondaire
+    // ne doit pas devenir la puissance principale de l'appareil.
+    if (bestCandidate.score < 0) {
+      return null;
     }
 
-    return value;
+    return bestCandidate.watts;
   }
 
   double? extractVoltageVolts(String text) {
@@ -394,4 +416,100 @@ class ApplianceLabelParser {
 
     return List.unmodifiable(capacities);
   }
+
+  String _powerContext(String text, int matchStart, int matchEnd) {
+    const charsBefore = 40;
+
+    final start = matchStart - charsBefore < 0 ? 0 : matchStart - charsBefore;
+
+    return text.substring(start, matchEnd);
+  }
+
+  int _powerContextScore(String context) {
+    var score = 0;
+
+    const primaryIndicators = [
+      'rated power',
+      'rated input',
+      'power input',
+      'input power',
+      'nominal power',
+      'puissance nominale',
+      'puissance absorbee',
+      'potencia nominal',
+      'potencia de entrada',
+
+      // --- Variantes en Français (avec et sans accents pour l'OCR) ---
+      'puissance',
+      'puissance absorbée',
+      'puissance d\'entrée',
+      'puissance max',
+      'puissance maximum',
+      'p. nominale',
+      'p. absorbée',
+      'p. absorbee',
+      'puissance de raccordement',
+
+      // --- Variantes en Anglais ---
+      'power rating',
+      'max power',
+      'maximum power',
+      'input rating',
+      'total input',
+      'power consum', // Coupe pour matcher "power consumption" ou "power consumed"
+      'consumption power',
+
+      // --- Variantes en Espagnol / Portugais ---
+      'potência nominal',
+      'potência máxima',
+      'potencia maxima',
+      'potência de entrada',
+      'potencia absorbida',
+      'consumo nominal',
+
+      // --- Abréviations techniques universelles (Plaques signalétiques) ---
+      'tot. power',
+      'tot. input',
+      'input pwr',
+      'rated pwr',
+      'p.max',
+      'pmax',
+      'p.nom',
+      'pnom',
+    ];
+
+    const secondaryIndicators = [
+      'deshielo',
+      'defrost',
+      'degivrage',
+      'heater',
+      'heating',
+      'chauffage',
+      'resistance',
+      'resistencia',
+      'standby',
+      'veille',
+    ];
+
+    for (final indicator in primaryIndicators) {
+      if (context.contains(indicator)) {
+        score += 10;
+      }
+    }
+
+    for (final indicator in secondaryIndicators) {
+      if (context.contains(indicator)) {
+        score -= 20;
+      }
+    }
+
+    return score;
+  }
+}
+
+class _PowerCandidate {
+  final double watts;
+  final int score;
+
+  const _PowerCandidate({required this.watts, required this.score});
 }

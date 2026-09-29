@@ -295,4 +295,44 @@ void main() {
       expect(capacities.single.unit, 'btu');
     });
   });
+
+  test('power extrait une puissance principale sans contexte particulier', () {
+    const text = 'refrigerator 220 v 50 hz 150 w';
+
+    final result = parser.extractPowerWatts(text);
+
+    expect(result, 150);
+  });
+
+  test('power privilegie une puissance nominale face au degivrage', () {
+    const text = 'rated power 120 w refrigerador consumo de deshielo 170 w';
+
+    final result = parser.extractPowerWatts(text);
+
+    expect(result, 120);
+  });
+
+  test('power ignore une puissance uniquement liee au degivrage', () {
+    const text = 'refrigerador consumo de deshielo 170 w 60 hz';
+
+    final result = parser.extractPowerWatts(text);
+
+    expect(result, isNull);
+  });
+
+  test('power ignore une puissance de defrost', () {
+    const text = 'refrigerator defrost heater 200 w 220 v 60 hz';
+
+    final result = parser.extractPowerWatts(text);
+
+    expect(result, isNull);
+  });
+
+  test('power convertit toujours les kilowatts', () {
+    const text = 'rated power 1.5 kw';
+
+    final result = parser.extractPowerWatts(text);
+
+    expect(result, 1500);
+  });
 }
