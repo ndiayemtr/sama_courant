@@ -335,4 +335,45 @@ void main() {
 
     expect(result, 1500);
   });
+
+  test('annual consumption extrait kWh par an en espagnol', () {
+    const text = 'consumo de energia en operacion 355 kwh/ano';
+
+    final result = parser.extractAnnualConsumptionKwh(text);
+
+    expect(result, 355);
+  });
+
+  test('energy metrics extrait kWh par an en espagnol', () {
+    const text = 'consumo de energia en operacion 355 kwh/ano';
+
+    final result = parser.extractEnergyConsumptionMetrics(text);
+
+    expect(result, hasLength(1));
+    expect(result.single.valueKwh, 355);
+    expect(result.single.basis, EnergyConsumptionBasis.perYear);
+  });
+
+  test('energy metrics reconnait consumo de energia sans suffixe annuel', () {
+    const text = 'consumo de energia en operacion 355 kwh';
+
+    final result = parser.extractEnergyConsumptionMetrics(text);
+
+    expect(result, hasLength(1));
+    expect(result.single.valueKwh, 355);
+    expect(result.single.basis, EnergyConsumptionBasis.perYear);
+  });
+
+  test(
+    'power ignore une puissance de degivrage quand OCR separe libelle et valeur',
+    () {
+      const text =
+          'refrigerador consumo de deshielo refrigerante '
+          '127 v 60 hz 2.5 a 170 w';
+
+      final result = parser.extractPowerWatts(text);
+
+      expect(result, isNull);
+    },
+  );
 }

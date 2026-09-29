@@ -15,6 +15,37 @@ class ApplianceLabelParser {
       return null;
     }
 
+    final hasSecondaryPowerIndicator = [
+      'deshielo',
+      'defrost',
+      'degivrage',
+      'heater',
+      'heating',
+      'chauffage',
+      'resistance',
+      'resistencia',
+      'standby',
+      'veille',
+    ].any(text.contains);
+
+    final hasPrimaryPowerIndicator = [
+      'rated power',
+      'rated input',
+      'power input',
+      'input power',
+      'nominal power',
+      'puissance nominale',
+      'puissance absorbee',
+      'potencia nominal',
+      'potencia de entrada',
+    ].any(text.contains);
+
+    if (matches.length == 1 &&
+        hasSecondaryPowerIndicator &&
+        !hasPrimaryPowerIndicator) {
+      return null;
+    }
+
     _PowerCandidate? bestCandidate;
 
     for (final match in matches) {
@@ -152,10 +183,13 @@ class ApplianceLabelParser {
 
   double? extractAnnualConsumptionKwh(String text) {
     final patterns = [
-      RegExp(r'(\d+(?:\.\d+)?)\s*kwh\s*/\s*(?:year|yr|an|annee)\b'),
       RegExp(
-        r'(\d+(?:\.\d+)?)\s*kwh\s+(?:per|par)\s+'
-        r'(?:year|yr|an|annee)\b',
+        r'(\d+(?:\.\d+)?)\s*kwh\s*/\s*'
+        r'(?:year|yr|annum|an|annee|ano)\b',
+      ),
+      RegExp(
+        r'(\d+(?:\.\d+)?)\s*kwh\s+(?:per|par|por)\s+'
+        r'(?:year|yr|annum|an|annee|ano)\b',
       ),
       RegExp(
         r'annual\s+(?:energy\s+)?consumption\s*'
@@ -164,6 +198,10 @@ class ApplianceLabelParser {
       RegExp(
         r'consommation\s+annuelle\s*'
         r'(\d+(?:\.\d+)?)\s*kwh\b',
+      ),
+      RegExp(
+        r'consumo\s+de\s+energia(?:\s+en\s+operacion)?\s*'
+        r'[:=]?\s*(\d+(?:\.\d+)?)\s*kwh\b',
       ),
     ];
 
@@ -336,6 +374,14 @@ class ApplianceLabelParser {
           continue;
         }
 
+        final alreadyExists = metrics.any(
+          (metric) => metric.valueKwh == value && metric.basis == basis,
+        );
+
+        if (alreadyExists) {
+          continue;
+        }
+
         metrics.add(EnergyConsumptionMetric(valueKwh: value, basis: basis));
       }
     }
@@ -344,8 +390,8 @@ class ApplianceLabelParser {
     addMatches(
       RegExp(
         r'(\d+(?:\.\d+)?)\s*kwh\s*'
-        r'(?:/|per\s+|par\s+)'
-        r'(?:year|yr|annum|an|annee)\b',
+        r'(?:/|per\s+|par\s+|por\s+)'
+        r'(?:year|yr|annum|an|annee|ano)\b',
       ),
       EnergyConsumptionBasis.perYear,
     );
@@ -355,6 +401,15 @@ class ApplianceLabelParser {
       RegExp(
         r'(?:annual\s+(?:energy\s+)?consumption|'
         r'consommation\s+annuelle)\s*'
+        r'[:=]?\s*(\d+(?:\.\d+)?)\s*kwh\b',
+      ),
+      EnergyConsumptionBasis.perYear,
+    );
+
+    // Ex. "consumo de energia en operacion 355 kWh"
+    addMatches(
+      RegExp(
+        r'(?:consumo\s+de\s+energia(?:\s+en\s+operacion)?)\s*'
         r'[:=]?\s*(\d+(?:\.\d+)?)\s*kwh\b',
       ),
       EnergyConsumptionBasis.perYear,

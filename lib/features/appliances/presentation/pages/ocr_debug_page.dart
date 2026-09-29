@@ -55,6 +55,12 @@ class _OcrDebugPageState extends State<OcrDebugPage> {
       if (!mounted) return;
 
       context.push('/appliances/add-from-scan', extra: scanResult);
+      debugPrint('OCR RAW: ${scanResult.rawOcrText}');
+      debugPrint('TYPE: ${scanResult.applianceType}');
+      debugPrint('POWER: ${scanResult.powerWatts}');
+      debugPrint('POWER SOURCE: ${scanResult.powerSource}');
+      debugPrint('CONFIDENCE: ${scanResult.confidenceLevel}');
+      debugPrint('ENERGY METRICS: ${scanResult.energyConsumptionMetrics}');
     } catch (e) {
       if (!mounted) return;
 
