@@ -37,6 +37,7 @@ class AppliancesPage extends ConsumerStatefulWidget {
 
 class _AppliancesPageState extends ConsumerState<AppliancesPage> {
   final _imagePicker = ImagePicker();
+  bool _isScanning = false;
 
   static const _scanApplianceLabel = ScanApplianceLabel(
     textRecognizer: MlKitLabelTextRecognizer(),
@@ -58,12 +59,21 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
   }
 
   Future<void> _scanApplianceFromCamera() async {
+    setState(() {
+      _isScanning = true;
+    });
+
     final image = await _imagePicker.pickImage(
       source: ImageSource.camera,
       imageQuality: 90,
     );
 
     if (image == null) {
+      if (mounted) {
+        setState(() {
+          _isScanning = false;
+        });
+      }
       return;
     }
 
@@ -81,15 +91,25 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
       debugPrint('CONFIDENCE: ${scanResult.confidenceLevel}');
       debugPrint('ENERGY METRICS: ${scanResult.energyConsumptionMetrics}');
 
-      context.push('/appliances/add-from-scan', extra: scanResult);
+      await context.push('/appliances/add-from-scan', extra: scanResult);
     } catch (e) {
       if (!mounted) {
         return;
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Impossible d’analyser l’étiquette : $e')),
+        const SnackBar(
+          content: Text(
+            'Impossible d’analyser cette étiquette. Réessayez avec une photo plus nette.',
+          ),
+        ),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isScanning = false;
+        });
+      }
     }
   }
 
@@ -218,6 +238,34 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(appliancesProvider);
 
+    if (_isScanning) {
+      return const Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 20),
+                  Text(
+                    'Analyse de l’étiquette...',
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Sama Courant recherche les informations de votre appareil.',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: pageAppBar(
         context: context,
@@ -225,7 +273,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
         title: 'Mes appareils',
       ),
       body: _buildBody(context, ref, state),
-      floatingActionButton: state.appliances.isEmpty
+      floatingActionButton: state.appliances.isEmpty || _isScanning
           ? null
           : FloatingActionButton.extended(
               onPressed: () {
