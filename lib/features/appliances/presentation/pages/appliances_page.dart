@@ -166,13 +166,15 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
         title: 'Mes appareils',
       ),
       body: _buildBody(context, ref, state),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          _openAddApplianceOptions(context);
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Ajouter'),
-      ),
+      floatingActionButton: state.appliances.isEmpty
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () {
+                _openAddApplianceOptions(context);
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Ajouter'),
+            ),
     );
   }
 
