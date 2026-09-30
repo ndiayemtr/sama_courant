@@ -160,12 +160,7 @@ void main() {
     await tester.tap(find.text('Ajouter mon premier appareil'));
     await tester.pumpAndSettle();
     await form.enterField(tester, 'Nom', 'Lampe MVP');
-    final category = find.byType(DropdownButtonFormField<String>);
-    await tester.ensureVisible(category);
-    await tester.pumpAndSettle();
-    await tester.tap(category);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Cuisine').last);
+
     await form.enterField(tester, 'Puissance', '100');
     await form.setDurationSlider(tester, 480);
     await form.tapSave(tester);

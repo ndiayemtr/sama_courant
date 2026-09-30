@@ -156,16 +156,7 @@ void main() {
         appRouter.push('/appliances/add');
         await tester.pumpAndSettle();
         await inspectScroll(tester);
-        final category = find.byType(DropdownButtonFormField<String>);
-        await tester.ensureVisible(category);
-        await tester.pumpAndSettle();
-        await tester.tap(category);
-        await tester.pumpAndSettle();
-        final bathroom = find.text('Salle de bain').last;
-        await tester.ensureVisible(bathroom);
-        await tester.pumpAndSettle();
-        await tester.tap(bathroom);
-        await tester.pumpAndSettle();
+
         checkLayout(tester);
         await tester.pageBack();
         await tester.pumpAndSettle();

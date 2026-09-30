@@ -221,12 +221,7 @@ void main() {
       router.push('/appliances/add');
       await tester.pumpAndSettle();
       await enterField(tester, 'Nom', 'Lampe');
-      final category = find.byType(DropdownButtonFormField<String>);
-      await tester.ensureVisible(category);
-      await tester.pumpAndSettle();
-      await tester.tap(category);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Cuisine').last);
+
       await enterField(tester, 'Puissance', input.power);
       await enterField(tester, 'Quantité', input.quantity);
       await setDurationSlider(tester, 1440);
@@ -287,11 +282,7 @@ void main() {
         expect(find.byType(NavigationBar), findsNothing);
         if (!edit) {
           await enterField(tester, 'Nom', 'Lampe');
-          final category = find.byType(DropdownButtonFormField<String>);
-          await tester.ensureVisible(category);
-          await tester.tap(category);
-          await tester.pumpAndSettle();
-          await tester.tap(find.text('Cuisine').last);
+
           await enterField(tester, 'Puissance', '100');
           await setDurationSlider(tester, 480);
         }
@@ -367,7 +358,10 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text('La puissance doit être supérieure à 0 W.'),
+        find.text(
+          'La puissance doit être supérieure à 0 W.',
+          skipOffstage: false,
+        ),
         findsOneWidget,
       );
 
@@ -426,14 +420,6 @@ void main() {
 
       await enterField(tester, 'Nom', 'Réfrigérateur');
 
-      final categoryField = find.byType(DropdownButtonFormField<String>);
-      await tester.ensureVisible(categoryField);
-      await tester.tap(categoryField);
-
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Cuisine').last);
-
       await enterField(tester, 'Puissance', '150');
       await enterField(tester, 'Quantité', '1');
       await setDurationSlider(tester, 480);
@@ -448,7 +434,7 @@ void main() {
       final appliance = repository.createdAppliance!;
 
       expect(appliance.name, 'Réfrigérateur');
-      expect(appliance.category, 'Cuisine');
+      expect(appliance.category, 'Autre');
       expect(appliance.powerWatts, 150);
       expect(appliance.quantity, 1);
       expect(appliance.usageDurationMinutes, 480);
@@ -514,20 +500,6 @@ MODEL KGN36
         expect(powerField.controller?.text, '150.0');
 
         // ----------------------------------------------------------
-        // 2. La catégorie n'est pas déduite du type OCR
-        //    pour le moment : l'utilisateur la choisit.
-        // ----------------------------------------------------------
-
-        final categoryField = find.byType(DropdownButtonFormField<String>);
-
-        await tester.ensureVisible(categoryField);
-        await tester.tap(categoryField);
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.text('Cuisine').last);
-        await tester.pumpAndSettle();
-
-        // ----------------------------------------------------------
         // 3. Enregistrer l'appareil
         // ----------------------------------------------------------
 
@@ -543,7 +515,7 @@ MODEL KGN36
         // ----------------------------------------------------------
 
         expect(repository.createdAppliance!.name, 'Réfrigérateur Bosch KGN36');
-        expect(created.category, 'Cuisine');
+        expect(created.category, 'refrigerator');
         expect(created.powerWatts, 150);
 
         // ----------------------------------------------------------
