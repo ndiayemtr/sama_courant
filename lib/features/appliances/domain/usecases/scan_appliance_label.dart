@@ -31,11 +31,15 @@ class ScanApplianceLabel {
     final rawOcrText = await textRecognizer.recognizeText(imagePath);
 
     final normalizedText = textNormalizer.normalize(rawOcrText);
+    final normalizedLines = textNormalizer.normalize(
+      rawOcrText,
+      preserveLines: true,
+    );
 
     final labelType = labelTypeDetector.detect(normalizedText);
 
     final brand = labelParser.extractBrand(normalizedText);
-    final model = labelParser.extractModel(normalizedText);
+    final model = labelParser.extractModel(normalizedLines);
     final capacities = labelParser.extractCapacities(normalizedText);
 
     final powerFactor = labelParser.extractPowerFactor(normalizedText);
@@ -67,9 +71,7 @@ class ScanApplianceLabel {
         ? labelParser.extractFrequencyHz(normalizedText)
         : null;
 
-    final detectedPowerWatts = labelParser.extractPowerWatts(
-      textNormalizer.normalize(rawOcrText, preserveLines: true),
-    );
+    final detectedPowerWatts = labelParser.extractPowerWatts(normalizedLines);
 
     final classification = classifier.classify(normalizedText);
 

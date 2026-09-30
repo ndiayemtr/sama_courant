@@ -38,6 +38,16 @@ class LabelTextNormalizer {
         .replaceAll(RegExp(r'(?<=kwh)/a\s+o\b'), '/ano')
         .replaceAll(RegExp(r'(?<=kwh)/an0\b'), '/ano');
 
+    // Canonical annual basis only for a complete, recognized annual word.
+    // OCR may omit the slash or confuse it with i/l. Preserve line breaks.
+    normalized = normalized.replaceAll(
+      RegExp(
+        r'\bkwh(?:[ \t]*[/il][ \t]*|[ \t]+(?:(?:per|par|por)[ \t]+)?)?'
+        r'(?:annee|annum|ano|an|year|yr)\b',
+      ),
+      'kwh/an',
+    );
+
     // Supprime les caractères non exploitables.
     normalized = normalized.replaceAll(RegExp(r'[^a-z0-9\s._/+-]'), ' ');
 

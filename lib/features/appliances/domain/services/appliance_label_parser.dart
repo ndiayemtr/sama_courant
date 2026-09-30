@@ -6,6 +6,14 @@ import '../entities/energy_consumption_metric.dart';
 
 class ApplianceLabelParser {
   const ApplianceLabelParser();
+
+  static final _secondaryPowerIndicator = RegExp(
+    r'\b(defrost|deshielo|degivrage|heater|heating|chauffage|resistance|resistencia|standby|veille)\b',
+  );
+  static final _primaryPowerIndicator = RegExp(
+    r'\b(rated power|rated input|power input|input power|nominal power|power consumption|power rating|input rating|total input|typical power|max power|maximum power|puissance nominale|puissance absorbee|potencia nominal|potencia de entrada|potencia absorbida|consumo nominal)\b',
+  );
+
   // Rated > typical > unqualified > maximum. Secondary loads are excluded.
   double? extractPowerWatts(String text) {
     final candidates =
@@ -23,6 +31,13 @@ class ApplianceLabelParser {
     final matches = RegExp(
       r'(?<![0-9.-])(\d+(?:\.\d+)?)\s*(kw|w)\b',
     ).allMatches(text).toList();
+    // ML Kit can emit a column of labels before a column of values. With
+    // exactly one wattage and no primary label, a remote secondary label is
+    // enough to reject that wattage, but not to infer a main power value.
+    final remoteSecondaryLines =
+        matches.length == 1 && !_primaryPowerIndicator.hasMatch(text)
+        ? text.split('\n').where(_secondaryPowerIndicator.hasMatch).toList()
+        : const <String>[];
     final candidates = <PowerCandidate>[];
     for (var i = 0; i < matches.length; i++) {
       final match = matches[i];
@@ -53,6 +68,9 @@ class ApplianceLabelParser {
             context = '$preceding $context';
           }
         }
+      }
+      if (remoteSecondaryLines.isNotEmpty) {
+        context = '$context\n${remoteSecondaryLines.join('\n')}';
       }
       candidates.add(
         PowerCandidate(
@@ -197,36 +215,97 @@ class ApplianceLabelParser {
   }
 
   String? extractModel(String text) {
-    // Specific labels win independently of OCR reading order or brand.
-    final patterns = [
-      RegExp(
-        r'\bmod[e3]l(?:e|o)?[ \t]+code\b[ \t]*[:#.-]?[ \t]*([a-z0-9][a-z0-9._/-]+)\b',
-      ),
-      RegExp(
-        r'\bmod[e3]l(?:e|o)?[ \t]+(?:no|number|numero)\b\.?[ \t]*[:#-]?[ \t]*([a-z0-9][a-z0-9._/-]+)\b',
-      ),
-      RegExp(
-        r'\b(?:mod[e3]l(?:e|o)?|reference|ref)\b\.?[ \t]*[:#-]?[ \t]*(?!no\b|number\b|numero\b|code\b)([a-z0-9][a-z0-9._/-]+)\b',
-      ),
+    // Match labels separately from values so an empty/invalid candidate cannot
+    // swallow another label. Prefer values explicitly on the same OCR line.
+    final labels = [
+      RegExp(r'\bmod[e3]l(?:e|o)?[ \t]+code\b'),
+      RegExp(r'\bmod[e3]l(?:e|o)?\b(?![ \t]+(?:code|no|number|numero)\b)'),
+      RegExp(r'\bmod[e3]l(?:e|o)?[ \t]+(?:no|number|numero)\b'),
+      RegExp(r'\b(?:reference|ref)\b'),
     ];
+    final valuePattern = RegExp(
+      r'^[ \t]*\.?[ \t]*[:#-]?[ \t]*([a-z0-9][a-z0-9._/-]+)\b',
+    );
+    const reservedLabels = {
+      'version',
+      'serial',
+      'type',
+      'model',
+      'modele',
+      'modelo',
+      'mod3l',
+      'code',
+      'number',
+      'numero',
+      'no',
+      'sin',
+      's/n',
+      'sn',
+      'reference',
+      'ref',
+    };
 
-    for (final pattern in patterns) {
-      final match = pattern.firstMatch(text);
-
-      if (match == null) {
-        continue;
+    for (final label in labels) {
+      for (final match in label.allMatches(text)) {
+        final valueMatch = valuePattern.firstMatch(text.substring(match.end));
+        final model = valueMatch?.group(1);
+        if (model == null) continue;
+        final word = model.replaceAll(RegExp(r'[._/-]+$'), '');
+        if (word.length < 2 || reservedLabels.contains(word)) continue;
+        return model;
       }
-
-      final model = match.group(1)?.trim();
-
-      if (model == null || model.length < 2) {
-        continue;
-      }
-
-      return model;
     }
+    return _extractSequentialModel(text, labels, reservedLabels);
+  }
 
-    return null;
+  String? _extractSequentialModel(
+    String text,
+    List<RegExp> modelLabels,
+    Set<String> reservedLabels,
+  ) {
+    final lines = text.split('\n').map((line) => line.trim()).toList();
+    final identityLabel = RegExp(
+      r'^(?:mod[e3]l(?:e|o)?(?:[ \t]+(?:code|no|number|numero))?'
+      r'|serial(?:[ \t]+(?:no|number|numero))?|s/n|sn|sin'
+      r'|type(?:[ \t]+no)?|version(?:[ \t]+no)?|reference|ref)'
+      r'[ \t]*\.?[ \t]*[:#]?[ \t]*$',
+    );
+    final identifier = RegExp(r'^[a-z0-9][a-z0-9._/-]+$');
+    final measurement = RegExp(
+      r'^\d+(?:[._/-]\d+)*(?:vac|vdc|v|a|ma|w|kw|wh|kwh|hz|khz|'
+      r'psi|psig|pa|kpa|mpa|bar|c|f|k|btu|btu/h|l|ml|kg|g|uf|ah)(?:ac|dc)?$',
+    );
+    bool plausible(String value) =>
+        identifier.hasMatch(value) &&
+        RegExp(r'\d').hasMatch(value) &&
+        !reservedLabels.contains(value) &&
+        !measurement.hasMatch(value) &&
+        !RegExp(r'^r-?\d+[a-z]?$').hasMatch(value);
+
+    final candidates = <String>{};
+    for (var i = 0; i < lines.length; i++) {
+      if (!identityLabel.hasMatch(lines[i])) continue;
+      final start = i;
+      while (i < lines.length && identityLabel.hasMatch(lines[i])) {
+        i++;
+      }
+      final count = i - start;
+      // Never slide past a missing or invalid value, or use part of a run.
+      if (count < 2 || i + count > lines.length) continue;
+      final values = lines.sublist(i, i + count);
+      if (!values.every(plausible)) continue;
+      if (i + count < lines.length && plausible(lines[i + count])) continue;
+      final modelOffsets = <int>[
+        for (var offset = 0; offset < count; offset++)
+          if (modelLabels.any((label) => label.hasMatch(lines[start + offset])))
+            offset,
+      ];
+      if (modelOffsets.length != 1) continue;
+      final value = values[modelOffsets.single];
+      // Numeric serials are valid slots, but never speculative models.
+      if (RegExp(r'[a-z]').hasMatch(value)) candidates.add(value);
+    }
+    return candidates.length == 1 ? candidates.single : null;
   }
 
   String? extractBrand(String text) {
@@ -414,9 +493,7 @@ class ApplianceLabelParser {
   }
 
   int _powerContextScore(String context) {
-    if (RegExp(
-      r'\b(defrost|deshielo|degivrage|heater|heating|chauffage|resistance|resistencia|standby|veille)\b',
-    ).hasMatch(context)) {
+    if (_secondaryPowerIndicator.hasMatch(context)) {
       return -1;
     }
     if (RegExp(r'\b(typical|typique)\b').hasMatch(context)) return 20;
