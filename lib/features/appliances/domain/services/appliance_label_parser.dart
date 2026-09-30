@@ -254,8 +254,60 @@ class ApplianceLabelParser {
         if (word.length < 2 || reservedLabels.contains(word)) continue;
         return model;
       }
+      if (label == labels.first) {
+        final preceding = _extractPrecedingModelCode(text, reservedLabels);
+        if (preceding != null) return preceding;
+      }
     }
     return _extractSequentialModel(text, labels, reservedLabels);
+  }
+
+  String? _extractPrecedingModelCode(String text, Set<String> reservedLabels) {
+    final lines = text.split('\n').map((line) => line.trim()).toList();
+    final emptyModelCode = RegExp(
+      r'^mod[e3]l(?:e|o)?[ \t]+code[ \t]*\.?[ \t]*[:#]?[ \t]*$',
+    );
+    final precedingLabel = RegExp(
+      r'^(?:model|modele|modelo|mod3l|serial|s/n|sn|sin|type|version|'
+      r'reference|ref|voltage|volts|amps|watts|power|frequency|pressure|capacity)'
+      r'\b.*$',
+    );
+    final candidates = <String>{};
+    for (var i = 1; i < lines.length; i++) {
+      if (!emptyModelCode.hasMatch(lines[i])) continue;
+      final value = lines[i - 1];
+      if (!_isPlausibleIdentityValue(value, reservedLabels) ||
+          !RegExp(r'[a-z]').hasMatch(value) ||
+          precedingLabel.hasMatch(value)) {
+        continue;
+      }
+      // Do not steal a value from a preceding label or a grouped value run.
+      if (i > 1 &&
+          (precedingLabel.hasMatch(lines[i - 2]) ||
+              _isPlausibleIdentityValue(lines[i - 2], reservedLabels))) {
+        continue;
+      }
+      // Two neighbouring alphanumeric values give no reliable direction.
+      if (i + 1 < lines.length &&
+          _isPlausibleIdentityValue(lines[i + 1], reservedLabels) &&
+          RegExp(r'[a-z]').hasMatch(lines[i + 1])) {
+        continue;
+      }
+      candidates.add(value);
+    }
+    return candidates.length == 1 ? candidates.single : null;
+  }
+
+  bool _isPlausibleIdentityValue(String value, Set<String> reservedLabels) {
+    final measurement = RegExp(
+      r'^(?:ac|dc)?\d+(?:[._/-]\d+)*(?:vac|vdc|v|a|ma|w|kw|wh|kwh|hz|khz|'
+      r'psi|psig|pa|kpa|mpa|bar|c|f|k|btu|btu/h|l|ml|kg|g|uf|ah)(?:ac|dc)?$',
+    );
+    return RegExp(r'^[a-z0-9][a-z0-9._/-]+$').hasMatch(value) &&
+        RegExp(r'\d').hasMatch(value) &&
+        !reservedLabels.contains(value) &&
+        !measurement.hasMatch(value) &&
+        !RegExp(r'^r-?\d+[a-z]?$').hasMatch(value);
   }
 
   String? _extractSequentialModel(
@@ -270,17 +322,8 @@ class ApplianceLabelParser {
       r'|type(?:[ \t]+no)?|version(?:[ \t]+no)?|reference|ref)'
       r'[ \t]*\.?[ \t]*[:#]?[ \t]*$',
     );
-    final identifier = RegExp(r'^[a-z0-9][a-z0-9._/-]+$');
-    final measurement = RegExp(
-      r'^\d+(?:[._/-]\d+)*(?:vac|vdc|v|a|ma|w|kw|wh|kwh|hz|khz|'
-      r'psi|psig|pa|kpa|mpa|bar|c|f|k|btu|btu/h|l|ml|kg|g|uf|ah)(?:ac|dc)?$',
-    );
     bool plausible(String value) =>
-        identifier.hasMatch(value) &&
-        RegExp(r'\d').hasMatch(value) &&
-        !reservedLabels.contains(value) &&
-        !measurement.hasMatch(value) &&
-        !RegExp(r'^r-?\d+[a-z]?$').hasMatch(value);
+        _isPlausibleIdentityValue(value, reservedLabels);
 
     final candidates = <String>{};
     for (var i = 0; i < lines.length; i++) {

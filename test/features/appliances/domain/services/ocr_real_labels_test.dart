@@ -11,6 +11,33 @@ void main() {
   const parser = ApplianceLabelParser();
   const normalizer = LabelTextNormalizer();
 
+  test('real TV OCR places model code before its label', () async {
+    const raw = '''SAMSUNG
+AC220-240V ~ 50/60Hz 150W
+Typical power : 75W
+MADE IN SLOVAKIA
+...
+Model : UESOPGANeAN
+Type No.: UESOFG00
+...
+UE55F6400AWXZF
+Model Code:
+02
+Version No
+SIN: ZANY3SAD800581E
+...''';
+    final result = await createUseCase(raw)('photo');
+    expect(result.rawOcrText, raw);
+    expect(result.model, 'ue55f6400awxzf');
+    expect(result.powerWatts, 75.0);
+    expect(result.powerSource, PowerSource.detected);
+    expect(result.confidenceLevel, ConfidenceLevel.high);
+    expect(result.voltageRange!.min, 220);
+    expect(result.voltageRange!.max, 240);
+    expect(result.frequencyOptions, [50, 60]);
+    expect(result.energyConsumptionMetrics, isEmpty);
+  });
+
   test(
     'real disordered AC OCR associates model without changing power',
     () async {

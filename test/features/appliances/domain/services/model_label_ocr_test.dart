@@ -9,6 +9,59 @@ void main() {
   String? model(String text) =>
       parser.extractModel(normalizer.normalize(text, preserveLines: true));
 
+  test('model code accepts its immediately preceding identifier', () {
+    expect(model('UE55F6400AWXZF\nModel Code:'), 'ue55f6400awxzf');
+    expect(model('XY_12/3.4-Z\nModel Code:'), 'xy_12/3.4-z');
+    expect(
+      model('UE55F6400AWXZF\nModel Code:\n02\nVersion No'),
+      'ue55f6400awxzf',
+    );
+  });
+  for (final value in [
+    '75W',
+    '220-240V',
+    'AC220-240V',
+    '12345678',
+    '50/60Hz',
+    '8.5A',
+    '250PSIG',
+    '35C',
+    '7kg',
+    '12000BTU/h',
+    'R-410A',
+    'Version',
+    'Serial',
+    'Type',
+    'SAMSUNG',
+    'SIN: ZANY3SAD800581E',
+    'Serial-AB123',
+  ]) {
+    test('preceding model code rejects $value', () {
+      expect(model('$value\nModel Code:'), isNull);
+      expect(model('Model: TV123\n...\n$value\nModel Code:'), 'tv123');
+    });
+  }
+  for (final label in ['Serial No.', 'SIN', 'S/N', 'Type No.', 'Version No.']) {
+    test('preceding model code does not steal the value of $label', () {
+      expect(model('$label:\nAB123XYZ\nModel Code:'), isNull);
+    });
+  }
+  test('preceding model code is local and rejects competing values', () {
+    expect(model('AB123\n...\nModel Code:'), isNull);
+    expect(parser.extractModel('ab123\n\nmodel code:'), isNull);
+    expect(model('12345678\nAB123\nModel Code:'), isNull);
+    expect(model('AB123\nModel Code:\nCD456'), isNull);
+    expect(model('AB123\nModel Code:\n...\nCD456\nModel Code:'), isNull);
+    expect(model('Version No:\n02'), isNull);
+  });
+  test('model code priority includes a safe preceding value', () {
+    expect(model('Model: TV123\n...\nAB123\nModel Code:'), 'ab123');
+    expect(model('AB123\nModel Code:\nModel No.: TV123'), 'ab123');
+    expect(model('Reference: REF123\n...\nAB123\nModel Code:'), 'ab123');
+    expect(model('AB123\nModel Code:\nModel Code: CD456'), 'cd456');
+    expect(model('Model Code: CD456\n...\nAB123\nModel Code:'), 'cd456');
+  });
+
   test('sequential model and serial retain their own values', () {
     final result = model('MODEL NO.:\nSERIAL NO.:\nAC-GEN-4500S\n12345678');
     expect(result, 'ac-gen-4500s');
