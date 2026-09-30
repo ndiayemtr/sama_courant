@@ -32,7 +32,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
 
   UsageFrequency _selectedUsageFrequency = UsageFrequency.daily;
 
-  String? _selectedCategory;
+  String _selectedCategory = 'Autre';
 
   bool _isSaving = false;
   bool _isActive = true;
@@ -121,6 +121,12 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
 
     if (detectedName.isNotEmpty) {
       _nameController.text = detectedName;
+    }
+
+    final detectedType = scanResult.applianceType;
+
+    if (detectedType != null && detectedType.isNotEmpty) {
+      _selectedCategory = detectedType;
     }
 
     _quantityController.text = '1';
@@ -251,8 +257,6 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
                     icon: Icons.devices_other,
                     validator: _validateName,
                   ),
-                  const SizedBox(height: 16),
-                  _buildCategoryField(),
                 ],
               ),
             ),
@@ -584,14 +588,6 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     return null;
   }
 
-  String? _validateCategory(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Veuillez sélectionner une catégorie.';
-    }
-
-    return null;
-  }
-
   Appliance _buildAppliance() {
     final now = DateTime.now();
     final existingAppliance = widget.appliance;
@@ -600,7 +596,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     return Appliance(
       id: existingAppliance?.id,
       name: _nameController.text.trim(),
-      category: _selectedCategory!,
+      category: _selectedCategory,
       powerWatts: double.parse(_powerController.text.trim()),
       quantity: int.parse(_quantityController.text.trim()),
 
@@ -833,46 +829,6 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
         errorMaxLines: 4,
         border: const OutlineInputBorder(),
       ),
-    );
-  }
-
-  Widget _buildCategoryField() {
-    const categories = [
-      'Cuisine',
-      'Salon',
-      'Chambre',
-      'Salle de bain',
-      'Bureau',
-      'Éclairage',
-      'Autre',
-    ];
-
-    return DropdownButtonFormField<String>(
-      isExpanded: true,
-      isDense: false,
-      itemHeight: null,
-      initialValue: _selectedCategory,
-      decoration: const InputDecoration(
-        labelText: 'Catégorie',
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-        errorMaxLines: 4,
-        prefixIcon: Icon(Icons.category_outlined),
-        border: OutlineInputBorder(),
-      ),
-      items: categories
-          .map(
-            (category) => DropdownMenuItem<String>(
-              value: category,
-              child: Text(category),
-            ),
-          )
-          .toList(),
-      onChanged: (value) {
-        setState(() {
-          _selectedCategory = value;
-        });
-      },
-      validator: _validateCategory,
     );
   }
 }
