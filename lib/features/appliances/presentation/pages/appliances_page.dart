@@ -17,6 +17,17 @@ import '../widgets/appliances_loading.dart';
 import '../widgets/empty_appliances.dart';
 import 'package:intl/intl.dart';
 
+import 'package:image_picker/image_picker.dart';
+
+import '../../data/services/mlkit_label_text_recognizer.dart';
+import '../../domain/services/appliance_classifier.dart';
+import '../../domain/services/appliance_label_parser.dart';
+import '../../domain/services/appliance_label_type_detector.dart';
+import '../../domain/services/appliance_power_estimator.dart';
+import '../../domain/services/label_text_normalizer.dart';
+import '../../domain/services/power_resolver.dart';
+import '../../domain/usecases/scan_appliance_label.dart';
+
 class AppliancesPage extends ConsumerStatefulWidget {
   const AppliancesPage({super.key});
 
@@ -25,6 +36,18 @@ class AppliancesPage extends ConsumerStatefulWidget {
 }
 
 class _AppliancesPageState extends ConsumerState<AppliancesPage> {
+  final _imagePicker = ImagePicker();
+
+  static const _scanApplianceLabel = ScanApplianceLabel(
+    textRecognizer: MlKitLabelTextRecognizer(),
+    textNormalizer: LabelTextNormalizer(),
+    labelParser: ApplianceLabelParser(),
+    classifier: ApplianceClassifier(),
+    powerResolver: PowerResolver(),
+    powerEstimator: AppliancePowerEstimator(),
+    labelTypeDetector: ApplianceLabelTypeDetector(),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -32,6 +55,42 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     Future.microtask(() {
       ref.read(appliancesProvider.notifier).loadAppliances();
     });
+  }
+
+  Future<void> _scanApplianceFromCamera() async {
+    final image = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 90,
+    );
+
+    if (image == null) {
+      return;
+    }
+
+    try {
+      final scanResult = await _scanApplianceLabel(image.path);
+
+      if (!mounted) {
+        return;
+      }
+
+      debugPrint('OCR RAW: ${scanResult.rawOcrText}');
+      debugPrint('TYPE: ${scanResult.applianceType}');
+      debugPrint('POWER: ${scanResult.powerWatts}');
+      debugPrint('POWER SOURCE: ${scanResult.powerSource}');
+      debugPrint('CONFIDENCE: ${scanResult.confidenceLevel}');
+      debugPrint('ENERGY METRICS: ${scanResult.energyConsumptionMetrics}');
+
+      context.push('/appliances/add-from-scan', extra: scanResult);
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Impossible d’analyser l’étiquette : $e')),
+      );
+    }
   }
 
   Future<void> _openAddApplianceOptions(BuildContext context) async {
@@ -89,7 +148,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
 
     switch (mode) {
       case _AddApplianceMode.scan:
-        context.push('/appliances/scan');
+        await _scanApplianceFromCamera();
         break;
 
       case _AddApplianceMode.manual:
