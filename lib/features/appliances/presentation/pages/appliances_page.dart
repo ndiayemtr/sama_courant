@@ -243,19 +243,28 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
         body: SafeArea(
           child: Center(
             child: Padding(
-              padding: EdgeInsets.all(24),
+              padding: EdgeInsets.symmetric(horizontal: 32),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Icon(Icons.document_scanner_outlined, size: 72),
+                  SizedBox(height: 28),
                   CircularProgressIndicator(),
-                  SizedBox(height: 20),
+                  SizedBox(height: 24),
                   Text(
-                    'Analyse de l’étiquette...',
+                    'Analyse en cours',
                     textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    'Sama Courant lit l’étiquette de votre appareil.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Sama Courant recherche les informations de votre appareil.',
+                    'Quelques secondes seulement.',
                     textAlign: TextAlign.center,
                   ),
                 ],
