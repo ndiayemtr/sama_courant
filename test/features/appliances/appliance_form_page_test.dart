@@ -17,6 +17,7 @@ import 'package:sama_courant/features/appliances/domain/entities/power_source.da
 class FakeApplianceRepository implements ApplianceRepository {
   Appliance? createdAppliance;
   bool fail = false;
+  Appliance? updatedAppliance;
 
   @override
   Future<int> create(Appliance appliance) async {
@@ -38,6 +39,9 @@ class FakeApplianceRepository implements ApplianceRepository {
   @override
   Future<bool> update(Appliance appliance) async {
     if (fail) throw StateError('private database details');
+
+    updatedAppliance = appliance;
+
     return true;
   }
 
@@ -311,6 +315,191 @@ void main() {
     }
   }
   group('ApplianceFormPage', () {
+    testWidgets(
+      'conserve PowerSource.calculated si la puissance scannée ne change pas',
+      (tester) async {
+        final repository = FakeApplianceRepository();
+        final router = createTestRouter();
+        addTearDown(router.dispose);
+
+        const scanResult = ApplianceScanResult(
+          rawOcrText: '''
+            230 V
+            1.5 A
+            ''',
+          applianceType: 'refrigerator',
+          powerWatts: 317.5,
+          powerSource: PowerSource.calculated,
+          confidenceLevel: ConfidenceLevel.medium,
+          labelType: ApplianceLabelType.technicalPlate,
+        );
+
+        await tester.pumpWidget(createTestWidget(repository, router));
+
+        router.push('/appliances/add-from-scan', extra: scanResult);
+        await tester.pumpAndSettle();
+
+        await tapSave(tester);
+        await tester.pumpAndSettle();
+
+        expect(repository.createdAppliance, isNotNull);
+
+        final created = repository.createdAppliance!;
+
+        expect(created.powerWatts, 317.5);
+        expect(created.powerSource, PowerSource.calculated);
+      },
+    );
+
+    testWidgets(
+      'passe PowerSource à manual si la puissance scannée est corrigée',
+      (tester) async {
+        final repository = FakeApplianceRepository();
+        final router = createTestRouter();
+        addTearDown(router.dispose);
+
+        const scanResult = ApplianceScanResult(
+          rawOcrText: 'Typical Power 75 W',
+          applianceType: 'television',
+          powerWatts: 75,
+          powerSource: PowerSource.detected,
+          confidenceLevel: ConfidenceLevel.high,
+          labelType: ApplianceLabelType.technicalPlate,
+        );
+
+        await tester.pumpWidget(createTestWidget(repository, router));
+
+        router.push('/appliances/add-from-scan', extra: scanResult);
+        await tester.pumpAndSettle();
+
+        await enterField(tester, 'Puissance', '80');
+
+        await tapSave(tester);
+        await tester.pumpAndSettle();
+
+        expect(repository.createdAppliance, isNotNull);
+
+        final created = repository.createdAppliance!;
+
+        expect(created.powerWatts, 80);
+        expect(created.powerSource, PowerSource.manual);
+      },
+    );
+
+    testWidgets('conserve la provenance si un autre champ est modifié', (
+      tester,
+    ) async {
+      final repository = FakeApplianceRepository();
+      final router = createTestRouter();
+      addTearDown(router.dispose);
+
+      const scanResult = ApplianceScanResult(
+        rawOcrText: 'Typical Power 75 W',
+        applianceType: 'television',
+        powerWatts: 75,
+        powerSource: PowerSource.detected,
+        confidenceLevel: ConfidenceLevel.high,
+        labelType: ApplianceLabelType.technicalPlate,
+      );
+
+      await tester.pumpWidget(createTestWidget(repository, router));
+
+      router.push('/appliances/add-from-scan', extra: scanResult);
+      await tester.pumpAndSettle();
+
+      await enterField(tester, 'Nom', 'Télévision salon');
+      await enterField(tester, 'Quantité', '2');
+
+      await tapSave(tester);
+      await tester.pumpAndSettle();
+
+      expect(repository.createdAppliance, isNotNull);
+
+      final created = repository.createdAppliance!;
+
+      expect(created.powerWatts, 75);
+      expect(created.powerSource, PowerSource.detected);
+    });
+
+    testWidgets(
+      'utilise PowerSource.manual si le scan ne trouve aucune puissance',
+      (tester) async {
+        final repository = FakeApplianceRepository();
+        final router = createTestRouter();
+        addTearDown(router.dispose);
+
+        const scanResult = ApplianceScanResult(
+          rawOcrText: '''
+            Samsung
+            50 Hz
+            ''',
+          brand: 'Samsung',
+          applianceType: 'television',
+          confidenceLevel: ConfidenceLevel.low,
+          labelType: ApplianceLabelType.technicalPlate,
+        );
+
+        await tester.pumpWidget(createTestWidget(repository, router));
+
+        router.push('/appliances/add-from-scan', extra: scanResult);
+        await tester.pumpAndSettle();
+
+        await enterField(tester, 'Puissance', '120');
+
+        await tapSave(tester);
+        await tester.pumpAndSettle();
+
+        expect(repository.createdAppliance, isNotNull);
+
+        final created = repository.createdAppliance!;
+
+        expect(created.powerWatts, 120);
+        expect(created.powerSource, PowerSource.manual);
+      },
+    );
+
+    testWidgets(
+      'passe PowerSource à manual quand la puissance est modifiée en édition',
+      (tester) async {
+        final repository = FakeApplianceRepository();
+        final router = createTestRouter();
+        addTearDown(router.dispose);
+
+        final appliance = Appliance(
+          id: 1,
+          name: 'Télévision Samsung',
+          category: 'television',
+          powerWatts: 75,
+          quantity: 1,
+          hoursPerDay: 0,
+          daysPerMonth: 30,
+          usageDurationMinutes: 120,
+          usageCount: 1,
+          usageFrequency: UsageFrequency.daily,
+          powerSource: PowerSource.detected,
+          isActive: true,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        );
+
+        await tester.pumpWidget(createTestWidget(repository, router));
+
+        router.push('/appliances/edit', extra: appliance);
+        await tester.pumpAndSettle();
+
+        await enterField(tester, 'Puissance', '90');
+
+        await tapSave(tester);
+        await tester.pumpAndSettle();
+
+        expect(repository.updatedAppliance, isNotNull);
+
+        final updated = repository.updatedAppliance!;
+
+        expect(updated.powerWatts, 90);
+        expect(updated.powerSource, PowerSource.manual);
+      },
+    );
     testWidgets('affiche les erreurs lorsque le formulaire est vide', (
       tester,
     ) async {
