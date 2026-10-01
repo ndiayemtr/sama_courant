@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
+import 'package:sama_courant/features/appliances/presentation/models/appliance_visual.dart';
 
 import '../../domain/entities/appliance.dart';
 
@@ -27,6 +28,8 @@ class ApplianceCard extends StatelessWidget {
     final usageText = _buildUsageText(appliance);
     final theme = Theme.of(context);
 
+    final visual = ApplianceVisualCatalog.resolve(appliance.category);
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -37,7 +40,7 @@ class ApplianceCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.electrical_services, size: 22),
+                Icon(visual.icon, size: 28),
                 const SizedBox(width: 10),
 
                 Expanded(
@@ -58,7 +61,7 @@ class ApplianceCard extends StatelessWidget {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(
-                            appliance.category,
+                            visual.label,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),

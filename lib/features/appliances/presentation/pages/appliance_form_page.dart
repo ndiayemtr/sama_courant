@@ -1,6 +1,7 @@
 import 'package:sama_courant/features/appliances/domain/entities/appliance_label_type.dart';
 import 'package:sama_courant/features/appliances/domain/entities/power_source.dart';
 import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
+import 'package:sama_courant/features/appliances/presentation/models/appliance_visual.dart';
 
 import '../../../../core/widgets/page_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -142,7 +143,9 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   }
 
   String _buildDetectedApplianceName(ApplianceScanResult scanResult) {
-    final typeName = _displayNameForApplianceType(scanResult.applianceType);
+    final typeName = ApplianceVisualCatalog.labelForType(
+      scanResult.applianceType,
+    );
 
     final brand = _formatDetectedBrand(scanResult.brand);
     final model = _formatDetectedModel(scanResult.model);
@@ -152,49 +155,6 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
       brand,
       model,
     ].whereType<String>().where((value) => value.isNotEmpty).join(' ');
-  }
-
-  String? _displayNameForApplianceType(String? applianceType) {
-    if (applianceType == null) {
-      return null;
-    }
-
-    const names = <String, String>{
-      'refrigerator': 'Réfrigérateur',
-      'freezer': 'Congélateur',
-      'air_conditioner': 'Climatiseur',
-      'fan': 'Ventilateur',
-      'dehumidifier_humidifier': 'Déshumidificateur / humidificateur',
-      'iron': 'Fer à repasser',
-      'washing_machine': 'Machine à laver',
-      'dryer': 'Sèche-linge',
-      'vacuum_cleaner': 'Aspirateur',
-      'microwave': 'Micro-ondes',
-      'electric_oven': 'Four électrique',
-      'electric_cooktop': 'Plaque de cuisson',
-      'rice_cooker': 'Cuiseur de riz',
-      'air_fryer': 'Air fryer',
-      'kettle': 'Bouilloire',
-      'coffee_maker': 'Cafetière',
-      'toaster': 'Grille-pain',
-      'blender_mixer': 'Mixeur',
-      'television': 'Téléviseur',
-      'decoder_box': 'Décodeur',
-      'router_modem': 'Routeur / modem',
-      'computer_laptop': 'Ordinateur',
-      'monitor_screen': 'Écran',
-      'gaming_console': 'Console de jeux',
-      'audio_system': 'Système audio',
-      'charger': 'Chargeur',
-      'water_heater': 'Chauffe-eau',
-      'water_pump': 'Pompe à eau',
-      'hair_dryer': 'Sèche-cheveux',
-      'light_bulb': 'Éclairage',
-      'voltage_regulator': 'Régulateur de tension',
-      'ups_inverter': 'Onduleur',
-    };
-
-    return names[applianceType];
   }
 
   String? _formatDetectedBrand(String? brand) {
