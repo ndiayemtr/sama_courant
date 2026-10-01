@@ -7,6 +7,9 @@ class Appliances extends Table {
 
   TextColumn get category => text().withLength(min: 1, max: 50)();
 
+  TextColumn get applianceType =>
+      text().withLength(min: 1, max: 50).nullable()();
+
   RealColumn get powerWatts => real()();
 
   IntColumn get quantity => integer().withDefault(const Constant(1))();

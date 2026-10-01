@@ -24,7 +24,7 @@ class AppDatabase extends _$AppDatabase {
     : super(NativeDatabase.createInBackground(file));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -51,6 +51,10 @@ class AppDatabase extends _$AppDatabase {
           appliances,
           appliances.energyConsumptionMetricsJson,
         );
+      }
+
+      if (from < 6 && to >= 6) {
+        await migrator.addColumn(appliances, appliances.applianceType);
       }
     },
   );

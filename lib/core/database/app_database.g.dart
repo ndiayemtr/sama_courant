@@ -50,6 +50,21 @@ class $AppliancesTable extends Appliances
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _applianceTypeMeta = const VerificationMeta(
+    'applianceType',
+  );
+  @override
+  late final GeneratedColumn<String> applianceType = GeneratedColumn<String>(
+    'appliance_type',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 50,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _powerWattsMeta = const VerificationMeta(
     'powerWatts',
   );
@@ -203,6 +218,7 @@ class $AppliancesTable extends Appliances
     id,
     name,
     category,
+    applianceType,
     powerWatts,
     quantity,
     hoursPerDay,
@@ -247,6 +263,15 @@ class $AppliancesTable extends Appliances
       );
     } else if (isInserting) {
       context.missing(_categoryMeta);
+    }
+    if (data.containsKey('appliance_type')) {
+      context.handle(
+        _applianceTypeMeta,
+        applianceType.isAcceptableOrUnknown(
+          data['appliance_type']!,
+          _applianceTypeMeta,
+        ),
+      );
     }
     if (data.containsKey('power_watts')) {
       context.handle(
@@ -373,6 +398,10 @@ class $AppliancesTable extends Appliances
         DriftSqlType.string,
         data['${effectivePrefix}category'],
       )!,
+      applianceType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}appliance_type'],
+      ),
       powerWatts: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}power_watts'],
@@ -438,6 +467,7 @@ class Appliance extends DataClass implements Insertable<Appliance> {
   final int id;
   final String name;
   final String category;
+  final String? applianceType;
   final double powerWatts;
   final int quantity;
   final double hoursPerDay;
@@ -455,6 +485,7 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     required this.id,
     required this.name,
     required this.category,
+    this.applianceType,
     required this.powerWatts,
     required this.quantity,
     required this.hoursPerDay,
@@ -475,6 +506,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     map['category'] = Variable<String>(category);
+    if (!nullToAbsent || applianceType != null) {
+      map['appliance_type'] = Variable<String>(applianceType);
+    }
     map['power_watts'] = Variable<double>(powerWatts);
     map['quantity'] = Variable<int>(quantity);
     map['hours_per_day'] = Variable<double>(hoursPerDay);
@@ -510,6 +544,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       id: Value(id),
       name: Value(name),
       category: Value(category),
+      applianceType: applianceType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(applianceType),
       powerWatts: Value(powerWatts),
       quantity: Value(quantity),
       hoursPerDay: Value(hoursPerDay),
@@ -548,6 +585,7 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       category: serializer.fromJson<String>(json['category']),
+      applianceType: serializer.fromJson<String?>(json['applianceType']),
       powerWatts: serializer.fromJson<double>(json['powerWatts']),
       quantity: serializer.fromJson<int>(json['quantity']),
       hoursPerDay: serializer.fromJson<double>(json['hoursPerDay']),
@@ -574,6 +612,7 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'category': serializer.toJson<String>(category),
+      'applianceType': serializer.toJson<String?>(applianceType),
       'powerWatts': serializer.toJson<double>(powerWatts),
       'quantity': serializer.toJson<int>(quantity),
       'hoursPerDay': serializer.toJson<double>(hoursPerDay),
@@ -596,6 +635,7 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     int? id,
     String? name,
     String? category,
+    Value<String?> applianceType = const Value.absent(),
     double? powerWatts,
     int? quantity,
     double? hoursPerDay,
@@ -613,6 +653,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     id: id ?? this.id,
     name: name ?? this.name,
     category: category ?? this.category,
+    applianceType: applianceType.present
+        ? applianceType.value
+        : this.applianceType,
     powerWatts: powerWatts ?? this.powerWatts,
     quantity: quantity ?? this.quantity,
     hoursPerDay: hoursPerDay ?? this.hoursPerDay,
@@ -638,6 +681,9 @@ class Appliance extends DataClass implements Insertable<Appliance> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       category: data.category.present ? data.category.value : this.category,
+      applianceType: data.applianceType.present
+          ? data.applianceType.value
+          : this.applianceType,
       powerWatts: data.powerWatts.present
           ? data.powerWatts.value
           : this.powerWatts,
@@ -676,6 +722,7 @@ class Appliance extends DataClass implements Insertable<Appliance> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('category: $category, ')
+          ..write('applianceType: $applianceType, ')
           ..write('powerWatts: $powerWatts, ')
           ..write('quantity: $quantity, ')
           ..write('hoursPerDay: $hoursPerDay, ')
@@ -700,6 +747,7 @@ class Appliance extends DataClass implements Insertable<Appliance> {
     id,
     name,
     category,
+    applianceType,
     powerWatts,
     quantity,
     hoursPerDay,
@@ -721,6 +769,7 @@ class Appliance extends DataClass implements Insertable<Appliance> {
           other.id == this.id &&
           other.name == this.name &&
           other.category == this.category &&
+          other.applianceType == this.applianceType &&
           other.powerWatts == this.powerWatts &&
           other.quantity == this.quantity &&
           other.hoursPerDay == this.hoursPerDay &&
@@ -741,6 +790,7 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
   final Value<int> id;
   final Value<String> name;
   final Value<String> category;
+  final Value<String?> applianceType;
   final Value<double> powerWatts;
   final Value<int> quantity;
   final Value<double> hoursPerDay;
@@ -758,6 +808,7 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.category = const Value.absent(),
+    this.applianceType = const Value.absent(),
     this.powerWatts = const Value.absent(),
     this.quantity = const Value.absent(),
     this.hoursPerDay = const Value.absent(),
@@ -776,6 +827,7 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     this.id = const Value.absent(),
     required String name,
     required String category,
+    this.applianceType = const Value.absent(),
     required double powerWatts,
     this.quantity = const Value.absent(),
     required double hoursPerDay,
@@ -799,6 +851,7 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     Expression<int>? id,
     Expression<String>? name,
     Expression<String>? category,
+    Expression<String>? applianceType,
     Expression<double>? powerWatts,
     Expression<int>? quantity,
     Expression<double>? hoursPerDay,
@@ -817,6 +870,7 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (category != null) 'category': category,
+      if (applianceType != null) 'appliance_type': applianceType,
       if (powerWatts != null) 'power_watts': powerWatts,
       if (quantity != null) 'quantity': quantity,
       if (hoursPerDay != null) 'hours_per_day': hoursPerDay,
@@ -839,6 +893,7 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     Value<int>? id,
     Value<String>? name,
     Value<String>? category,
+    Value<String?>? applianceType,
     Value<double>? powerWatts,
     Value<int>? quantity,
     Value<double>? hoursPerDay,
@@ -857,6 +912,7 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
       id: id ?? this.id,
       name: name ?? this.name,
       category: category ?? this.category,
+      applianceType: applianceType ?? this.applianceType,
       powerWatts: powerWatts ?? this.powerWatts,
       quantity: quantity ?? this.quantity,
       hoursPerDay: hoursPerDay ?? this.hoursPerDay,
@@ -885,6 +941,9 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
     }
     if (category.present) {
       map['category'] = Variable<String>(category.value);
+    }
+    if (applianceType.present) {
+      map['appliance_type'] = Variable<String>(applianceType.value);
     }
     if (powerWatts.present) {
       map['power_watts'] = Variable<double>(powerWatts.value);
@@ -936,6 +995,7 @@ class AppliancesCompanion extends UpdateCompanion<Appliance> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('category: $category, ')
+          ..write('applianceType: $applianceType, ')
           ..write('powerWatts: $powerWatts, ')
           ..write('quantity: $quantity, ')
           ..write('hoursPerDay: $hoursPerDay, ')
@@ -2478,6 +2538,7 @@ typedef $$AppliancesTableCreateCompanionBuilder =
       Value<int> id,
       required String name,
       required String category,
+      Value<String?> applianceType,
       required double powerWatts,
       Value<int> quantity,
       required double hoursPerDay,
@@ -2497,6 +2558,7 @@ typedef $$AppliancesTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> name,
       Value<String> category,
+      Value<String?> applianceType,
       Value<double> powerWatts,
       Value<int> quantity,
       Value<double> hoursPerDay,
@@ -2533,6 +2595,11 @@ class $$AppliancesTableFilterComposer
 
   ColumnFilters<String> get category => $composableBuilder(
     column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get applianceType => $composableBuilder(
+    column: $table.applianceType,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2626,6 +2693,11 @@ class $$AppliancesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get applianceType => $composableBuilder(
+    column: $table.applianceType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get powerWatts => $composableBuilder(
     column: $table.powerWatts,
     builder: (column) => ColumnOrderings(column),
@@ -2710,6 +2782,11 @@ class $$AppliancesTableAnnotationComposer
 
   GeneratedColumn<String> get category =>
       $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get applianceType => $composableBuilder(
+    column: $table.applianceType,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<double> get powerWatts => $composableBuilder(
     column: $table.powerWatts,
@@ -2802,6 +2879,7 @@ class $$AppliancesTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> category = const Value.absent(),
+                Value<String?> applianceType = const Value.absent(),
                 Value<double> powerWatts = const Value.absent(),
                 Value<int> quantity = const Value.absent(),
                 Value<double> hoursPerDay = const Value.absent(),
@@ -2820,6 +2898,7 @@ class $$AppliancesTableTableManager
                 id: id,
                 name: name,
                 category: category,
+                applianceType: applianceType,
                 powerWatts: powerWatts,
                 quantity: quantity,
                 hoursPerDay: hoursPerDay,
@@ -2839,6 +2918,7 @@ class $$AppliancesTableTableManager
                 Value<int> id = const Value.absent(),
                 required String name,
                 required String category,
+                Value<String?> applianceType = const Value.absent(),
                 required double powerWatts,
                 Value<int> quantity = const Value.absent(),
                 required double hoursPerDay,
@@ -2857,6 +2937,7 @@ class $$AppliancesTableTableManager
                 id: id,
                 name: name,
                 category: category,
+                applianceType: applianceType,
                 powerWatts: powerWatts,
                 quantity: quantity,
                 hoursPerDay: hoursPerDay,

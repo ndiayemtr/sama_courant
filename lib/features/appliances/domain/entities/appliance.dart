@@ -10,6 +10,7 @@ class Appliance {
   final int? id;
   final String name;
   final String category;
+  final String? applianceType;
   final double powerWatts;
   final int quantity;
   final double hoursPerDay;
@@ -28,6 +29,7 @@ class Appliance {
     this.id,
     required this.name,
     required this.category,
+    this.applianceType,
     required this.powerWatts,
     required this.quantity,
     required this.hoursPerDay,
