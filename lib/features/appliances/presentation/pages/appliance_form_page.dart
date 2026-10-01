@@ -1,4 +1,5 @@
 import 'package:sama_courant/features/appliances/domain/entities/appliance_label_type.dart';
+import 'package:sama_courant/features/appliances/domain/entities/power_source.dart';
 import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
 
 import '../../../../core/widgets/page_app_bar.dart';
@@ -39,6 +40,8 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
 
   double _usageDurationMinutesValue = 30;
   int _usageCountValue = 1;
+
+  double? _initialPowerWatts;
 
   @override
   void dispose() {
@@ -95,6 +98,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     _nameController.text = appliance.name;
     _selectedCategory = appliance.category;
     _powerController.text = appliance.powerWatts.toString();
+    _initialPowerWatts = appliance.powerWatts;
     _quantityController.text = appliance.quantity.toString();
 
     if (appliance.usesNewUsageModel) {
@@ -114,6 +118,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
 
   void _initializeFromScanResult(ApplianceScanResult scanResult) {
     if (scanResult.powerWatts != null) {
+      _initialPowerWatts = scanResult.powerWatts;
       _powerController.text = scanResult.powerWatts!.toString();
     }
 
@@ -593,11 +598,27 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     final existingAppliance = widget.appliance;
     final scanResult = widget.scanResult;
 
+    final powerWatts = double.parse(_powerController.text.trim());
+
+    final originalPowerSource =
+        existingAppliance?.powerSource ?? scanResult?.powerSource;
+
+    final powerWasManuallyChanged =
+        _initialPowerWatts != null && powerWatts != _initialPowerWatts;
+
+    final powerWasManuallyProvidedAfterScan =
+        scanResult != null && _initialPowerWatts == null;
+
+    final powerSource =
+        powerWasManuallyChanged || powerWasManuallyProvidedAfterScan
+        ? PowerSource.manual
+        : originalPowerSource;
+
     return Appliance(
       id: existingAppliance?.id,
       name: _nameController.text.trim(),
       category: _selectedCategory,
-      powerWatts: double.parse(_powerController.text.trim()),
+      powerWatts: powerWatts,
       quantity: int.parse(_quantityController.text.trim()),
 
       // Champs legacy obligatoires pour le moment.
@@ -613,7 +634,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
           scanResult?.labelType ??
           ApplianceLabelType.unknown,
 
-      powerSource: existingAppliance?.powerSource ?? scanResult?.powerSource,
+      powerSource: powerSource,
 
       energyConsumptionMetrics:
           existingAppliance?.energyConsumptionMetrics ??
