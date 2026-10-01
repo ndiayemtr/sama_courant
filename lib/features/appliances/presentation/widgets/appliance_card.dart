@@ -28,7 +28,9 @@ class ApplianceCard extends StatelessWidget {
     final usageText = _buildUsageText(appliance);
     final theme = Theme.of(context);
 
-    final visual = ApplianceVisualCatalog.resolve(appliance.category);
+    final visual = ApplianceVisualCatalog.resolve(
+      appliance.applianceType ?? appliance.category,
+    );
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),

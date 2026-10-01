@@ -61,4 +61,36 @@ void main() {
     expect(find.text('Cuisine'), findsOneWidget);
     expect(find.byIcon(Icons.electrical_services_outlined), findsOneWidget);
   });
+
+  testWidgets('utilise applianceType en priorité sur la catégorie', (
+    tester,
+  ) async {
+    final appliance = Appliance(
+      name: 'Samsung UE55F6400AW',
+      category: 'Autre',
+      applianceType: 'television',
+      powerWatts: 75,
+      quantity: 1,
+      hoursPerDay: 0,
+      daysPerMonth: 30,
+      usageDurationMinutes: 334,
+      usageCount: 1,
+      usageFrequency: UsageFrequency.daily,
+      isActive: true,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ApplianceCard(appliance: appliance, monthlyCostFcfa: 1027),
+        ),
+      ),
+    );
+
+    expect(find.text('Téléviseur'), findsOneWidget);
+    expect(find.text('Autre'), findsNothing);
+    expect(find.byIcon(Icons.tv_outlined), findsOneWidget);
+  });
 }

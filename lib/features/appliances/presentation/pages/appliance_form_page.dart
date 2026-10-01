@@ -558,6 +558,8 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     final existingAppliance = widget.appliance;
     final scanResult = widget.scanResult;
 
+    final applianceType =
+        existingAppliance?.applianceType ?? scanResult?.applianceType;
     final powerWatts = double.parse(_powerController.text.trim());
 
     final originalPowerSource =
@@ -578,6 +580,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
       id: existingAppliance?.id,
       name: _nameController.text.trim(),
       category: _selectedCategory,
+      applianceType: applianceType,
       powerWatts: powerWatts,
       quantity: int.parse(_quantityController.text.trim()),
 
