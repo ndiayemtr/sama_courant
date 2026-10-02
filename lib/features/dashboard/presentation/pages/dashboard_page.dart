@@ -11,6 +11,7 @@ import '../../../appliances/presentation/providers/appliances_provider.dart';
 import '../../../budget/data/factories/woyofal_tariff_configuration_factory.dart';
 import '../../../consumption_history/domain/providers/consumption_snapshot_service_provider.dart';
 import '../providers/dashboard_provider.dart';
+import '../../../appliances/presentation/models/appliance_visual.dart';
 
 class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
@@ -71,7 +72,11 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     final fcfa = NumberFormat.decimalPattern('fr_FR');
     final theme = Theme.of(context);
     final mostConsuming = summary.mostConsuming;
-
+    final mostConsumingVisual = mostConsuming == null
+        ? null
+        : ApplianceVisualCatalog.resolve(
+            mostConsuming.applianceType ?? mostConsuming.category,
+          );
     return Scaffold(
       appBar: pageAppBar(
         context: context,
@@ -118,32 +123,51 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                             Card.filled(
                               margin: EdgeInsets.zero,
                               child: Padding(
-                                padding: const EdgeInsets.all(12),
+                                padding: const EdgeInsets.all(16),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Résumé mensuel',
-                                      style: theme.textTheme.titleSmall,
+                                      'Ce mois',
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    _SummaryRow(
-                                      icon: Icons.electrical_services,
-                                      label: 'Appareils actifs',
-                                      value: '${summary.activeUnitsCount}',
-                                    ),
-                                    _SummaryRow(
-                                      icon: Icons.bolt_outlined,
-                                      label: 'Consommation mensuelle',
-                                      value:
-                                          '${decimal.format(summary.consumptionKwh)} kWh',
-                                    ),
-                                    _SummaryRow(
-                                      icon: Icons.payments_outlined,
-                                      label: 'Coût mensuel estimé',
-                                      value:
-                                          '${fcfa.format(summary.costFcfa.round())} FCFA',
-                                      emphasize: true,
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: _DashboardMetric(
+                                            icon: Icons
+                                                .electrical_services_outlined,
+                                            value:
+                                                '${summary.activeUnitsCount}',
+                                            label: 'Actifs',
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: _DashboardMetric(
+                                            icon: Icons.bolt_outlined,
+                                            value: decimal.format(
+                                              summary.consumptionKwh,
+                                            ),
+                                            label: 'kWh',
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: _DashboardMetric(
+                                            icon: Icons.payments_outlined,
+                                            value: fcfa.format(
+                                              summary.costFcfa.round(),
+                                            ),
+                                            label: 'FCFA',
+                                            emphasize: true,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -162,67 +186,155 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                       style: theme.textTheme.titleSmall,
                                     ),
                                     const SizedBox(height: 6),
-                                    Text(
-                                      mostConsuming?.name ?? '—',
-                                      style: theme.textTheme.titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
                                     if (mostConsuming != null) ...[
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 12),
                                       Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Expanded(
-                                            child: Text(
-                                              '${decimal.format(mostConsuming.monthlyConsumptionKwh)} kWh/mois',
+                                          Container(
+                                            width: 76,
+                                            height: 76,
+                                            decoration: BoxDecoration(
+                                              color: theme.colorScheme.surface,
+                                              borderRadius:
+                                                  BorderRadius.circular(18),
+                                              border: Border.all(
+                                                color: theme
+                                                    .colorScheme
+                                                    .outlineVariant
+                                                    .withValues(alpha: 0.6),
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              '≈ ${NumberFormat('0.0', 'fr_FR').format(summary.consumptionKwh <= 0 ? 0 : mostConsuming.monthlyConsumptionKwh / summary.consumptionKwh * 100)} % du total',
-
-                                              textAlign: TextAlign.right,
-                                              style: theme.textTheme.bodyMedium
-                                                  ?.copyWith(
-                                                    color: theme
-                                                        .colorScheme
-                                                        .onSurfaceVariant,
-                                                  ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      if (summary.mostConsumingCostFcfa !=
-                                          null) ...[
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.payments_outlined,
-                                              size: 20,
-                                              color: theme.colorScheme.primary,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              'Coût estimé',
-                                              style: theme.textTheme.bodyMedium,
-                                            ),
-                                            const Spacer(),
-                                            Text(
-                                              '${fcfa.format(summary.mostConsumingCostFcfa!.round())} FCFA/mois',
-                                              style: theme.textTheme.bodyMedium
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.w700,
+                                            clipBehavior: Clip.antiAlias,
+                                            child:
+                                                mostConsumingVisual
+                                                        ?.assetPath !=
+                                                    null
+                                                ? Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(6),
+                                                    child: Image.asset(
+                                                      mostConsumingVisual!
+                                                          .assetPath!,
+                                                      fit: BoxFit.contain,
+                                                    ),
+                                                  )
+                                                : Icon(
+                                                    mostConsumingVisual?.icon ??
+                                                        Icons
+                                                            .electrical_services_outlined,
+                                                    size: 36,
                                                     color: theme
                                                         .colorScheme
                                                         .primary,
                                                   ),
+                                          ),
+
+                                          const SizedBox(width: 12),
+
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  mostConsuming.name,
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: theme
+                                                      .textTheme
+                                                      .titleMedium
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                ),
+
+                                                const SizedBox(height: 8),
+
+                                                Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.bolt_outlined,
+                                                      size: 18,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      '${decimal.format(mostConsuming.monthlyConsumptionKwh)} kWh',
+                                                      style: theme
+                                                          .textTheme
+                                                          .bodyMedium
+                                                          ?.copyWith(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 6),
+
+                                                if (summary
+                                                        .mostConsumingCostFcfa !=
+                                                    null)
+                                                  Row(
+                                                    children: [
+                                                      const Icon(
+                                                        Icons.payments_outlined,
+                                                        size: 18,
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        '${fcfa.format(summary.mostConsumingCostFcfa!.round())} FCFA',
+                                                        style: theme
+                                                            .textTheme
+                                                            .bodyMedium
+                                                            ?.copyWith(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                              color: theme
+                                                                  .colorScheme
+                                                                  .primary,
+                                                            ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                              ],
                                             ),
-                                          ],
+                                          ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(height: 14),
+
+                                      LinearProgressIndicator(
+                                        value: summary.consumptionKwh <= 0
+                                            ? 0
+                                            : (mostConsuming
+                                                          .monthlyConsumptionKwh /
+                                                      summary.consumptionKwh)
+                                                  .clamp(0.0, 1.0),
+                                        minHeight: 8,
+                                        borderRadius: BorderRadius.circular(
+                                          999,
                                         ),
-                                      ],
+                                      ),
+
+                                      const SizedBox(height: 6),
+
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: Text(
+                                          '${NumberFormat('0.0', 'fr_FR').format(summary.consumptionKwh <= 0 ? 0 : mostConsuming.monthlyConsumptionKwh / summary.consumptionKwh * 100)} %',
+                                          style: theme.textTheme.labelLarge
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                      ),
                                     ],
                                   ],
                                 ),
@@ -236,52 +348,47 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                             key: const ValueKey('dashboard-recommendations'),
                             margin: EdgeInsets.zero,
                             child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
+                              padding: const EdgeInsets.all(14),
+                              child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'Conseils',
-                                    style: theme.textTheme.titleSmall,
+                                  Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.primaryContainer,
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Icon(
+                                      Icons.lightbulb_outline,
+                                      color:
+                                          theme.colorScheme.onPrimaryContainer,
+                                    ),
                                   ),
-                                  for (final recommendation
-                                      in summary.recommendations)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 8),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Icon(
-                                            Icons.lightbulb_outline,
-                                            size: 20,
-                                            color: theme.colorScheme.primary,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        for (final recommendation
+                                            in summary.recommendations) ...[
+                                          Text(
+                                            recommendation.title,
+                                            style: theme.textTheme.titleSmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                           ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  recommendation.title,
-                                                  style: theme
-                                                      .textTheme
-                                                      .labelLarge,
-                                                ),
-                                                const SizedBox(height: 2),
-                                                Text(
-                                                  recommendation.message,
-                                                  style: theme
-                                                      .textTheme
-                                                      .bodyMedium,
-                                                ),
-                                              ],
-                                            ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            recommendation.message,
+                                            style: theme.textTheme.bodyMedium,
                                           ),
                                         ],
-                                      ),
+                                      ],
                                     ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -318,40 +425,62 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   }
 }
 
-class _SummaryRow extends StatelessWidget {
+class _DashboardMetric extends StatelessWidget {
   final IconData icon;
-  final String label;
   final String value;
+  final String label;
   final bool emphasize;
-  const _SummaryRow({
+
+  const _DashboardMetric({
     required this.icon,
-    required this.label,
     required this.value,
+    required this.label,
     this.emphasize = false,
   });
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: theme.colorScheme.primary),
-          const SizedBox(width: 8),
-          Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: emphasize ? theme.colorScheme.primary : null,
-              ),
+
+    return Column(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: emphasize
+                ? theme.colorScheme.primaryContainer
+                : theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(
+            icon,
+            color: emphasize
+                ? theme.colorScheme.onPrimaryContainer
+                : theme.colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            maxLines: 1,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: emphasize ? theme.colorScheme.primary : null,
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 }
