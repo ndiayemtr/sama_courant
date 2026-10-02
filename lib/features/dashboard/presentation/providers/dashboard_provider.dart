@@ -48,6 +48,8 @@ final dashboardProvider = Provider<DashboardSummary>((ref) {
         ApplianceConsumptionShare(
           applianceId: appliance.id,
           name: appliance.name,
+          applianceType: appliance.applianceType,
+          category: appliance.category,
           consumptionKwh: appliance.monthlyConsumptionKwh,
           percentage: appliance.monthlyConsumptionKwh / consumption * 100,
           allocatedCostFcfa:
@@ -154,6 +156,8 @@ class DashboardSummary {
 class ApplianceConsumptionShare {
   final int? applianceId;
   final String name;
+  final String? applianceType;
+  final String? category;
   final double consumptionKwh;
   final double percentage;
   final double allocatedCostFcfa;
@@ -161,6 +165,8 @@ class ApplianceConsumptionShare {
   const ApplianceConsumptionShare({
     required this.applianceId,
     required this.name,
+    this.applianceType,
+    this.category,
     required this.consumptionKwh,
     required this.percentage,
     required this.allocatedCostFcfa,
