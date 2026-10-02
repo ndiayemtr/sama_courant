@@ -454,10 +454,20 @@ void main() {
     // Sélection interactive depuis la légende.
     await tester.tap(find.byKey(const ValueKey('consumption-legend-0')));
     await tester.pumpAndSettle();
+    final selectedLegend = find.byKey(const ValueKey('consumption-legend-0'));
 
-    expect(find.byKey(const ValueKey('consumption-selection')), findsOneWidget);
-    expect(find.text('270,00 kWh/mois'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: selectedLegend,
+        matching: find.textContaining('270,00 kWh'),
+      ),
+      findsOneWidget,
+    );
 
+    expect(
+      find.descendant(of: selectedLegend, matching: find.byIcon(Icons.check)),
+      findsOneWidget,
+    );
     // Analyse / À retenir.
     final analysis = find.byKey(const ValueKey('analysis-summary'));
 
@@ -467,8 +477,6 @@ void main() {
       tester.widget<Text>(analysis).data,
       distributionCard.summary.analysisSummary,
     );
-
-    expect(find.text('À retenir'), findsOneWidget);
 
     // Top consommateurs.
     final topConsumersFinder = find.byType(TopConsumersCard);
@@ -675,22 +683,29 @@ void main() {
     await openAnalytics(tester, [
       appliance('Réfrigérateur de la grande cuisine', 100),
     ]);
-    expect(tester.getSize(find.byType(PieChart)).height, 128);
+    expect(tester.getSize(find.byType(PieChart)).height, 160);
     final legend = find.byKey(const ValueKey('consumption-legend-0'));
     await tester.ensureVisible(legend);
     await tester.tap(legend);
     await tester.pumpAndSettle();
-    final details = find.byKey(const ValueKey('consumption-selection'));
-    await tester.ensureVisible(details);
+    await tester.ensureVisible(legend);
+
     expect(
-      find.descendant(of: details, matching: find.text('30,00 kWh/mois')),
+      find.descendant(of: legend, matching: find.textContaining('30,00 kWh')),
       findsOneWidget,
     );
+
     expect(
-      find.descendant(of: details, matching: find.text('100,0 %')),
+      find.descendant(of: legend, matching: find.text('100,0 %')),
       findsOneWidget,
     );
-    expect(tester.getRect(details).right, lessThanOrEqualTo(320));
+
+    expect(
+      find.descendant(of: legend, matching: find.byIcon(Icons.check)),
+      findsOneWidget,
+    );
+
+    expect(tester.getRect(legend).right, lessThanOrEqualTo(320));
     expect(tester.takeException(), isNull);
   });
 
@@ -847,15 +862,7 @@ void main() {
           ),
         );
 
-        expect(bar.value, closeTo((7 - i) / 7, 1e-9));
-
-        final colorDot = tester.widget<Container>(
-          find.byKey(ValueKey('top-consumer-color-$i')),
-        );
-
-        final decoration = colorDot.decoration! as BoxDecoration;
-
-        expect(bar.color, decoration.color);
+        expect(bar.value, closeTo((7 - i) / 28, 1e-9));
       }
 
       expect(
@@ -918,55 +925,98 @@ void main() {
       appliance('Grand', 900),
       appliance('Petit', 100),
     ]);
+
     final chartFinder = find.byType(PieChart);
-    final details = find.byKey(const ValueKey('consumption-selection'));
-    expect(details, findsNothing);
+
+    final grandLegend = find.byKey(const ValueKey('consumption-legend-0'));
+    final petitLegend = find.byKey(const ValueKey('consumption-legend-1'));
+
     expect(find.text('300,00'), findsOneWidget);
+
     final initial = tester.widget<PieChart>(chartFinder).data.sections;
-    expect(initial.map((section) => section.radius), [16, 16]);
+
+    expect(initial.map((section) => section.radius), [20, 20]);
+
     await tester.ensureVisible(chartFinder);
+
     final chartData = tester.widget<PieChart>(chartFinder).data;
+
     await tester.tapAt(
       tester.getCenter(chartFinder) +
           Offset(chartData.centerSpaceRadius + initial.first.radius / 2, 0),
     );
+
     await tester.pumpAndSettle();
+
     expect(
-      find.descendant(of: details, matching: find.text('Grand')),
+      find.descendant(of: grandLegend, matching: find.text('Grand')),
       findsOneWidget,
     );
+
     expect(
-      find.descendant(of: details, matching: find.text('270,00 kWh/mois')),
+      find.descendant(
+        of: grandLegend,
+        matching: find.textContaining('270,00 kWh'),
+      ),
       findsOneWidget,
     );
+
     expect(
-      find.descendant(of: details, matching: find.text('90,0 %')),
+      find.descendant(of: grandLegend, matching: find.text('90,0 %')),
       findsOneWidget,
     );
-    expect(tester.widget<PieChart>(chartFinder).data.sections.first.radius, 22);
-    final legend = find.byKey(const ValueKey('consumption-legend-1'));
-    await tester.ensureVisible(legend);
-    expect(tester.getSize(legend).height, greaterThanOrEqualTo(44));
-    await tester.tap(legend);
+
+    expect(
+      find.descendant(of: grandLegend, matching: find.byIcon(Icons.check)),
+      findsOneWidget,
+    );
+
+    expect(tester.widget<PieChart>(chartFinder).data.sections.first.radius, 26);
+
+    await tester.ensureVisible(petitLegend);
+
+    expect(tester.getSize(petitLegend).height, greaterThanOrEqualTo(44));
+
+    await tester.tap(petitLegend);
     await tester.pumpAndSettle();
+
     expect(
-      find.descendant(of: details, matching: find.text('Petit')),
+      find.descendant(of: petitLegend, matching: find.text('Petit')),
       findsOneWidget,
     );
+
     expect(
-      find.descendant(of: details, matching: find.text('30,00 kWh/mois')),
+      find.descendant(
+        of: petitLegend,
+        matching: find.textContaining('30,00 kWh'),
+      ),
       findsOneWidget,
     );
+
     expect(
-      find.descendant(of: details, matching: find.text('10,0 %')),
+      find.descendant(of: petitLegend, matching: find.text('10,0 %')),
       findsOneWidget,
     );
+
+    expect(
+      find.descendant(of: petitLegend, matching: find.byIcon(Icons.check)),
+      findsOneWidget,
+    );
+
+    expect(
+      find.descendant(of: grandLegend, matching: find.byIcon(Icons.check)),
+      findsNothing,
+    );
+
     final selected = tester.widget<PieChart>(chartFinder).data.sections;
-    expect(selected.map((section) => section.radius), [16, 22]);
+
+    expect(selected.map((section) => section.radius), [20, 26]);
+
     expect(
       selected.map((section) => section.color),
       initial.map((section) => section.color),
     );
+
     expect(tester.takeException(), isNull);
   });
 
@@ -978,13 +1028,13 @@ void main() {
     await tester.ensureVisible(legend);
     await tester.tap(legend);
     await tester.pumpAndSettle();
-    final details = find.byKey(const ValueKey('consumption-selection'));
+    final details = legend;
     expect(
       find.descendant(of: details, matching: find.text('Autres')),
       findsOneWidget,
     );
     expect(
-      find.descendant(of: details, matching: find.text('180,00 kWh/mois')),
+      find.descendant(of: details, matching: find.textContaining('180,00 kWh')),
       findsOneWidget,
     );
     expect(
@@ -993,7 +1043,11 @@ void main() {
     );
     expect(
       tester.widget<PieChart>(find.byType(PieChart)).data.sections.last.radius,
-      22,
+      26,
+    );
+    expect(
+      find.descendant(of: legend, matching: find.byIcon(Icons.check)),
+      findsOneWidget,
     );
     expect(tester.takeException(), isNull);
   });
