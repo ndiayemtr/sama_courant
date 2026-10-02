@@ -43,17 +43,38 @@ class ApplianceCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 56,
-                  height: 56,
+                  width: 76,
+                  height: 76,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(16),
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: theme.colorScheme.outlineVariant.withValues(
+                        alpha: 0.6,
+                      ),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.colorScheme.shadow.withValues(alpha: 0.06),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  child: Icon(
-                    visual.icon,
-                    size: 32,
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: visual.assetPath != null
+                      ? Padding(
+                          padding: const EdgeInsets.all(7),
+                          child: Image.asset(
+                            visual.assetPath!,
+                            fit: BoxFit.contain,
+                          ),
+                        )
+                      : Icon(
+                          visual.icon,
+                          size: 34,
+                          color: theme.colorScheme.primary,
+                        ),
                 ),
                 const SizedBox(width: 12),
                 const SizedBox(width: 10),
