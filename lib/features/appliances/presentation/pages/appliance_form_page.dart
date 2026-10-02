@@ -92,6 +92,14 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     final appliance = widget.appliance;
     _selectedApplianceType = widget.initialApplianceType;
 
+    final initialTypeLabel = ApplianceVisualCatalog.labelForType(
+      widget.initialApplianceType,
+    );
+
+    if (initialTypeLabel != null && _nameController.text.isEmpty) {
+      _nameController.text = initialTypeLabel;
+    }
+
     if (appliance != null) {
       _initializeFromAppliance(appliance);
       return;
