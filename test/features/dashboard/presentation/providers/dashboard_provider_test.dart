@@ -170,7 +170,11 @@ void main() {
         appliance('B', 100),
         appliance('C', 100),
       ]);
-      expect(summary.recommendations.single.title, 'Répartition équilibrée');
+      expect(summary.recommendations.single.title, 'Bonne habitude');
+      expect(
+        summary.recommendations.single.message,
+        'Continuez à surveiller vos appareils les plus énergivores.',
+      );
     },
   );
   test('recommendations have stable priority and a maximum of three', () async {

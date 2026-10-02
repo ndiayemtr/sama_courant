@@ -99,8 +99,8 @@ class DashboardRecommendationService {
     if (recommendations.isEmpty) {
       recommendations.add(
         const DashboardRecommendation(
-          'Répartition équilibrée',
-          'Votre consommation est bien répartie.',
+          'Bonne habitude',
+          'Continuez à surveiller vos appareils les plus énergivores.',
           RecommendationPriority.low,
         ),
       );
