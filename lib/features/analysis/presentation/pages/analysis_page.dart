@@ -66,30 +66,30 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                       margin: EdgeInsets.zero,
                       child: Padding(
                         padding: const EdgeInsets.all(12),
-                        child: Column(
+                        child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.lightbulb_outline,
-                                  size: 20,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'À retenir',
-                                    style: theme.textTheme.titleSmall,
-                                  ),
-                                ),
-                              ],
+                            Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(
+                                Icons.insights_outlined,
+                                color: theme.colorScheme.onPrimaryContainer,
+                              ),
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              summary.analysisSummary,
-                              key: const ValueKey('analysis-summary'),
-                              style: theme.textTheme.bodyMedium,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                summary.analysisSummary,
+                                key: const ValueKey('analysis-summary'),
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ],
                         ),
