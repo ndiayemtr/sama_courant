@@ -132,6 +132,14 @@ class DashboardSummary {
     return 'Consommation répartie entre plusieurs appareils.';
   }
 
+  double? get mostConsumingCostFcfa {
+    if (mostConsuming == null || consumptionShares.isEmpty) {
+      return null;
+    }
+
+    return consumptionShares.first.allocatedCostFcfa;
+  }
+
   const DashboardSummary({
     required this.activeCount,
     required this.consumptionKwh,

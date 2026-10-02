@@ -182,6 +182,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                           Expanded(
                                             child: Text(
                                               '≈ ${NumberFormat('0.0', 'fr_FR').format(summary.consumptionKwh <= 0 ? 0 : mostConsuming.monthlyConsumptionKwh / summary.consumptionKwh * 100)} % du total',
+
                                               textAlign: TextAlign.right,
                                               style: theme.textTheme.bodyMedium
                                                   ?.copyWith(
@@ -193,6 +194,35 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                           ),
                                         ],
                                       ),
+                                      if (summary.mostConsumingCostFcfa !=
+                                          null) ...[
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.payments_outlined,
+                                              size: 20,
+                                              color: theme.colorScheme.primary,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Coût estimé',
+                                              style: theme.textTheme.bodyMedium,
+                                            ),
+                                            const Spacer(),
+                                            Text(
+                                              '${fcfa.format(summary.mostConsumingCostFcfa!.round())} FCFA/mois',
+                                              style: theme.textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w700,
+                                                    color: theme
+                                                        .colorScheme
+                                                        .primary,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ],
                                   ],
                                 ),
