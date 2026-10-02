@@ -315,6 +315,44 @@ void main() {
   });
 
   test(
+    'most consuming appliance exposes its already allocated monthly cost',
+    () async {
+      final summary = await summaryFor([
+        appliance('Petit', 100),
+        appliance('Climatiseur', 900),
+        appliance('Inactif', 5000, active: false),
+      ]);
+
+      expect(summary.mostConsuming, isNotNull);
+      expect(summary.mostConsuming!.name, 'Climatiseur');
+
+      expect(summary.consumptionShares.first.name, 'Climatiseur');
+
+      expect(
+        summary.mostConsumingCostFcfa,
+        closeTo(summary.consumptionShares.first.allocatedCostFcfa, 1e-9),
+      );
+    },
+  );
+
+  test(
+    'most consuming cost is null when there is no active consumption',
+    () async {
+      final emptySummary = await summaryFor([]);
+
+      expect(emptySummary.mostConsuming, isNull);
+      expect(emptySummary.mostConsumingCostFcfa, isNull);
+
+      final inactiveSummary = await summaryFor([
+        appliance('Inactif', 900, active: false),
+      ]);
+
+      expect(inactiveSummary.mostConsuming, isNull);
+      expect(inactiveSummary.mostConsumingCostFcfa, isNull);
+    },
+  );
+
+  test(
     'keeps top five and groups all remaining consumption into Others',
     () async {
       final summary = await summaryFor([
@@ -445,6 +483,25 @@ void main() {
       final donutColor = pieChart.data.sections.first.color;
 
       expect(topBar.color, donutColor);
+    },
+  );
+
+  testWidgets(
+    'Dashboard affiche le coût et la part visuelle du plus énergivore',
+    (tester) async {
+      await openDashboard(tester, [
+        appliance('Climatiseur', 900),
+        appliance('Petit', 100),
+      ]);
+
+      expect(find.text('Ce mois'), findsOneWidget);
+      expect(find.text('Plus énergivore'), findsOneWidget);
+      expect(find.text('Climatiseur'), findsWidgets);
+
+      expect(find.byType(LinearProgressIndicator), findsWidgets);
+
+      expect(find.textContaining('FCFA'), findsWidgets);
+      expect(find.textContaining('du total'), findsNothing);
     },
   );
 }
