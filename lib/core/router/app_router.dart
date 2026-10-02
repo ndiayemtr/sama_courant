@@ -48,7 +48,11 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/appliances/add',
-      builder: (context, state) => const ApplianceFormPage(),
+      builder: (context, state) {
+        final applianceType = state.extra as String?;
+
+        return ApplianceFormPage(initialApplianceType: applianceType);
+      },
     ),
     GoRoute(
       path: '/appliances/edit',

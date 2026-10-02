@@ -16,8 +16,14 @@ import '../../domain/entities/appliance_scan_result.dart';
 class ApplianceFormPage extends ConsumerStatefulWidget {
   final Appliance? appliance;
   final ApplianceScanResult? scanResult;
+  final String? initialApplianceType;
 
-  const ApplianceFormPage({super.key, this.appliance, this.scanResult});
+  const ApplianceFormPage({
+    super.key,
+    this.appliance,
+    this.scanResult,
+    this.initialApplianceType,
+  });
 
   @override
   ConsumerState<ApplianceFormPage> createState() => _ApplianceFormPageState();
@@ -35,6 +41,8 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
   UsageFrequency _selectedUsageFrequency = UsageFrequency.daily;
 
   String _selectedCategory = 'Autre';
+
+  String? _selectedApplianceType;
 
   bool _isSaving = false;
   bool _isActive = true;
@@ -82,6 +90,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
 
   void _initializeForm() {
     final appliance = widget.appliance;
+    _selectedApplianceType = widget.initialApplianceType;
 
     if (appliance != null) {
       _initializeFromAppliance(appliance);
@@ -101,6 +110,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     _powerController.text = appliance.powerWatts.toString();
     _initialPowerWatts = appliance.powerWatts;
     _quantityController.text = appliance.quantity.toString();
+    _selectedApplianceType = appliance.applianceType;
 
     if (appliance.usesNewUsageModel) {
       _usageDurationMinutesValue = appliance.usageDurationMinutes!.toDouble();
@@ -121,6 +131,7 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     if (scanResult.powerWatts != null) {
       _initialPowerWatts = scanResult.powerWatts;
       _powerController.text = scanResult.powerWatts!.toString();
+      _selectedApplianceType = scanResult.applianceType;
     }
 
     final detectedName = _buildDetectedApplianceName(scanResult);
@@ -559,7 +570,9 @@ class _ApplianceFormPageState extends ConsumerState<ApplianceFormPage> {
     final scanResult = widget.scanResult;
 
     final applianceType =
-        existingAppliance?.applianceType ?? scanResult?.applianceType;
+        _selectedApplianceType ??
+        existingAppliance?.applianceType ??
+        scanResult?.applianceType;
     final powerWatts = double.parse(_powerController.text.trim());
 
     final originalPowerSource =
