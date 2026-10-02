@@ -43,7 +43,6 @@ class _ConsumptionDistributionCardState
     final percentage = NumberFormat('0.0', 'fr_FR');
     final decimal = NumberFormat('0.00', 'fr_FR');
     final shares = widget.summary.consumptionShares;
-    final selected = _selectedIndex == null ? null : shares[_selectedIndex!];
     // fl_chart indexes only the rendered (positive) sections.
     final visibleIndices = [
       for (var i = 0; i < shares.length; i++)
@@ -127,35 +126,7 @@ class _ConsumptionDistributionCardState
                   ],
                 ),
               ),
-              if (selected != null)
-                Semantics(
-                  liveRegion: true,
-                  child: Padding(
-                    key: const ValueKey('consumption-selection'),
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: DefaultTextStyle(
-                      style: theme.textTheme.bodySmall!,
-                      child: Wrap(
-                        spacing: 6,
-                        runSpacing: 1,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          const Text('Sélection :'),
-                          Text(
-                            selected.name,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          const Text('•'),
-                          Text(
-                            '${decimal.format(selected.consumptionKwh)} kWh/mois',
-                          ),
-                          const Text('•'),
-                          Text('${percentage.format(selected.percentage)} %'),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+
               for (var i = 0; i < shares.length; i++)
                 Semantics(
                   button: true,
@@ -167,44 +138,64 @@ class _ConsumptionDistributionCardState
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(minHeight: 44),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Row(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: ApplianceChartColors.forApplianceId(
-                                  shares[i].applianceId,
-                                  shares[i].name,
+                            Row(
+                              children: [
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: ApplianceChartColors.forApplianceId(
+                                      shares[i].applianceId,
+                                      shares[i].name,
+                                    ),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: colors.outlineVariant,
+                                    ),
+                                  ),
                                 ),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: colors.outlineVariant,
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    shares[i].name,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: _selectedIndex == i
+                                          ? FontWeight.bold
+                                          : null,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                shares[i].name,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: _selectedIndex == i
-                                      ? FontWeight.bold
-                                      : null,
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${percentage.format(shares[i].percentage)} %',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${percentage.format(shares[i].percentage)} %',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
+                                if (_selectedIndex == i) ...[
+                                  const SizedBox(width: 6),
+                                  const Icon(Icons.check, size: 18),
+                                ],
+                              ],
                             ),
                             if (_selectedIndex == i) ...[
-                              const SizedBox(width: 6),
-                              const Icon(Icons.check, size: 18),
+                              const SizedBox(height: 4),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 18),
+                                child: Text(
+                                  '${decimal.format(shares[i].consumptionKwh)} kWh'
+                                  '  •  '
+                                  '${NumberFormat.decimalPattern('fr_FR').format(shares[i].allocatedCostFcfa.round())} FCFA',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colors.onSurfaceVariant,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
                             ],
                           ],
                         ),
