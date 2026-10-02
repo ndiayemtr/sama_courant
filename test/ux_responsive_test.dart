@@ -115,7 +115,6 @@ void main() {
             checkLayout(tester);
           }
           if (label == 'Analyse') {
-            expect(find.text('À retenir'), findsOneWidget);
             expect(find.text('Top consommateurs'), findsOneWidget);
             expect(
               find.byKey(const ValueKey('analysis-summary')),

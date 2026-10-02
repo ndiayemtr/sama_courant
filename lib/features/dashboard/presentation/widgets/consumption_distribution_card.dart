@@ -174,8 +174,7 @@ class _ConsumptionDistributionCardState
                                   Expanded(
                                     child: Text(
                                       shares[i].name,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(
                                             fontWeight: _selectedIndex == i

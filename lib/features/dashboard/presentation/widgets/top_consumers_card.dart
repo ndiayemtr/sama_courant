@@ -96,8 +96,7 @@ class TopConsumersCard extends StatelessWidget {
                                   children: [
                                     Text(
                                       consumer.name,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(
                                             fontWeight: FontWeight.w700,
