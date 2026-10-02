@@ -134,70 +134,86 @@ class _ConsumptionDistributionCardState
                   child: InkWell(
                     key: ValueKey('consumption-legend-$i'),
                     onTap: () => _select(i),
-                    borderRadius: BorderRadius.circular(8),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 44),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: ApplianceChartColors.forApplianceId(
-                                      shares[i].applianceId,
+                    borderRadius: BorderRadius.circular(10),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 120),
+                      decoration: BoxDecoration(
+                        color: _selectedIndex == i
+                            ? colors.primaryContainer.withValues(alpha: 0.35)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minHeight: 44),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          ApplianceChartColors.forApplianceId(
+                                            shares[i].applianceId,
+                                            shares[i].name,
+                                          ),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: colors.outlineVariant,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
                                       shares[i].name,
-                                    ),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: colors.outlineVariant,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: _selectedIndex == i
+                                                ? FontWeight.bold
+                                                : null,
+                                          ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    shares[i].name,
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '${percentage.format(shares[i].percentage)} %',
                                     style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: _selectedIndex == i
-                                          ? FontWeight.bold
-                                          : null,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  if (_selectedIndex == i) ...[
+                                    const SizedBox(width: 6),
+                                    const Icon(Icons.check, size: 18),
+                                  ],
+                                ],
+                              ),
+                              if (_selectedIndex == i) ...[
+                                const SizedBox(height: 4),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 18),
+                                  child: Text(
+                                    '${decimal.format(shares[i].consumptionKwh)} kWh'
+                                    '  •  '
+                                    '${NumberFormat.decimalPattern('fr_FR').format(shares[i].allocatedCostFcfa.round())} FCFA',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colors.onSurfaceVariant,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  '${percentage.format(shares[i].percentage)} %',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                if (_selectedIndex == i) ...[
-                                  const SizedBox(width: 6),
-                                  const Icon(Icons.check, size: 18),
-                                ],
                               ],
-                            ),
-                            if (_selectedIndex == i) ...[
-                              const SizedBox(height: 4),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 18),
-                                child: Text(
-                                  '${decimal.format(shares[i].consumptionKwh)} kWh'
-                                  '  •  '
-                                  '${NumberFormat.decimalPattern('fr_FR').format(shares[i].allocatedCostFcfa.round())} FCFA',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colors.onSurfaceVariant,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
                             ],
-                          ],
+                          ),
                         ),
                       ),
                     ),
