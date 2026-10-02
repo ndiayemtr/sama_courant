@@ -66,14 +66,14 @@ class _ConsumptionDistributionCardState
             ] else ...[
               const SizedBox(height: 4),
               SizedBox(
-                height: 128,
+                height: 160,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     ExcludeSemantics(
                       child: PieChart(
                         PieChartData(
-                          centerSpaceRadius: 60,
+                          centerSpaceRadius: 52,
                           sectionsSpace: 0,
                           startDegreeOffset: -90,
                           pieTouchData: PieTouchData(
@@ -96,7 +96,7 @@ class _ConsumptionDistributionCardState
                                   shares[i].applianceId,
                                   shares[i].name,
                                 ),
-                                radius: _selectedIndex == i ? 22 : 16,
+                                radius: _selectedIndex == i ? 26 : 20,
                                 showTitle: false,
                               ),
                           ],
@@ -106,7 +106,7 @@ class _ConsumptionDistributionCardState
                     ),
                     IgnorePointer(
                       child: SizedBox(
-                        width: 72,
+                        width: 88,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -114,7 +114,7 @@ class _ConsumptionDistributionCardState
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 decimal.format(widget.summary.consumptionKwh),
-                                style: theme.textTheme.titleMedium?.copyWith(
+                                style: theme.textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
