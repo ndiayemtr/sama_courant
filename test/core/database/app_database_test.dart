@@ -50,7 +50,7 @@ void main() {
       expect(row.tariffConfigurationName, 'Woyofal DPP 2026');
       final nextId = await db.into(db.consumptionSnapshots).insert(companion);
       expect(nextId, greaterThan(id));
-      expect(db.schemaVersion, 5);
+      expect(db.schemaVersion, 6);
     },
   );
 
@@ -223,7 +223,7 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(versionRow.read<int>('user_version'), 5);
+        expect(versionRow.read<int>('user_version'), 6);
 
         final columns = await database
             .customSelect('PRAGMA table_info(appliances)')
@@ -396,8 +396,8 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(versionRow.read<int>('user_version'), 5);
-        expect(database.schemaVersion, 5);
+        expect(versionRow.read<int>('user_version'), 6);
+        expect(database.schemaVersion, 6);
 
         // ----------------------------------------------------------
         // 4. Vérification de la nouvelle colonne

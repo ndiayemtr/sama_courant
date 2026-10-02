@@ -27,6 +27,7 @@ import '../../domain/services/appliance_power_estimator.dart';
 import '../../domain/services/label_text_normalizer.dart';
 import '../../domain/services/power_resolver.dart';
 import '../../domain/usecases/scan_appliance_label.dart';
+import '../widgets/appliance_type_selector.dart';
 
 class AppliancesPage extends ConsumerStatefulWidget {
   const AppliancesPage({super.key});
@@ -113,6 +114,44 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
     }
   }
 
+  Future<String?> _selectManualApplianceType(BuildContext context) async {
+    return showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Quel appareil avez-vous ?',
+                    style: Theme.of(sheetContext).textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Touchez l’image qui correspond à votre appareil.',
+                    style: Theme.of(sheetContext).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 20),
+                  ApplianceTypeSelector(
+                    onSelected: (type) {
+                      Navigator.of(sheetContext).pop(type);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _openAddApplianceOptions(BuildContext context) async {
     final mode = await showModalBottomSheet<_AddApplianceMode>(
       context: context,
@@ -172,7 +211,13 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
         break;
 
       case _AddApplianceMode.manual:
-        context.push('/appliances/add');
+        final applianceType = await _selectManualApplianceType(context);
+
+        if (!context.mounted || applianceType == null) {
+          return;
+        }
+
+        context.push('/appliances/add', extra: applianceType);
         break;
     }
   }
