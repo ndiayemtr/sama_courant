@@ -31,7 +31,13 @@ void main() {
 
     expect(find.text('Réfrigérateur'), findsOneWidget);
     expect(find.text('refrigerator'), findsNothing);
-    expect(find.byIcon(Icons.kitchen_outlined), findsOneWidget);
+    final image = tester.widget<Image>(find.byType(Image));
+
+    expect(image.image, isA<AssetImage>());
+    expect(
+      (image.image as AssetImage).assetName,
+      'assets/images/appliances/refrigerator.jpg',
+    );
   });
 
   testWidgets('préserve une catégorie legacy inconnue', (tester) async {
@@ -91,6 +97,12 @@ void main() {
 
     expect(find.text('Téléviseur'), findsOneWidget);
     expect(find.text('Autre'), findsNothing);
-    expect(find.byIcon(Icons.tv_outlined), findsOneWidget);
+    final image = tester.widget<Image>(find.byType(Image));
+
+    expect(image.image, isA<AssetImage>());
+    expect(
+      (image.image as AssetImage).assetName,
+      'assets/images/appliances/television.jpg',
+    );
   });
 }

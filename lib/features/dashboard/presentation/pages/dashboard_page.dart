@@ -255,21 +255,27 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                                 const SizedBox(height: 8),
 
                                                 Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: [
                                                     const Icon(
                                                       Icons.bolt_outlined,
                                                       size: 18,
                                                     ),
                                                     const SizedBox(width: 4),
-                                                    Text(
-                                                      '${decimal.format(mostConsuming.monthlyConsumptionKwh)} kWh',
-                                                      style: theme
-                                                          .textTheme
-                                                          .bodyMedium
-                                                          ?.copyWith(
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                          ),
+                                                    Expanded(
+                                                      child: Text(
+                                                        '${decimal.format(mostConsuming.monthlyConsumptionKwh)} kWh',
+                                                        maxLines: 2,
+                                                        style: theme
+                                                            .textTheme
+                                                            .bodyMedium
+                                                            ?.copyWith(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                            ),
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
@@ -280,25 +286,31 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                                         .mostConsumingCostFcfa !=
                                                     null)
                                                   Row(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
                                                       const Icon(
                                                         Icons.payments_outlined,
                                                         size: 18,
                                                       ),
                                                       const SizedBox(width: 4),
-                                                      Text(
-                                                        '${fcfa.format(summary.mostConsumingCostFcfa!.round())} FCFA',
-                                                        style: theme
-                                                            .textTheme
-                                                            .bodyMedium
-                                                            ?.copyWith(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                              color: theme
-                                                                  .colorScheme
-                                                                  .primary,
-                                                            ),
+                                                      Expanded(
+                                                        child: Text(
+                                                          '${fcfa.format(summary.mostConsumingCostFcfa!.round())} FCFA',
+                                                          maxLines: 2,
+                                                          style: theme
+                                                              .textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                                color: theme
+                                                                    .colorScheme
+                                                                    .primary,
+                                                              ),
+                                                        ),
                                                       ),
                                                     ],
                                                   ),

@@ -86,7 +86,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         await inspectScroll(tester);
-        expect(find.text('Résumé mensuel'), findsOneWidget);
+        expect(find.text('Ce mois'), findsOneWidget);
         for (final label in ['Historique', 'Analyse', 'Appareils']) {
           await tester.tap(
             find.descendant(

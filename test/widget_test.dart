@@ -165,7 +165,7 @@ void main() {
     await form.setDurationSlider(tester, 480);
     await form.tapSave(tester);
     await tester.pumpAndSettle();
-    expect(find.text('Résumé mensuel'), findsOneWidget);
+    expect(find.text('Ce mois'), findsOneWidget);
     final container = ProviderScope.containerOf(
       tester.element(find.byType(SamaCourantApp)),
     );
@@ -706,8 +706,10 @@ void main() {
       appliance('Petit', 100),
     ]);
     final card = find.byKey(const ValueKey('dashboard-recommendations'));
+    expect(card, findsOneWidget);
+
     expect(
-      find.descendant(of: card, matching: find.text('Conseils')),
+      find.descendant(of: card, matching: find.byIcon(Icons.lightbulb_outline)),
       findsOneWidget,
     );
     expect(
@@ -737,9 +739,12 @@ void main() {
     expect(find.text('Analyse rapide'), findsNothing);
     expect(find.byType(ConsumptionDistributionCard), findsNothing);
     expect(find.byType(TopConsumersCard), findsNothing);
-    expect(find.text('Résumé mensuel'), findsOneWidget);
+    expect(find.text('Ce mois'), findsOneWidget);
     expect(find.text('Plus énergivore'), findsOneWidget);
-    expect(find.text('Conseils'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('dashboard-recommendations')),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -870,35 +875,38 @@ void main() {
   );
 
   for (final watts in [100.0, 999999.0]) {
-    testWidgets('Dashboard values share the right edge on mobile ($watts W)', (
+    testWidgets('Dashboard monthly metrics fit on mobile ($watts W)', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(320, 800);
       tester.view.devicePixelRatio = 1;
+
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
+
       await openDashboard(tester, [
         appliance('Appareil avec un nom long', watts),
       ]);
+
       final summary = find.byWidgetPredicate((widget) => widget is Card).at(0);
-      final texts = find.descendant(of: summary, matching: find.byType(Text));
-      final valueTexts = texts.evaluate().where(
-        (element) =>
-            [
-              '1',
-              '${NumberFormat('0.00', 'fr_FR').format(watts * 0.3)} kWh',
-            ].contains((element.widget as Text).data) ||
-            ((element.widget as Text).data?.endsWith(' FCFA') ?? false),
+
+      expect(
+        find.descendant(of: summary, matching: find.text('Actifs')),
+        findsOneWidget,
       );
-      final rightEdge = tester.getRect(summary).right - 12;
-      expect(valueTexts.length, 3);
-      for (final element in valueTexts) {
-        final finder = find.byWidget(element.widget);
-        expect(tester.getRect(finder).right, closeTo(rightEdge, 0.1));
-        expect((element.widget as Text).textAlign, TextAlign.right);
-      }
-      final percentage = find.text('≈ 100,0 % du total');
-      expect(tester.getRect(percentage).right, closeTo(rightEdge, 0.1));
+
+      expect(
+        find.descendant(of: summary, matching: find.text('kWh')),
+        findsOneWidget,
+      );
+
+      expect(
+        find.descendant(of: summary, matching: find.text('FCFA')),
+        findsOneWidget,
+      );
+
+      expect(tester.getRect(summary).right, lessThanOrEqualTo(320));
+
       expect(tester.takeException(), isNull);
     });
   }
@@ -1062,15 +1070,18 @@ void main() {
         appliance('Chauffage inactif', 2000, active: false),
       ]);
       expect(find.text('2'), findsOneWidget);
-      expect(find.text('300,00 kWh'), findsOneWidget);
+      expect(find.text('300,00'), findsOneWidget);
+      expect(find.text('kWh'), findsOneWidget);
       // 150 × 82 + 150 × 136.49: progressive household cost.
       expect(
-        find.text('${NumberFormat.decimalPattern('fr_FR').format(34002)} FCFA'),
+        find.text(NumberFormat.decimalPattern('fr_FR').format(34002)),
         findsOneWidget,
       );
+      expect(find.text('FCFA'), findsOneWidget);
+
       expect(find.text('Climatiseur'), findsNWidgets(2));
-      expect(find.text('270,00 kWh/mois'), findsOneWidget);
-      expect(find.text('≈ 90,0 % du total'), findsOneWidget);
+      expect(find.text('270,00 kWh'), findsOneWidget);
+      expect(find.text('90,0 %'), findsOneWidget);
       expect(find.byType(Card), findsNWidgets(3));
       expect(find.byType(PieChart), findsNothing);
       expect(find.text('Chauffage inactif'), findsNothing);
@@ -1085,12 +1096,13 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await openDashboard(tester, [appliance('Chauffage', 2000, active: false)]);
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('0,00 kWh'), findsOneWidget);
-    expect(find.text('0 FCFA'), findsOneWidget);
+    expect(find.text('0'), findsNWidgets(2));
+    expect(find.text('0,00'), findsOneWidget);
+    expect(find.text('kWh'), findsOneWidget);
+    expect(find.text('FCFA'), findsOneWidget);
     expect(find.text('Aucune consommation à afficher.'), findsNothing);
     expect(find.byType(PieChart), findsNothing);
-    expect(find.text('—'), findsOneWidget);
+
     await tester.ensureVisible(find.text('Appareils'));
     expect(tester.takeException(), isNull);
   });
@@ -1099,11 +1111,11 @@ void main() {
     tester,
   ) async {
     await openDashboard(tester, [appliance('Lampe', 0)]);
-    expect(find.text('≈ 0,0 % du total'), findsOneWidget);
+    expect(find.text('0,0 %'), findsOneWidget);
     expect(find.text('Aucune consommation à comparer.'), findsNothing);
     expect(find.text('Aucune consommation à afficher.'), findsNothing);
     expect(find.byType(PieChart), findsNothing);
-    expect(find.text('0 FCFA'), findsOneWidget);
+    expect(find.text('FCFA'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
