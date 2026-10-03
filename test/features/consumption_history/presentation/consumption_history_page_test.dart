@@ -155,10 +155,22 @@ void main() {
             .points;
         expect(points.map((p) => p.consumptionKwh), expected.reversed);
         for (final days in [2, 15, 45]) {
-          expect(
-            find.text('Grille $days'),
-            expected.contains(days) ? findsOneWidget : findsNothing,
-          );
+          final value = '${days.toStringAsFixed(2).replaceAll('.', ',')} kWh';
+
+          if (!expected.contains(days)) {
+            expect(find.text(value), findsNothing);
+            continue;
+          }
+
+          if (expected.length == 1) {
+            // Un seul point : la valeur apparaît dans le graphique
+            // et dans la carte historique.
+            expect(find.text(value), findsNWidgets(2));
+          } else {
+            // Plusieurs points : la valeur textuelle complète est affichée
+            // uniquement dans la carte historique.
+            expect(find.text(value), findsOneWidget);
+          }
         }
         expect(tester.takeException(), isNull);
       }
@@ -236,11 +248,26 @@ void main() {
       find.text('${NumberFormat.decimalPattern('fr_FR').format(4551)} FCFA'),
       findsNWidgets(2),
     );
-    expect(find.text('2'), findsNWidgets(2));
-    expect(find.text('Woyofal DPP 2026'), findsNWidgets(2));
+    expect(find.text('2 appareils'), findsNWidgets(2));
+
+    expect(find.text('Woyofal DPP 2026'), findsNothing);
+
+    final date11 = DateFormat(
+      'dd MMM',
+      'fr_FR',
+    ).format(snapshot(11).capturedAt);
+
+    final date10 = DateFormat(
+      'dd MMM',
+      'fr_FR',
+    ).format(snapshot(10).capturedAt);
+
+    expect(find.text(date11), findsOneWidget);
+    expect(find.text(date10), findsOneWidget);
+
     expect(
-      tester.getTopLeft(find.text('11/09/2026 à 08:45')).dy,
-      lessThan(tester.getTopLeft(find.text('10/09/2026 à 08:45')).dy),
+      tester.getTopLeft(find.text(date11)).dy,
+      lessThan(tester.getTopLeft(find.text(date10)).dy),
     );
     expect(tester.takeException(), isNull);
   });
@@ -257,7 +284,13 @@ void main() {
     repository.load = () async => [snapshot(11)];
     await tester.tap(find.text('Réessayer'));
     await tester.pumpAndSettle();
-    expect(find.text('11/09/2026 à 08:45'), findsNWidgets(2));
+    final compactDate = DateFormat(
+      'dd MMM',
+      'fr_FR',
+    ).format(snapshot(11).capturedAt);
+
+    expect(find.text(compactDate), findsOneWidget);
+    expect(find.text('2 appareils'), findsOneWidget);
     expect(repository.calls, 2);
   });
 
@@ -270,7 +303,13 @@ void main() {
     repository.load = () async => [snapshot(11)];
     await tester.drag(find.byType(ListView), const Offset(0, 350));
     await tester.pumpAndSettle();
-    expect(find.text('11/09/2026 à 08:45'), findsNWidgets(2));
+    final compactDate = DateFormat(
+      'dd MMM',
+      'fr_FR',
+    ).format(snapshot(11).capturedAt);
+
+    expect(find.text(compactDate), findsOneWidget);
+    expect(find.text('2 appareils'), findsOneWidget);
     expect(repository.calls, 2);
     expect(tester.takeException(), isNull);
   });

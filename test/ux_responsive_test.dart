@@ -16,8 +16,10 @@ import 'features/consumption_history/presentation/consumption_history_page_test.
 
 void checkLayout(WidgetTester tester) {
   expect(tester.takeException(), isNull);
+
   for (final element in find.byType(RichText).evaluate()) {
     final paragraph = element.renderObject! as RenderParagraph;
+
     expect(
       paragraph.didExceedMaxLines,
       isFalse,

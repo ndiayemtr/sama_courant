@@ -183,11 +183,13 @@ class _ConsumptionHistoryPageState
                           children: [
                             const Icon(Icons.power_outlined, size: 18),
                             const SizedBox(width: 6),
-                            Text(
-                              '${snapshot.activeAppliancesCount} appareils',
-                              style: Theme.of(context).textTheme.bodyMedium,
+                            Expanded(
+                              child: Text(
+                                '${snapshot.activeAppliancesCount} appareils',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
                             ),
-                            const Spacer(),
+                            const SizedBox(width: 8),
                             const Icon(Icons.chevron_right, size: 22),
                           ],
                         ),
@@ -217,21 +219,18 @@ class _HistoryMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: alignEnd
-          ? MainAxisAlignment.end
-          : MainAxisAlignment.start,
+    return Wrap(
+      alignment: alignEnd ? WrapAlignment.end : WrapAlignment.start,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 6,
+      runSpacing: 2,
       children: [
         Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 6),
-        Flexible(
-          child: Text(
-            value,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
+        Text(
+          value,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
       ],
     );
