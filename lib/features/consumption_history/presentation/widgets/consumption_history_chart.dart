@@ -81,7 +81,7 @@ class _ConsumptionHistoryChartState extends State<ConsumptionHistoryChart> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Évolution de la consommation',
+                    'Évolution',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -90,11 +90,6 @@ class _ConsumptionHistoryChartState extends State<ConsumptionHistoryChart> {
               ],
             ),
             const SizedBox(height: 4),
-            Text(
-              'Estimations enregistrées',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 8),
             SegmentedButton<bool>(
               showSelectedIcon: false,
               segments: const [
@@ -220,13 +215,6 @@ class _ConsumptionHistoryChartState extends State<ConsumptionHistoryChart> {
                   ),
                 ),
               ),
-            const SizedBox(height: 4),
-            Text(
-              _showCost
-                  ? 'Coût mensuel estimé (FCFA)'
-                  : 'Consommation mensuelle estimée (kWh)',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
           ],
         ),
       ),

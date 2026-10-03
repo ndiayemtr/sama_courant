@@ -88,13 +88,17 @@ void main() {
         final value = cost
             ? '${NumberFormat.decimalPattern('fr_FR').format(4588)} FCFA'
             : '55,50 kWh';
+        expect(find.text('Évolution'), findsOneWidget);
+
+        expect(find.text('Estimations enregistrées'), findsNothing);
+
         expect(
           find.text(
             cost
                 ? 'Coût mensuel estimé (FCFA)'
                 : 'Consommation mensuelle estimée (kWh)',
           ),
-          findsOneWidget,
+          findsNothing,
         );
         if (count == 1) {
           expect(find.text(value), findsOneWidget);
