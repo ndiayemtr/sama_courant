@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sama_courant/features/appliances/domain/entities/appliance_scan_result.dart';
-import 'package:sama_courant/features/appliances/presentation/pages/ocr_debug_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/budget/data/factories/woyofal_tariff_configuration_factory.dart';
 import '../../features/budget/presentation/pages/tariff_configuration_page.dart';
@@ -68,10 +67,7 @@ final GoRouter appRouter = GoRouter(
         return ApplianceFormPage(appliance: appliance);
       },
     ),
-    GoRoute(
-      path: '/appliances/scan',
-      builder: (context, state) => const OcrDebugPage(),
-    ),
+
     GoRoute(
       path: '/appliances/add-from-scan',
       builder: (context, state) {
