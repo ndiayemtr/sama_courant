@@ -304,6 +304,110 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('tapping a snapshot opens its detail bottom sheet', (
+    tester,
+  ) async {
+    final repository = HistoryRepository()..load = () async => [snapshot(11)];
+
+    await openHistory(tester, repository);
+    await tester.pumpAndSettle();
+
+    final compactDate = DateFormat(
+      'dd MMM',
+      'fr_FR',
+    ).format(snapshot(11).capturedAt);
+
+    await tester.tap(find.text(compactDate));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Détail de l’état'), findsOneWidget);
+
+    expect(
+      find.text(
+        DateFormat(
+          "dd MMMM yyyy 'à' HH:mm",
+          'fr_FR',
+        ).format(snapshot(11).capturedAt),
+      ),
+      findsOneWidget,
+    );
+
+    expect(find.text('Coût estimé'), findsOneWidget);
+    final expectedCost =
+        '${NumberFormat.decimalPattern('fr_FR').format(4551)} FCFA';
+
+    final bottomSheet = find.byType(BottomSheet);
+
+    expect(
+      find.descendant(of: bottomSheet, matching: find.text(expectedCost)),
+      findsOneWidget,
+    );
+
+    expect(
+      find.descendant(of: bottomSheet, matching: find.text('Consommation')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: bottomSheet, matching: find.text('Détail de l’état')),
+      findsOneWidget,
+    );
+
+    expect(
+      find.descendant(
+        of: bottomSheet,
+        matching: find.text(
+          DateFormat(
+            "dd MMMM yyyy 'à' HH:mm",
+            'fr_FR',
+          ).format(snapshot(11).capturedAt),
+        ),
+      ),
+      findsOneWidget,
+    );
+
+    expect(
+      find.descendant(of: bottomSheet, matching: find.text('Coût estimé')),
+      findsOneWidget,
+    );
+
+    expect(
+      find.descendant(of: bottomSheet, matching: find.text(expectedCost)),
+      findsOneWidget,
+    );
+
+    expect(
+      find.descendant(of: bottomSheet, matching: find.text('Consommation')),
+      findsOneWidget,
+    );
+
+    expect(
+      find.descendant(of: bottomSheet, matching: find.text('55,50 kWh')),
+      findsOneWidget,
+    );
+
+    expect(
+      find.descendant(of: bottomSheet, matching: find.text('Appareils actifs')),
+      findsOneWidget,
+    );
+
+    expect(
+      find.descendant(of: bottomSheet, matching: find.text('2')),
+      findsOneWidget,
+    );
+
+    expect(
+      find.descendant(of: bottomSheet, matching: find.text('Tarif')),
+      findsOneWidget,
+    );
+
+    expect(
+      find.descendant(of: bottomSheet, matching: find.text('Woyofal DPP 2026')),
+      findsOneWidget,
+    );
+
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Dashboard opens history and reopening reloads snapshots', (
     tester,
   ) async {

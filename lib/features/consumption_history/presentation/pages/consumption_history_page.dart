@@ -5,6 +5,7 @@ import '../../../../core/widgets/empty_state_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../domain/entities/consumption_snapshot.dart';
 import '../../domain/providers/consumption_history_chart_service_provider.dart';
 import '../widgets/consumption_history_chart.dart';
 
@@ -133,67 +134,72 @@ class _ConsumptionHistoryPageState
 
                 return Card.filled(
                   margin: EdgeInsets.zero,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                DateFormat(
-                                  'dd MMM',
-                                  'fr_FR',
-                                ).format(snapshot.capturedAt),
-                                style: Theme.of(context).textTheme.titleSmall
-                                    ?.copyWith(fontWeight: FontWeight.w700),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () =>
+                        _showSnapshotDetails(context, snapshot, decimal, fcfa),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  DateFormat(
+                                    'dd MMM',
+                                    'fr_FR',
+                                  ).format(snapshot.capturedAt),
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
                               ),
-                            ),
-                            Text(
-                              DateFormat('HH:mm').format(snapshot.capturedAt),
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _HistoryMetric(
-                                icon: Icons.bolt_outlined,
-                                value:
-                                    '${decimal.format(snapshot.totalMonthlyConsumptionKwh)} kWh',
+                              Text(
+                                DateFormat('HH:mm').format(snapshot.capturedAt),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.w600),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _HistoryMetric(
-                                icon: Icons.payments_outlined,
-                                value:
-                                    '${fcfa.format(snapshot.totalMonthlyCostFcfa.round())} FCFA',
-                                alignEnd: true,
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _HistoryMetric(
+                                  icon: Icons.bolt_outlined,
+                                  value:
+                                      '${decimal.format(snapshot.totalMonthlyConsumptionKwh)} kWh',
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            const Icon(Icons.power_outlined, size: 18),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                '${snapshot.activeAppliancesCount} appareils',
-                                style: Theme.of(context).textTheme.bodyMedium,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _HistoryMetric(
+                                  icon: Icons.payments_outlined,
+                                  value:
+                                      '${fcfa.format(snapshot.totalMonthlyCostFcfa.round())} FCFA',
+                                  alignEnd: true,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.chevron_right, size: 22),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              const Icon(Icons.power_outlined, size: 18),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  '${snapshot.activeAppliancesCount} appareils',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.chevron_right, size: 22),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -202,6 +208,79 @@ class _ConsumptionHistoryPageState
           );
         },
       ),
+    );
+  }
+
+  void _showSnapshotDetails(
+    BuildContext context,
+    ConsumptionSnapshot snapshot,
+    NumberFormat decimal,
+    NumberFormat fcfa,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Détail de l’état',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Fermer',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  DateFormat(
+                    "dd MMMM yyyy 'à' HH:mm",
+                    'fr_FR',
+                  ).format(snapshot.capturedAt),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 20),
+                _HistoryDetailRow(
+                  icon: Icons.payments_outlined,
+                  label: 'Coût estimé',
+                  value:
+                      '${fcfa.format(snapshot.totalMonthlyCostFcfa.round())} FCFA',
+                ),
+                _HistoryDetailRow(
+                  icon: Icons.bolt_outlined,
+                  label: 'Consommation',
+                  value:
+                      '${decimal.format(snapshot.totalMonthlyConsumptionKwh)} kWh',
+                ),
+                _HistoryDetailRow(
+                  icon: Icons.power_outlined,
+                  label: 'Appareils actifs',
+                  value: '${snapshot.activeAppliancesCount}',
+                ),
+                _HistoryDetailRow(
+                  icon: Icons.receipt_long_outlined,
+                  label: 'Tarif',
+                  value: snapshot.tariffConfigurationName,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -233,6 +312,44 @@ class _HistoryMetric extends StatelessWidget {
           ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
       ],
+    );
+  }
+}
+
+class _HistoryDetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _HistoryDetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 22, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+          ),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
