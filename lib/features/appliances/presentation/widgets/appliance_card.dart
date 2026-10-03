@@ -11,6 +11,8 @@ class ApplianceCard extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onViewTariffDetails;
+  final bool isMostConsuming;
+  final double contributionPercentage;
 
   const ApplianceCard({
     super.key,
@@ -19,6 +21,8 @@ class ApplianceCard extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onViewTariffDetails,
+    this.isMostConsuming = false,
+    this.contributionPercentage = 0,
   });
 
   @override

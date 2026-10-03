@@ -377,6 +377,16 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
       (total, appliance) => total + appliance.monthlyConsumptionKwh,
     );
 
+    Appliance? mostConsumingAppliance;
+
+    for (final appliance in activeAppliances) {
+      if (mostConsumingAppliance == null ||
+          appliance.monthlyConsumptionKwh >
+              mostConsumingAppliance.monthlyConsumptionKwh) {
+        mostConsumingAppliance = appliance;
+      }
+    }
+
     final totalTariffResult = tariffService.tariffEngine.calculate(
       consumptionKwh: totalMonthlyConsumptionKwh,
       configuration: tariffConfiguration,
@@ -409,9 +419,21 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
               configuration: tariffConfiguration,
             );
 
+        final contributionPercentage =
+            !appliance.isActive || totalMonthlyConsumptionKwh <= 0
+            ? 0.0
+            : appliance.monthlyConsumptionKwh /
+                  totalMonthlyConsumptionKwh *
+                  100;
+
+        final isMostConsuming =
+            appliance.isActive && identical(appliance, mostConsumingAppliance);
+
         return ApplianceCard(
           appliance: appliance,
           monthlyCostFcfa: allocatedMonthlyCost,
+          isMostConsuming: isMostConsuming,
+          contributionPercentage: contributionPercentage,
           onViewTariffDetails: () {
             _showTariffDetails(
               context,
@@ -674,36 +696,45 @@ class _MonthlySummaryCard extends StatelessWidget {
     return Card.filled(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Résumé mensuel',
-              style: Theme.of(context).textTheme.titleSmall,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
-            const SizedBox(height: 4),
-            _MonthlySummaryRow(
-              icon: Icons.power_outlined,
-              label: 'Appareils actifs',
-              value: activeAppliancesCount.toString(),
-            ),
-
-            const SizedBox(height: 12),
-
-            _MonthlySummaryRow(
-              icon: Icons.bolt_outlined,
-              label: 'Consommation totale',
-              value: '${decimal.format(totalConsumptionKwh)} kWh',
-            ),
-
-            const SizedBox(height: 12),
-
-            _MonthlySummaryRow(
-              icon: Icons.payments_outlined,
-              label: 'Coût mensuel estimé',
-              value: '${fcfa.format(totalCostFcfa.round())} FCFA',
-              emphasize: true,
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _MonthlySummaryMetric(
+                    icon: Icons.power_outlined,
+                    label: 'Appareils actifs',
+                    value: activeAppliancesCount.toString(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _MonthlySummaryMetric(
+                    icon: Icons.bolt_outlined,
+                    label: 'Consommation totale',
+                    value: '${decimal.format(totalConsumptionKwh)} kWh',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _MonthlySummaryMetric(
+                    icon: Icons.payments_outlined,
+                    label: 'Coût estimé',
+                    value: '${fcfa.format(totalCostFcfa.round())} FCFA',
+                    emphasize: true,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -755,13 +786,15 @@ class _TariffDetailRow extends StatelessWidget {
   }
 }
 
-class _MonthlySummaryRow extends StatelessWidget {
+enum _AddApplianceMode { scan, manual }
+
+class _MonthlySummaryMetric extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
   final bool emphasize;
 
-  const _MonthlySummaryRow({
+  const _MonthlySummaryMetric({
     required this.icon,
     required this.label,
     required this.value,
@@ -770,30 +803,33 @@ class _MonthlySummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
 
-    return Row(
+    return Column(
       children: [
-        Icon(icon, size: 22, color: colorScheme.primary),
-        const SizedBox(width: 12),
-
-        Expanded(
-          child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        Icon(
+          icon,
+          size: 26,
+          color: emphasize
+              ? theme.colorScheme.tertiary
+              : theme.colorScheme.primary,
         ),
-
-        const SizedBox(width: 16),
-
+        const SizedBox(height: 8),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodySmall,
+        ),
+        const SizedBox(height: 4),
         Text(
           value,
-          textAlign: TextAlign.right,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w700,
-            color: emphasize ? colorScheme.primary : null,
+            color: emphasize ? theme.colorScheme.tertiary : null,
           ),
         ),
       ],
     );
   }
 }
-
-enum _AddApplianceMode { scan, manual }
