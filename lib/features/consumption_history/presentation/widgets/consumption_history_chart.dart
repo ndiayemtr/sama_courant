@@ -17,7 +17,7 @@ class ConsumptionHistoryChart extends StatefulWidget {
 }
 
 class _ConsumptionHistoryChartState extends State<ConsumptionHistoryChart> {
-  bool _showCost = false;
+  bool _showCost = true;
   List<ConsumptionHistoryPoint> get points => widget.points;
   double _value(ConsumptionHistoryPoint point) =>
       _showCost ? point.costFcfa : point.consumptionKwh;
@@ -63,7 +63,10 @@ class _ConsumptionHistoryChartState extends State<ConsumptionHistoryChart> {
       (maxValue, point) => _value(point) > maxValue ? _value(point) : maxValue,
     );
 
-    final maxY = maxConsumption <= 0 ? 1.0 : maxConsumption * 1.15;
+    final rawMaxY = maxConsumption <= 0 ? 1.0 : maxConsumption * 1.15;
+    final yInterval = _horizontalInterval(rawMaxY);
+
+    final maxY = math.max(yInterval, (rawMaxY / yInterval).ceil() * yInterval);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -93,8 +96,8 @@ class _ConsumptionHistoryChartState extends State<ConsumptionHistoryChart> {
             SegmentedButton<bool>(
               showSelectedIcon: false,
               segments: const [
-                ButtonSegment(value: false, label: Text('Consommation')),
                 ButtonSegment(value: true, label: Text('Coût')),
+                ButtonSegment(value: false, label: Text('Consommation')),
               ],
               selected: {_showCost},
               onSelectionChanged: (selection) =>
@@ -107,113 +110,164 @@ class _ConsumptionHistoryChartState extends State<ConsumptionHistoryChart> {
                 formattedValue: '${formatted(_value(points.first))} $unit',
               )
             else
-              SizedBox(
-                height: 210,
-                child: LineChart(
-                  LineChartData(
-                    minX: minX,
-                    maxX: maxX,
-                    minY: 0,
-                    maxY: maxY,
-                    gridData: FlGridData(
-                      show: true,
-                      drawVerticalLine: false,
-                      horizontalInterval: _horizontalInterval(maxY),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    titlesData: FlTitlesData(
-                      topTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                      rightTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: _showCost ? 64 : 46,
-                          interval: _horizontalInterval(maxY),
-                          getTitlesWidget: (value, meta) {
-                            return SideTitleWidget(
-                              meta: meta,
-                              child: Text(
-                                formatted(value),
-                                style: Theme.of(context).textTheme.labelSmall,
-                              ),
-                            );
-                          },
+              Column(
+                children: [
+                  SizedBox(
+                    height: 160,
+                    child: LineChart(
+                      LineChartData(
+                        minX: minX,
+                        maxX: maxX,
+                        minY: 0,
+                        maxY: maxY,
+                        gridData: FlGridData(
+                          show: true,
+                          drawVerticalLine: false,
+                          horizontalInterval: yInterval,
                         ),
-                      ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 32,
-                          interval: 1,
-                          getTitlesWidget: (value, meta) {
-                            final label = labels[value.toInt()];
-                            if (value != value.toInt() || label == null) {
-                              return const SizedBox.shrink();
-                            }
+                        borderData: FlBorderData(show: false),
+                        titlesData: FlTitlesData(
+                          topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: _showCost ? 64 : 46,
+                              interval: yInterval,
+                              getTitlesWidget: (value, meta) {
+                                return SideTitleWidget(
+                                  meta: meta,
+                                  child: Text(
+                                    formatted(value),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.labelSmall,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 32,
+                              interval: 1,
+                              getTitlesWidget: (value, meta) {
+                                final label = labels[value.toInt()];
 
-                            return SideTitleWidget(
-                              meta: meta,
-                              fitInside: SideTitleFitInsideData(
-                                enabled: true,
-                                axisPosition: meta.axisPosition,
-                                parentAxisSize: meta.parentAxisSize,
-                                distanceFromEdge: 0,
-                              ),
-                              child: Text(
-                                label,
-                                style: Theme.of(context).textTheme.labelSmall,
-                              ),
-                            );
-                          },
+                                if (value != value.toInt() || label == null) {
+                                  return const SizedBox.shrink();
+                                }
+
+                                return SideTitleWidget(
+                                  meta: meta,
+                                  fitInside: SideTitleFitInsideData(
+                                    enabled: true,
+                                    axisPosition: meta.axisPosition,
+                                    parentAxisSize: meta.parentAxisSize,
+                                    distanceFromEdge: 0,
+                                  ),
+                                  child: Text(
+                                    label,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.labelSmall,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                         ),
+                        lineTouchData: LineTouchData(
+                          enabled: true,
+                          handleBuiltInTouches: true,
+                          touchSpotThreshold: 24,
+                          touchTooltipData: LineTouchTooltipData(
+                            fitInsideHorizontally: true,
+                            fitInsideVertically: true,
+                            getTooltipColor: (_) =>
+                                Theme.of(context).colorScheme.inverseSurface,
+                            getTooltipItems: (touchedSpots) {
+                              return touchedSpots.map((spot) {
+                                final point = points[spot.spotIndex];
+
+                                return LineTooltipItem(
+                                  '${formatted(_value(point))} $unit\n'
+                                  '${tooltipDateFormatter.format(point.capturedAt)}',
+                                  TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onInverseSurface,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                );
+                              }).toList();
+                            },
+                          ),
+                        ),
+                        lineBarsData: [
+                          LineChartBarData(
+                            spots: spots,
+                            isCurved: points.length > 2,
+                            color: Theme.of(context).colorScheme.primary,
+                            barWidth: 3,
+                            isStrokeCapRound: true,
+                            dotData: FlDotData(
+                              show: true,
+                              getDotPainter: (spot, percent, barData, index) {
+                                return FlDotCirclePainter(
+                                  radius: 5,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  strokeWidth: 2,
+                                  strokeColor: Theme.of(
+                                    context,
+                                  ).colorScheme.surface,
+                                );
+                              },
+                            ),
+                            belowBarData: BarAreaData(
+                              show: true,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer
+                                  .withValues(alpha: 0.18),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    lineTouchData: LineTouchData(
-                      enabled: true,
-                      touchTooltipData: LineTouchTooltipData(
-                        fitInsideHorizontally: true,
-                        fitInsideVertically: true,
-                        getTooltipColor: (_) =>
-                            Theme.of(context).colorScheme.inverseSurface,
-                        getTooltipItems: (touchedSpots) {
-                          return touchedSpots.map((spot) {
-                            final point = points[spot.spotIndex];
+                  ),
 
-                            return LineTooltipItem(
-                              '${formatted(_value(point))} $unit\n'
-                              '${tooltipDateFormatter.format(point.capturedAt)}',
-                              TextStyle(
+                  const SizedBox(height: 8),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.touch_app_outlined,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          'Touchez un point pour voir le détail',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.onInverseSurface,
-                                fontWeight: FontWeight.w600,
+                                ).colorScheme.onSurfaceVariant,
                               ),
-                            );
-                          }).toList();
-                        },
-                      ),
-                    ),
-                    lineBarsData: [
-                      LineChartBarData(
-                        spots: spots,
-                        isCurved: points.length > 2,
-                        color: Theme.of(context).colorScheme.primary,
-                        barWidth: 3,
-                        isStrokeCapRound: true,
-                        dotData: const FlDotData(show: true),
-                        belowBarData: BarAreaData(
-                          show: true,
-                          color: Theme.of(context).colorScheme.primaryContainer
-                              .withValues(alpha: 0.35),
                         ),
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
           ],
         ),

@@ -117,13 +117,7 @@ void main() {
             points.map((p) => cost ? p.costFcfa : p.consumptionKwh),
           );
           expect(data.minY, 0);
-          expect(
-            data.maxY,
-            closeTo(
-              (cost ? points.last.costFcfa : points.last.consumptionKwh) * 1.15,
-              0.001,
-            ),
-          );
+          expect(data.maxY, cost ? 6000 : 80);
           expect(
             data.lineTouchData.touchTooltipData
                 .getTooltipItems([LineBarSpot(bar, 0, bar.spots.first)])
@@ -159,6 +153,8 @@ void main() {
           home: Scaffold(body: ConsumptionHistoryChart(points: points)),
         ),
       );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Consommation'));
       await tester.pumpAndSettle();
       final data = tester.widget<LineChart>(find.byType(LineChart)).data;
       expect(data.lineBarsData.single.spots.length, count);
@@ -206,6 +202,8 @@ void main() {
         home: Scaffold(body: ConsumptionHistoryChart(points: points)),
       ),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Consommation'));
     await tester.pumpAndSettle();
     final data = tester.widget<LineChart>(find.byType(LineChart)).data;
     expect(find.text('11/09'), findsOneWidget);
