@@ -93,6 +93,39 @@ class ApplianceCard extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+
+                      if (isMostConsuming) ...[
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.errorContainer,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.bar_chart,
+                                size: 16,
+                                color: theme.colorScheme.onErrorContainer,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Plus énergivore',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: theme.colorScheme.onErrorContainer,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+
                       const SizedBox(height: 4),
 
                       Wrap(
