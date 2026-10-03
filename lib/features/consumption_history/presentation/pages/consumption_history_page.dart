@@ -27,7 +27,6 @@ class _ConsumptionHistoryPageState
     final history = ref.watch(consumptionHistoryProvider);
     final decimal = NumberFormat('0.00', 'fr_FR');
     final fcfa = NumberFormat.decimalPattern('fr_FR');
-    final date = DateFormat("dd/MM/yyyy 'à' HH:mm", 'fr_FR');
     return Scaffold(
       appBar: pageAppBar(
         context: context,
@@ -139,42 +138,58 @@ class _ConsumptionHistoryPageState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          date.format(snapshot.capturedAt),
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                DateFormat(
+                                  'dd MMM',
+                                  'fr_FR',
+                                ).format(snapshot.capturedAt),
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                            Text(
+                              DateFormat('HH:mm').format(snapshot.capturedAt),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                          ],
                         ),
-
-                        const SizedBox(height: 8),
-                        const Divider(height: 1),
                         const SizedBox(height: 12),
-
-                        _HistoryInfoRow(
-                          label: 'Consommation estimée',
-                          value:
-                              '${decimal.format(snapshot.totalMonthlyConsumptionKwh)} kWh',
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _HistoryMetric(
+                                icon: Icons.bolt_outlined,
+                                value:
+                                    '${decimal.format(snapshot.totalMonthlyConsumptionKwh)} kWh',
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _HistoryMetric(
+                                icon: Icons.payments_outlined,
+                                value:
+                                    '${fcfa.format(snapshot.totalMonthlyCostFcfa.round())} FCFA',
+                                alignEnd: true,
+                              ),
+                            ),
+                          ],
                         ),
-
-                        const SizedBox(height: 8),
-
-                        _HistoryInfoRow(
-                          label: 'Coût estimé',
-                          value:
-                              '${fcfa.format(snapshot.totalMonthlyCostFcfa.round())} FCFA',
-                        ),
-
-                        const SizedBox(height: 8),
-
-                        _HistoryInfoRow(
-                          label: 'Appareils actifs',
-                          value: snapshot.activeAppliancesCount.toString(),
-                        ),
-
-                        const SizedBox(height: 8),
-
-                        _HistoryInfoRow(
-                          label: 'Tarif',
-                          value: snapshot.tariffConfigurationName,
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            const Icon(Icons.power_outlined, size: 18),
+                            const SizedBox(width: 6),
+                            Text(
+                              '${snapshot.activeAppliancesCount} appareils',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            const Spacer(),
+                            const Icon(Icons.chevron_right, size: 22),
+                          ],
                         ),
                       ],
                     ),
@@ -189,30 +204,33 @@ class _ConsumptionHistoryPageState
   }
 }
 
-class _HistoryInfoRow extends StatelessWidget {
-  final String label;
+class _HistoryMetric extends StatelessWidget {
+  final IconData icon;
   final String value;
+  final bool alignEnd;
 
-  const _HistoryInfoRow({required this.label, required this.value});
+  const _HistoryMetric({
+    required this.icon,
+    required this.value,
+    this.alignEnd = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: alignEnd
+          ? MainAxisAlignment.end
+          : MainAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 3,
-          child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          flex: 2,
+        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 6),
+        Flexible(
           child: Text(
             value,
-            textAlign: TextAlign.right,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
         ),
       ],
