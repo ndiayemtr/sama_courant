@@ -157,20 +157,10 @@ void main() {
         for (final days in [2, 15, 45]) {
           final value = '${days.toStringAsFixed(2).replaceAll('.', ',')} kWh';
 
-          if (!expected.contains(days)) {
-            expect(find.text(value), findsNothing);
-            continue;
-          }
-
-          if (expected.length == 1) {
-            // Un seul point : la valeur apparaît dans le graphique
-            // et dans la carte historique.
-            expect(find.text(value), findsNWidgets(2));
-          } else {
-            // Plusieurs points : la valeur textuelle complète est affichée
-            // uniquement dans la carte historique.
-            expect(find.text(value), findsOneWidget);
-          }
+          expect(
+            find.text(value),
+            expected.contains(days) ? findsOneWidget : findsNothing,
+          );
         }
         expect(tester.takeException(), isNull);
       }
