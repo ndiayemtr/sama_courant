@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:intl/intl.dart';
+import 'package:sama_courant/core/presentation/utils/appliance_colors.dart';
 
 import '../../../appliances/presentation/providers/appliances_provider.dart';
 import '../../../budget/data/factories/woyofal_tariff_configuration_factory.dart';
@@ -323,6 +324,11 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                       const SizedBox(height: 14),
 
                                       LinearProgressIndicator(
+                                        color:
+                                            ApplianceChartColors.forApplianceId(
+                                              mostConsuming.id,
+                                              mostConsuming.name,
+                                            ),
                                         value: summary.consumptionKwh <= 0
                                             ? 0
                                             : (mostConsuming

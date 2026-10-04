@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sama_courant/core/presentation/utils/appliance_colors.dart';
 import 'package:sama_courant/features/appliances/domain/entities/usage_frequency.dart';
 import 'package:sama_courant/features/appliances/presentation/models/appliance_visual.dart';
 
@@ -27,9 +28,13 @@ class ApplianceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final applianceColor = ApplianceChartColors.forApplianceId(
+      appliance.id,
+      appliance.name,
+    );
     final fcfaFormatter = NumberFormat.decimalPattern('fr_FR');
     final decimalFormatter = NumberFormat('0.00', 'fr_FR');
-    final usageText = _buildUsageText(appliance);
+    final usageDisplay = _buildUsageDisplay(appliance);
     final theme = Theme.of(context);
 
     final visual = ApplianceVisualCatalog.resolve(
@@ -74,14 +79,9 @@ class ApplianceCard extends StatelessWidget {
                             fit: BoxFit.contain,
                           ),
                         )
-                      : Icon(
-                          visual.icon,
-                          size: 34,
-                          color: theme.colorScheme.primary,
-                        ),
+                      : Icon(visual.icon, size: 34, color: applianceColor),
                 ),
                 const SizedBox(width: 12),
-                const SizedBox(width: 10),
 
                 Expanded(
                   child: Column(
@@ -231,101 +231,59 @@ class ApplianceCard extends StatelessWidget {
 
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: _InfoItem(label: 'Utilisation', value: usageText),
+                    flex: 34,
+                    child: _MetricItem(
+                      icon: Icons.schedule_outlined,
+                      label: 'Utilisation',
+                      primaryValue: usageDisplay.primary,
+                      secondaryValue: usageDisplay.secondary,
+                      iconColor: theme.colorScheme.primary,
+                    ),
                   ),
-
-                  const SizedBox(width: 12),
-
+                  const SizedBox(width: 4),
                   Expanded(
-                    child: _InfoItem(
-                      label: 'Conso / mois',
-                      value:
+                    flex: 30,
+                    child: _MetricItem(
+                      icon: Icons.bolt,
+                      label: 'Conso/mois',
+                      primaryValue:
                           '${decimalFormatter.format(appliance.monthlyConsumptionKwh)} kWh',
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      textAlign: TextAlign.right,
+                      iconColor: Colors.green,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    flex: 36,
+                    child: InkWell(
+                      onTap: onViewTariffDetails,
+                      borderRadius: BorderRadius.circular(8),
+                      child: _MetricItem(
+                        icon: Icons.payments_outlined,
+                        label: 'Coût estimé',
+                        primaryValue:
+                            '${fcfaFormatter.format(monthlyCostFcfa.round())} FCFA',
+                        iconColor: Colors.orange,
+                        valueColor: Colors.orange,
+                        showChevron: true,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 8),
-
-            InkWell(
-              onTap: onViewTariffDetails,
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                width: double.infinity,
-                constraints: const BoxConstraints(minHeight: 52),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(
-                    alpha: 0.45,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.payments_outlined,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 10),
-
-                    Expanded(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final label = Text(
-                            'Part mensuelle estimée',
-                            style: theme.textTheme.bodyMedium,
-                          );
-                          final value = Text(
-                            '${fcfaFormatter.format(monthlyCostFcfa.round())} FCFA',
-                            textAlign: TextAlign.right,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.primary,
-                            ),
-                          );
-                          if (constraints.maxWidth /
-                                  MediaQuery.textScalerOf(context).scale(1) <
-                              240) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                label,
-                                const SizedBox(height: 4),
-                                value,
-                              ],
-                            );
-                          }
-                          return Row(
-                            children: [
-                              Expanded(child: label),
-                              const SizedBox(width: 12),
-                              Flexible(child: value),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-
-                    const Icon(Icons.chevron_right, size: 20),
-                  ],
-                ),
-              ),
+            const SizedBox(height: 10),
+            _ContributionBar(
+              percentage: contributionPercentage,
+              color: applianceColor,
             ),
           ],
         ),
@@ -333,24 +291,28 @@ class ApplianceCard extends StatelessWidget {
     );
   }
 
-  String _buildUsageText(Appliance appliance) {
+  _UsageDisplay _buildUsageDisplay(Appliance appliance) {
     if (!appliance.usesNewUsageModel) {
-      return _buildLegacyUsageText(appliance);
+      return _buildLegacyUsageDisplay(appliance);
     }
 
     final duration = _formatDuration(appliance.usageDurationMinutes!);
-
     final count = appliance.usageCount!;
     final frequency = _frequencyLabel(appliance.usageFrequency!);
 
-    return '$duration • $count fois $frequency';
+    return _UsageDisplay(
+      primary: duration,
+      secondary: '$count fois $frequency',
+    );
   }
 
-  String _buildLegacyUsageText(Appliance appliance) {
+  _UsageDisplay _buildLegacyUsageDisplay(Appliance appliance) {
     final hoursFormatter = NumberFormat('0.##', 'fr_FR');
 
-    return '${hoursFormatter.format(appliance.hoursPerDay)} h/j'
-        ' • ${appliance.daysPerMonth} j/mois';
+    return _UsageDisplay(
+      primary: '${hoursFormatter.format(appliance.hoursPerDay)} h/jour',
+      secondary: '${appliance.daysPerMonth} j/mois',
+    );
   }
 
   String _formatDuration(int minutes) {
@@ -382,17 +344,23 @@ class ApplianceCard extends StatelessWidget {
 
 enum _ApplianceAction { edit, delete }
 
-class _InfoItem extends StatelessWidget {
+class _MetricItem extends StatelessWidget {
+  final IconData icon;
   final String label;
-  final String value;
-  final CrossAxisAlignment crossAxisAlignment;
-  final TextAlign textAlign;
+  final String primaryValue;
+  final String? secondaryValue;
+  final Color? iconColor;
+  final Color? valueColor;
+  final bool showChevron;
 
-  const _InfoItem({
+  const _MetricItem({
+    required this.icon,
     required this.label,
-    required this.value,
-    this.crossAxisAlignment = CrossAxisAlignment.start,
-    this.textAlign = TextAlign.start,
+    required this.primaryValue,
+    this.secondaryValue,
+    this.iconColor,
+    this.valueColor,
+    this.showChevron = false,
   });
 
   @override
@@ -400,19 +368,100 @@ class _InfoItem extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Column(
-      crossAxisAlignment: crossAxisAlignment,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, textAlign: textAlign, style: theme.textTheme.bodySmall),
+        Row(
+          children: [
+            Icon(icon, size: 16, color: iconColor ?? theme.colorScheme.primary),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 4),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                primaryValue,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: valueColor ?? theme.colorScheme.onSurface,
+                ),
+              ),
+            ),
+            if (showChevron) const Icon(Icons.chevron_right, size: 16),
+          ],
+        ),
+        if (secondaryValue != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            secondaryValue!,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _ContributionBar extends StatelessWidget {
+  final double percentage;
+  final Color color;
+
+  const _ContributionBar({required this.percentage, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final formatter = NumberFormat('0.0', 'fr_FR');
+
+    final progress = (percentage / 100).clamp(0.0, 1.0);
+
+    return Row(
+      children: [
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(99),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
         Text(
-          value,
-          textAlign: textAlign,
-          style: theme.textTheme.bodyLarge?.copyWith(
+          '${formatter.format(percentage)} % du total',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
-            height: 1.2,
           ),
         ),
       ],
     );
   }
+}
+
+class _UsageDisplay {
+  final String primary;
+  final String secondary;
+
+  const _UsageDisplay({required this.primary, required this.secondary});
 }

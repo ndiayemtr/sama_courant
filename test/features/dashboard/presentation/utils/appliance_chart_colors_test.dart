@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sama_courant/features/dashboard/presentation/utils/appliance_chart_colors.dart';
+import 'package:sama_courant/core/presentation/utils/appliance_colors.dart';
 
 void main() {
   test('same appliance id always returns the same color', () {

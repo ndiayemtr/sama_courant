@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sama_courant/core/presentation/utils/appliance_colors.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sama_courant/features/analysis/presentation/pages/analysis_page.dart';
 import 'package:sama_courant/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -137,6 +138,45 @@ Future<void> openAnalytics(
 }
 
 void main() {
+  for (final id in [7, 12, null]) {
+    testWidgets('Dashboard couleur stable du plus énergivore id=$id', (
+      tester,
+    ) async {
+      final device = Appliance(
+        id: id,
+        name: 'Appareil principal',
+        category: 'Maison',
+        powerWatts: 100,
+        quantity: 1,
+        hoursPerDay: 2,
+        daysPerMonth: 30,
+        isActive: true,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appliancesProvider.overrideWith(
+              () => AnalysisTestNotifier(AppliancesState(appliances: [device])),
+            ),
+          ],
+          child: const MaterialApp(home: DashboardPage()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      final progress = tester.widget<LinearProgressIndicator>(
+        find.byType(LinearProgressIndicator),
+      );
+      expect(
+        progress.color,
+        ApplianceChartColors.forApplianceId(device.id, device.name),
+      );
+      expect(progress.value, 1);
+    });
+  }
+
   testWidgets('MVP refreshes after add edit toggle and last deletion', (
     tester,
   ) async {

@@ -807,12 +807,21 @@ class _MonthlySummaryMetric extends StatelessWidget {
 
     return Column(
       children: [
-        Icon(
-          icon,
-          size: 26,
-          color: emphasize
-              ? theme.colorScheme.tertiary
-              : theme.colorScheme.primary,
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: emphasize
+                ? theme.colorScheme.primaryContainer
+                : theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(
+            icon,
+            color: emphasize
+                ? theme.colorScheme.onPrimaryContainer
+                : theme.colorScheme.primary,
+          ),
         ),
         const SizedBox(height: 8),
         Text(

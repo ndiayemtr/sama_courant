@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sama_courant/features/dashboard/presentation/utils/appliance_chart_colors.dart';
+import 'package:sama_courant/core/presentation/utils/appliance_colors.dart';
 
 import '../providers/dashboard_provider.dart';
 import '../../../appliances/presentation/models/appliance_visual.dart';

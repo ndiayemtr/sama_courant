@@ -10,6 +10,15 @@ class ApplianceChartColors {
     Color(0xFF00838F),
     Color(0xFF5D4037),
     Color(0xFFAD1457),
+
+    Color(0xFF3949AB),
+    Color(0xFF00897B),
+    Color(0xFFF9A825),
+    Color(0xFF7CB342),
+    Color(0xFFD81B60),
+    Color(0xFF00ACC1),
+    Color(0xFF8E24AA),
+    Color(0xFF546E7A),
   ];
 
   static Color forApplianceId(int? applianceId, String name) {
