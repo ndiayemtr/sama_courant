@@ -16,8 +16,8 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       final theme = ThemeData(useMaterial3: true);
       for (final id in [7, 12, null]) {
-        // Le badge présente déjà un overflow mobile (tests de page existants).
-        for (final highlighted in width == 800 ? [false, true] : [false]) {
+        // Vérifie aussi le badge sur les petites largeurs.
+        for (final highlighted in [false, true]) {
           final appliance = Appliance(
             id: id,
             name: 'Ancien appareil au nom long',
@@ -51,7 +51,7 @@ void main() {
           for (final entry in {
             Icons.schedule_outlined: theme.colorScheme.primary,
             Icons.bolt: Colors.green,
-            Icons.monetization_on: Colors.orange,
+            Icons.payments_outlined: Colors.orange,
             Icons.electrical_services_outlined: color,
           }.entries) {
             expect(

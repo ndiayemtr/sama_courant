@@ -235,9 +235,10 @@ void main() {
     // Informations principales.
     expect(find.text('Réfrigérateur'), findsOneWidget);
     expect(find.text('Actif'), findsOneWidget);
-    expect(find.text('10 h/j • 30 j/mois'), findsOneWidget);
+    expect(find.text('10 h/jour'), findsOneWidget);
+    expect(find.text('30 j/mois'), findsOneWidget);
     expect(find.text('45,00 kWh'), findsOneWidget);
-    expect(find.text('Part mensuelle estimée'), findsOneWidget);
+    expect(find.text('Coût estimé'), findsOneWidget);
     expect(find.textContaining('FCFA'), findsOneWidget);
 
     // Les actions ne sont plus directement visibles.
@@ -245,7 +246,7 @@ void main() {
     expect(find.text('Supprimer'), findsNothing);
 
     // Détail tarifaire.
-    await tester.tap(find.text('Part mensuelle estimée'));
+    await tester.tap(find.text('Coût estimé'));
     await tester.pump();
 
     expect(details, isTrue);
@@ -298,7 +299,8 @@ void main() {
 
     expect(find.text('Mes appareils'), findsOneWidget);
     expect(find.text('Réfrigérateur'), findsOneWidget);
-    expect(find.text('10 h/j • 30 j/mois'), findsOneWidget);
+    expect(find.text('10 h/jour'), findsOneWidget);
+    expect(find.text('30 j/mois'), findsOneWidget);
     expect(
       find.descendant(
         of: find.byType(ApplianceCard),
@@ -417,9 +419,10 @@ void main() {
 
     expect(find.text('Utilisation'), findsOneWidget);
 
-    expect(find.text('30 min • 2 fois / semaine'), findsOneWidget);
+    expect(find.text('30 min'), findsOneWidget);
+    expect(find.text('2 fois / semaine'), findsOneWidget);
 
-    expect(find.text('Conso / mois'), findsOneWidget);
+    expect(find.text('Conso/mois'), findsOneWidget);
 
     expect(find.text('6,93 kWh'), findsOneWidget);
 
@@ -469,7 +472,12 @@ void main() {
         },
         home: Scaffold(
           body: SingleChildScrollView(
-            child: ApplianceCard(appliance: appliance, monthlyCostFcfa: 600),
+            child: ApplianceCard(
+              appliance: appliance,
+              monthlyCostFcfa: 600,
+              isMostConsuming: true,
+              contributionPercentage: 100,
+            ),
           ),
         ),
       ),
@@ -479,8 +487,20 @@ void main() {
 
     expect(find.text('Fer à repasser'), findsOneWidget);
     expect(find.text('Utilisation'), findsOneWidget);
-    expect(find.text('30 min • 2 fois / semaine'), findsOneWidget);
-    expect(find.text('Conso / mois'), findsOneWidget);
+    expect(find.text('Coût estimé'), findsOneWidget);
+    expect(find.text('Plus énergivore'), findsOneWidget);
+    expect(find.text('100,0 % du total'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    final usageRect = tester.getRect(find.text('Utilisation'));
+    final consumptionRect = tester.getRect(find.text('Conso/mois'));
+    final costRect = tester.getRect(find.text('Coût estimé'));
+    expect(usageRect.top, consumptionRect.top);
+    expect(consumptionRect.top, costRect.top);
+    expect(usageRect.right, lessThan(consumptionRect.left));
+    expect(consumptionRect.right, lessThan(costRect.left));
+    expect(find.text('30 min'), findsOneWidget);
+    expect(find.text('2 fois / semaine'), findsOneWidget);
+    expect(find.text('Conso/mois'), findsOneWidget);
     expect(find.text('6,93 kWh'), findsOneWidget);
 
     expect(find.text('Conso / jour'), findsNothing);

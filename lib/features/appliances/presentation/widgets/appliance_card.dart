@@ -114,11 +114,13 @@ class ApplianceCard extends StatelessWidget {
                                 color: theme.colorScheme.onErrorContainer,
                               ),
                               const SizedBox(width: 6),
-                              Text(
-                                'Plus énergivore',
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: theme.colorScheme.onErrorContainer,
+                              Flexible(
+                                child: Text(
+                                  'Plus énergivore',
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: theme.colorScheme.onErrorContainer,
+                                  ),
                                 ),
                               ),
                             ],
@@ -447,11 +449,14 @@ class _ContributionBar extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        Text(
-          '${formatter.format(percentage)} % du total',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w600,
+        Flexible(
+          child: Text(
+            '${formatter.format(percentage)} % du total',
+            textAlign: TextAlign.end,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],

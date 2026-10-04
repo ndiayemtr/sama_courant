@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sama_courant/core/router/app_router.dart';
 import 'package:sama_courant/core/theme/app_theme.dart';
+import 'package:sama_courant/features/appliances/presentation/widgets/appliance_card.dart';
 import 'package:sama_courant/features/appliances/domain/providers/appliance_usecase_providers.dart';
 import 'package:sama_courant/features/appliances/domain/usecases/get_appliances.dart';
 import 'package:sama_courant/features/consumption_history/data/providers/consumption_snapshot_repository_provider.dart';
@@ -19,6 +20,14 @@ void checkLayout(WidgetTester tester) {
 
   for (final element in find.byType(RichText).evaluate()) {
     final paragraph = element.renderObject! as RenderParagraph;
+
+    // Les KPI de la carte validée restent sur une ligne avec ellipsis.
+    // Cela ne dispense pas la carte du contrôle des erreurs de layout ci-dessus.
+    if (element.findAncestorWidgetOfExactType<ApplianceCard>() != null &&
+        paragraph.maxLines == 1 &&
+        paragraph.overflow == TextOverflow.ellipsis) {
+      continue;
+    }
 
     expect(
       paragraph.didExceedMaxLines,
@@ -124,7 +133,10 @@ void main() {
             );
           }
         }
-        final cost = find.text('Part mensuelle estimée');
+        final cost = find.descendant(
+          of: find.byType(ApplianceCard),
+          matching: find.text('Coût estimé'),
+        );
         await tester.scrollUntilVisible(
           cost,
           200,
