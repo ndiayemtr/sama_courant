@@ -87,70 +87,89 @@ class _ActiveConfigurationCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
+    final details = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          configuration.isActive
+              ? 'CONFIGURATION ACTIVE'
+              : 'CONFIGURATION INACTIVE',
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: colors.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          configuration.name,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Depuis le $formattedDate',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colors.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+    final badge = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFD8F7E5),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.circle, size: 10, color: Color(0xFF00A86B)),
+          SizedBox(width: 7),
+          Flexible(
+            child: Text(
+              'Active',
+              style: TextStyle(
+                color: Color(0xFF008A57),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: colors.primaryContainer.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(22),
       ),
-      child: Row(
-        children: [
-          const _LargeIconBox(icon: Icons.receipt_long_outlined),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  configuration.isActive
-                      ? 'CONFIGURATION ACTIVE'
-                      : 'CONFIGURATION INACTIVE',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  configuration.name,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Depuis le $formattedDate',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colors.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          if (configuration.isActive)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFD8F7E5),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact =
+              constraints.maxWidth < 300 ||
+              MediaQuery.textScalerOf(context).scale(16) > 20;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Icon(Icons.circle, size: 10, color: Color(0xFF00A86B)),
-                  SizedBox(width: 7),
-                  Text(
-                    'Active',
-                    style: TextStyle(
-                      color: Color(0xFF008A57),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  const _LargeIconBox(icon: Icons.receipt_long_outlined),
+                  const SizedBox(width: 16),
+                  Expanded(child: details),
+                  if (!compact && configuration.isActive) ...[
+                    const SizedBox(width: 8),
+                    badge,
+                  ],
                 ],
               ),
-            ),
-        ],
+              if (compact && configuration.isActive) ...[
+                const SizedBox(height: 12),
+                badge,
+              ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -449,50 +468,88 @@ class _TaxComponent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          decoration: BoxDecoration(
-            color: colors.primaryContainer.withValues(alpha: 0.25),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      component.name,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (component.thresholdKwh != null) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        'Applicable au-delà de '
-                        '${number.format(component.thresholdKwh)} kWh',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colors.onSurfaceVariant,
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final compact =
+                constraints.maxWidth < 260 ||
+                MediaQuery.textScalerOf(context).scale(16) > 20;
+
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: colors.primaryContainer.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: compact
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          component.name,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                value,
-                textAlign: TextAlign.right,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: colors.primary,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
+                        if (component.thresholdKwh != null) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            'Applicable au-delà de '
+                            '${number.format(component.thresholdKwh)} kWh',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        Text(
+                          value,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: colors.primary,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                component.name,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              if (component.thresholdKwh != null) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  'Applicable au-delà de '
+                                  '${number.format(component.thresholdKwh)} kWh',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: colors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          value,
+                          textAlign: TextAlign.right,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: colors.primary,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+            );
+          },
         ),
         const SizedBox(height: 10),
         Text(

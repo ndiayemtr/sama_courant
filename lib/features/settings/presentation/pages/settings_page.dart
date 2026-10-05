@@ -78,8 +78,7 @@ class _TariffCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           tariffName,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: colors.onSurfaceVariant,
                           ),
