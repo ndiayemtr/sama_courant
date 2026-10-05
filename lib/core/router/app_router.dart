@@ -41,7 +41,8 @@ final GoRouter appRouter = GoRouter(
         ),
         GoRoute(
           path: '/appliances',
-          builder: (context, state) => const AppliancesPage(),
+          builder: (context, state) =>
+              AppliancesPage(openAddOptionsOnStart: state.extra == true),
         ),
       ],
     ),

@@ -109,7 +109,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       message:
                           'Ajoutez vos appareils pour estimer votre consommation et votre coût.',
                       actionLabel: 'Ajouter mon premier appareil',
-                      onAction: () => context.push('/appliances/add'),
+                      onAction: () => context.go('/appliances', extra: true),
                     )
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,3 +1,4 @@
+import 'package:sama_courant/features/appliances/domain/services/appliance_classifier.dart';
 import 'package:sama_courant/features/appliances/domain/entities/energy_consumption_basis.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sama_courant/features/appliances/domain/entities/appliance_label_type.dart';
@@ -238,7 +239,7 @@ REFRIGERANT: R-410A''')('photo');
   });
 
   test(
-    'real TV label prefers typical and model code without guessing type',
+    'real TV label keeps typical power and recognizes Samsung TV signature',
     () async {
       final result = await createUseCase('''SAMSUNG
 AC220-240V 50/60Hz 150W
@@ -247,7 +248,16 @@ Model : UESORG400AW
 Model Code: UE55F6400AWXZF
 Type No.: ...''')('photo');
       expect(result.model, 'ue55f6400awxzf');
-      expect(result.applianceType, isNull);
+      expect(result.applianceType, 'television');
+      expect(result.matchedKeywords, contains('samsung-tv-model'));
+      final classification = const ApplianceClassifier().classify(
+        normalizer.normalize(result.rawOcrText),
+      );
+      expect(classification.confidenceLevel, ConfidenceLevel.medium);
+      expect(classification.score, 3);
+      // Scan confidence describes power extraction, independently of type.
+      expect(result.confidenceLevel, ConfidenceLevel.high);
+      expect(result.powerSource, PowerSource.detected);
       expect(result.powerWatts, 75);
       expect(result.voltageRange!.min, 220);
       expect(result.frequencyOptions, [50, 60]);

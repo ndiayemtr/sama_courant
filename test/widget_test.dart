@@ -1,3 +1,6 @@
+import 'package:go_router/go_router.dart';
+import 'package:sama_courant/features/appliances/presentation/pages/appliance_form_page.dart';
+import 'package:sama_courant/features/appliances/presentation/pages/appliances_page.dart';
 import 'package:flutter/material.dart';
 import 'package:sama_courant/core/presentation/utils/appliance_colors.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -199,11 +202,22 @@ void main() {
     expect(find.text('Bienvenue dans Sama Courant'), findsOneWidget);
     await tester.tap(find.text('Ajouter mon premier appareil'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Ajouter manuellement'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Réfrigérateur'));
+    await tester.pumpAndSettle();
     await form.enterField(tester, 'Nom', 'Lampe MVP');
 
     await form.enterField(tester, 'Puissance', '100');
     await form.setDurationSlider(tester, 480);
     await form.tapSave(tester);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Dashboard'),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Ce mois'), findsOneWidget);
     final container = ProviderScope.containerOf(
@@ -1112,49 +1126,63 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('empty Dashboard welcomes users and opens add form on mobile', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(320, 640);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await openDashboard(tester, []);
-    expect(find.text('Sama Courant'), findsOneWidget);
-    expect(find.text('Bienvenue dans Sama Courant'), findsOneWidget);
-    for (final label in [
-      'Résumé mensuel',
-      'Plus énergivore',
-      'Conseils',
-      '0,00 kWh',
-      'Enregistrer l’état actuel',
-    ]) {
-      expect(find.text(label), findsNothing);
-    }
-    expect(find.byType(NavigationBar), findsOneWidget);
-    final cta = find.text('Ajouter mon premier appareil');
-    await tester.ensureVisible(cta);
-    expect(tester.takeException(), isNull);
-    // The narrow-screen assertion targets the new welcome state only.
-    tester.view.physicalSize = const Size(800, 800);
-    await tester.pumpAndSettle();
-    await tester.tap(cta);
-    await tester.pumpAndSettle();
-    expect(appRouter.canPop(), isTrue);
-    expect(find.text('Ajouter un appareil'), findsWidgets);
-    await tester.pageBack();
-    await tester.pumpAndSettle();
-    expect(find.text('Aucune consommation à afficher.'), findsNothing);
-    expect(find.text('Aucun appareil actif à comparer.'), findsNothing);
-    expect(find.byType(PieChart), findsNothing);
-    await tester.ensureVisible(find.text('Appareils'));
-    await tester.tap(find.text('Appareils'));
-    await tester.pumpAndSettle();
-    expect(find.text('Aucun appareil enregistré'), findsOneWidget);
-    expect(find.byType(FloatingActionButton), findsNothing);
-    expect(find.text('Ajouter un appareil'), findsOneWidget);
-  });
-
+  testWidgets(
+    'empty Dashboard opens shared add options before the manual form',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await openDashboard(tester, []);
+      expect(find.text('Bienvenue dans Sama Courant'), findsOneWidget);
+      final cta = find.text('Ajouter mon premier appareil');
+      await tester.ensureVisible(cta);
+      await tester.tap(cta);
+      await tester.pumpAndSettle();
+      expect(appRouter.routeInformationProvider.value.uri.path, '/appliances');
+      expect(find.byType(AppliancesPage), findsOneWidget);
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        3,
+      );
+      expect(find.byType(BottomSheet), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.text('Ajouter un appareil'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Scanner une étiquette'), findsOneWidget);
+      expect(find.text('Ajouter manuellement'), findsOneWidget);
+      expect(find.byType(ApplianceFormPage), findsNothing);
+      await tester.tap(find.text('Ajouter manuellement'));
+      await tester.pumpAndSettle();
+      expect(find.text('Quel appareil avez-vous ?'), findsOneWidget);
+      expect(find.byType(ApplianceFormPage), findsNothing);
+      expect(appRouter.routeInformationProvider.value.uri.path, '/appliances');
+      await tester.tap(find.text('Réfrigérateur'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ApplianceFormPage), findsOneWidget);
+      expect(
+        GoRouterState.of(
+          tester.element(find.byType(ApplianceFormPage)),
+        ).uri.path,
+        '/appliances/add',
+      );
+      expect(
+        tester
+            .widget<ApplianceFormPage>(find.byType(ApplianceFormPage))
+            .initialApplianceType,
+        'refrigerator',
+      );
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.byType(AppliancesPage), findsOneWidget);
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
   testWidgets(
     'Dashboard aggregates active appliances and selects largest consumption',
     (tester) async {

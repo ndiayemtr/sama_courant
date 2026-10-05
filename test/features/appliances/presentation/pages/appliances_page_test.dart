@@ -132,6 +132,39 @@ ProviderContainer createContainer(ApplianceRepository repository) {
 }
 
 void main() {
+  testWidgets(
+    'startup add options open once and the existing add button still works',
+    (tester) async {
+      final container = createContainer(
+        TestApplianceRepository(appliances: [createTestAppliance()]),
+      );
+      addTearDown(container.dispose);
+      Future<void> showPage({bool dark = false}) => tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: dark ? ThemeData.dark() : ThemeData.light(),
+            home: const AppliancesPage(openAddOptionsOnStart: true),
+          ),
+        ),
+      );
+      await showPage();
+      await tester.pumpAndSettle();
+      expect(find.text('Scanner une étiquette'), findsOneWidget);
+      expect(find.byType(BottomSheet), findsOneWidget);
+      Navigator.of(tester.element(find.text('Scanner une étiquette'))).pop();
+      await tester.pumpAndSettle();
+      await showPage(dark: true);
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsNothing);
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Scanner une étiquette'), findsOneWidget);
+      expect(find.text('Ajouter manuellement'), findsOneWidget);
+      expect(find.byType(BottomSheet), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
   setUpAll(() => initializeDateFormatting('fr_FR'));
   for (final scale in [1.0, 1.5]) {
     testWidgets('la carte ouvre le détail tarifaire à 320 px, texte $scale', (

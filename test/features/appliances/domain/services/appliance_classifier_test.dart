@@ -111,4 +111,45 @@ void main() {
     expect(result.score, 1);
     expect(result.isRecognized, isFalse);
   });
+  for (final text in [
+    'samsung model ue55f6400aw model code ue55f6400awxzf typical power 75 w',
+    'samsung qe55q80 model code qe55q80cat',
+    'samsung model qn55q80',
+    'samsung model le40a556',
+    'samsung model ls55ls03',
+  ]) {
+    test('Samsung TV signature: $text', () {
+      final result = classifier.classify(text);
+      expect(result.category, 'television');
+      expect(result.confidenceLevel, ConfidenceLevel.medium);
+      expect(result.score, 3);
+      expect(result.matchedKeywords, ['samsung-tv-model']);
+    });
+  }
+
+  for (final text in [
+    'ue55f6400awxzf 220 v 75 w',
+    'samsung model abc123 220 v 75 w',
+    'samsung model ue 220 v 75 w',
+    'samsung model ue55 220 v 75 w',
+    'samsung model xue55f6400aw 220 v 75 w',
+    'notsamsung model ue55f6400aw 220 v 75 w',
+  ]) {
+    test('insufficient Samsung TV evidence: $text', () {
+      final result = classifier.classify(text);
+      expect(result.category, isNull);
+      expect(result.confidenceLevel, ConfidenceLevel.low);
+      expect(result.score, 0);
+    });
+  }
+
+  test('explicit category outweighs a Samsung TV model signature', () {
+    final result = classifier.classify(
+      'samsung refrigerator model ue55f6400aw',
+    );
+    expect(result.category, 'refrigerator');
+    expect(result.score, 5);
+    expect(result.confidenceLevel, ConfidenceLevel.high);
+    expect(result.matchedKeywords, ['refrigerator']);
+  });
 }

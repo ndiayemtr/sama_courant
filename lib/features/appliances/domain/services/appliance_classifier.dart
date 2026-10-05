@@ -32,6 +32,16 @@ class ApplianceClassifier {
     applyKeywords(technicalIndicators, 2);
     applyKeywords(weakKeywords, 1);
 
+    // A model signature is evidence only when paired with the manufacturer.
+    // Count it once even if Model, Type No. and Model Code repeat the model.
+    if (_containsKeyword(normalizedText, 'samsung') &&
+        RegExp(
+          r'\b(?:ue|qe|qn|le|ls)\d{2}[a-z0-9]+\b',
+        ).hasMatch(normalizedText)) {
+      scores.update('television', (value) => value + 3, ifAbsent: () => 3);
+      matches.putIfAbsent('television', () => []).add('samsung-tv-model');
+    }
+
     if (scores.isEmpty) {
       return const ApplianceClassificationResult(
         category: null,
