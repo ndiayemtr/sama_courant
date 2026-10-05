@@ -21,6 +21,13 @@ void main() {
         home: const SettingsPage(),
       ),
     );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.takeException(),
+      isNull,
+      reason: 'Overflow au rendu initial de SettingsPage',
+    );
     expect(find.text('Tarification'), findsOneWidget);
     for (final text in [
       'Comment fonctionnent les estimations ?',
@@ -34,7 +41,11 @@ void main() {
       expect(finder, findsOneWidget);
       await tester.ensureVisible(finder);
       await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'Overflow après affichage de : $text',
+      );
     }
   });
 }
