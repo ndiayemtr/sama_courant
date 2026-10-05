@@ -19,6 +19,10 @@ class TopConsumersCard extends StatelessWidget {
     final consumers = summary.consumptionShares.take(5).toList();
     return Card.filled(
       margin: EdgeInsets.zero,
+      color: theme.colorScheme.surfaceContainerLowest,
+      elevation: 1,
+      shadowColor: theme.colorScheme.shadow.withValues(alpha: 0.08),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(

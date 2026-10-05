@@ -63,6 +63,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                     ConsumptionDistributionCard(summary: summary),
                     const SizedBox(height: 12),
                     Card.filled(
+                      color: theme.colorScheme.surfaceContainerLow,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       margin: EdgeInsets.zero,
                       child: Padding(
                         padding: const EdgeInsets.all(12),
@@ -101,6 +106,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                     if (summary.recommendations.isNotEmpty) ...[
                       const SizedBox(height: 12),
                       Card.filled(
+                        color: theme.colorScheme.surfaceContainerLow,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                         key: const ValueKey('analysis-recommendations'),
                         margin: EdgeInsets.zero,
                         child: Padding(

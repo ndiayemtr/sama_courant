@@ -50,6 +50,10 @@ class _ConsumptionDistributionCardState
     ];
     return Card.filled(
       margin: EdgeInsets.zero,
+      color: colors.surfaceContainerLowest,
+      elevation: 1,
+      shadowColor: colors.shadow.withValues(alpha: 0.08),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
