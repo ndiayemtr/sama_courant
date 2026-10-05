@@ -1,3 +1,4 @@
+import 'package:intl/date_symbol_data_local.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -131,6 +132,76 @@ ProviderContainer createContainer(ApplianceRepository repository) {
 }
 
 void main() {
+  setUpAll(() => initializeDateFormatting('fr_FR'));
+  for (final scale in [1.0, 1.5]) {
+    testWidgets('la carte ouvre le détail tarifaire à 320 px, texte $scale', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final container = createContainer(
+        TestApplianceRepository(appliances: [createTestAppliance()]),
+      );
+      addTearDown(container.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(scale)),
+              child: child!,
+            ),
+            home: const AppliancesPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Réfrigérateur'));
+      await tester.pumpAndSettle();
+      expect(find.text('COÛT ESTIMÉ / MOIS'), findsOneWidget);
+      expect(find.text('Woyofal DPP 2026'), findsOneWidget);
+      expect(find.text('Tarif global du foyer (45,00 kWh)'), findsNothing);
+      await tester.ensureVisible(find.text('Comment ce montant est calculé ?'));
+      await tester.tap(find.text('Comment ce montant est calculé ?'));
+      await tester.pumpAndSettle();
+      expect(find.text('Tarif global du foyer (45,00 kWh)'), findsOneWidget);
+      await tester.ensureVisible(find.text('Coût estimé de cet appareil'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(BottomSheet, skipOffstage: false), findsOneWidget);
+      await tester.ensureVisible(find.text('Comment ce montant est calculé ?'));
+      await tester.tap(find.text('Comment ce montant est calculé ?'));
+      await tester.pumpAndSettle();
+      expect(find.text('Tarif global du foyer (45,00 kWh)'), findsNothing);
+      expect(find.text('COÛT ESTIMÉ / MOIS'), findsOneWidget);
+      await tester.ensureVisible(find.byTooltip('Fermer'));
+      await tester.tap(find.byTooltip('Fermer'));
+      await tester.pumpAndSettle();
+      expect(find.text('COÛT ESTIMÉ / MOIS'), findsNothing);
+      expect(find.byTooltip('Actions'), findsOneWidget);
+      final cardCost = find.descendant(
+        of: find.byType(ApplianceCard),
+        matching: find.text('Coût estimé'),
+      );
+      await tester.ensureVisible(cardCost);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(cardCost);
+      await tester.pumpAndSettle();
+      await tester.tap(cardCost);
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet, skipOffstage: false), findsOneWidget);
+      expect(find.text('COÛT ESTIMÉ / MOIS'), findsOneWidget);
+      expect(find.text('Tarif global du foyer (45,00 kWh)'), findsOneWidget);
+      await tester.ensureVisible(find.byTooltip('Fermer'));
+      await tester.tap(find.byTooltip('Fermer'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+  }
   testWidgets('failed deletion never reports success or technical details', (
     tester,
   ) async {

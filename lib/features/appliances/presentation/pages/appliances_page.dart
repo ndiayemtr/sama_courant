@@ -1,17 +1,15 @@
 import '../../../../core/widgets/page_app_bar.dart';
-import '../../../budget/presentation/widgets/tariff_calculation_details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sama_courant/features/budget/data/factories/woyofal_tariff_configuration_factory.dart';
-import 'package:sama_courant/features/budget/domain/entities/tariff_calculation_result.dart';
 import 'package:sama_courant/features/budget/domain/providers/appliance_tariff_service_provider.dart';
 
-import '../../../budget/domain/entities/tariff_configuration.dart';
 import '../../domain/entities/appliance.dart';
 import '../providers/appliances_provider.dart';
 import '../state/appliances_state.dart';
 import '../widgets/appliance_card.dart';
+import '../widgets/appliance_detail_bottom_sheet.dart';
 import '../widgets/appliances_error.dart';
 import '../widgets/appliances_loading.dart';
 import '../widgets/empty_appliances.dart';
@@ -429,251 +427,40 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
         final isMostConsuming =
             appliance.isActive && identical(appliance, mostConsumingAppliance);
 
+        void showDetails({bool expanded = false}) {
+          ApplianceDetailBottomSheet.show(
+            context,
+            ApplianceDetailBottomSheet(
+              appliance: appliance,
+              monthlyCostFcfa: allocatedMonthlyCost,
+              monthlyConsumptionKwh: appliance.monthlyConsumptionKwh,
+              contributionPercentage: contributionPercentage,
+              householdConsumptionKwh: totalMonthlyConsumptionKwh,
+              householdCostFcfa: totalTariffResult.totalCost,
+              tariffName: tariffConfiguration.name,
+              tariffCategory: tariffConfiguration.customerCategory,
+              effectiveFrom: tariffConfiguration.effectiveFrom,
+              effectiveTo: tariffConfiguration.effectiveTo,
+              householdResult: totalTariffResult,
+              tariffConfiguration: tariffConfiguration,
+              initiallyExpanded: expanded,
+            ),
+          );
+        }
+
         return ApplianceCard(
           appliance: appliance,
           monthlyCostFcfa: allocatedMonthlyCost,
           isMostConsuming: isMostConsuming,
           contributionPercentage: contributionPercentage,
-          onViewTariffDetails: () {
-            _showTariffDetails(
-              context,
-              appliance,
-              tariffConfiguration,
-              totalTariffResult,
-              allocatedMonthlyCost,
-              totalMonthlyConsumptionKwh,
-            );
-          },
+          onViewDetails: () => showDetails(),
+          onViewTariffDetails: () => showDetails(expanded: true),
           onEdit: () {
             context.push('/appliances/edit', extra: appliance);
           },
           onDelete: () {
             _confirmDelete(context, ref, appliance);
           },
-        );
-      },
-    );
-  }
-
-  void _showTariffDetails(
-    BuildContext context,
-    Appliance appliance,
-    TariffConfiguration configuration,
-    TariffCalculationResult householdResult,
-    double allocatedCost,
-    double totalMonthlyConsumptionKwh,
-  ) {
-    final fcfaFormatter = NumberFormat.decimalPattern('fr_FR');
-    final decimalFormatter = NumberFormat('0.00', 'fr_FR');
-    final percentageFormatter = NumberFormat('0.0', 'fr_FR');
-    final dateFormatter = DateFormat('dd/MM/yyyy', 'fr_FR');
-
-    final contributionPercentage = totalMonthlyConsumptionKwh <= 0
-        ? 0.0
-        : appliance.monthlyConsumptionKwh / totalMonthlyConsumptionKwh * 100;
-
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      isDismissible: true,
-      enableDrag: true,
-      showDragHandle: true,
-      builder: (context) {
-        return SafeArea(
-          child: DraggableScrollableSheet(
-            expand: false,
-            initialChildSize: 0.85,
-            minChildSize: 0.25,
-            maxChildSize: 0.95,
-            builder: (context, scrollController) {
-              return SingleChildScrollView(
-                controller: scrollController,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                appliance.name,
-                                style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Détail de la part mensuelle estimée',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        IconButton(
-                          tooltip: 'Fermer',
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.secondaryContainer
-                            .withValues(alpha: 0.45),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.receipt_long_outlined, size: 20),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  configuration.name,
-                                  style: Theme.of(context).textTheme.titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          Text(
-                            'Catégorie : ${configuration.customerCategory}',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          Text(
-                            configuration.effectiveTo == null
-                                ? 'Applicable depuis le '
-                                      '${dateFormatter.format(configuration.effectiveFrom)}'
-                                : 'Applicable du '
-                                      '${dateFormatter.format(configuration.effectiveFrom)} '
-                                      'au '
-                                      '${dateFormatter.format(configuration.effectiveTo!)}',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _TariffDetailRow(
-                      label: 'Consommation de l’appareil',
-                      value:
-                          '${decimalFormatter.format(appliance.monthlyConsumptionKwh)} kWh',
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _TariffDetailRow(
-                      label: 'Consommation du foyer',
-                      value:
-                          '${decimalFormatter.format(totalMonthlyConsumptionKwh)} kWh',
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _TariffDetailRow(
-                      label: 'Part de consommation',
-                      value:
-                          '${percentageFormatter.format(contributionPercentage)} %',
-                    ),
-
-                    const Divider(height: 28),
-
-                    Text(
-                      'Tarification globale du foyer',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    TariffCalculationDetails(
-                      result: householdResult,
-                      configuration: configuration,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _TariffDetailRow(
-                      label: 'Coût total estimé du foyer',
-                      value:
-                          '${fcfaFormatter.format(householdResult.totalCost.round())} FCFA',
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer.withValues(alpha: 0.45),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: _TariffDetailRow(
-                        label: 'Part estimée de cet appareil',
-                        value:
-                            '${fcfaFormatter.format(allocatedCost.round())} FCFA',
-                        emphasize: true,
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          size: 18,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Le coût de cet appareil correspond à sa part de la '
-                            'consommation mensuelle totale du foyer. La grille '
-                            'tarifaire progressive est appliquée une seule fois à '
-                            'la consommation globale, puis le coût est réparti '
-                            'proportionnellement entre les appareils actifs.',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-                  ],
-                ),
-              );
-            },
-          ),
         );
       },
     );
@@ -739,49 +526,6 @@ class _MonthlySummaryCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _TariffDetailRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool emphasize;
-
-  const _TariffDetailRow({
-    required this.label,
-    required this.value,
-    this.emphasize = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: emphasize ? FontWeight.bold : null,
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              value,
-              textAlign: TextAlign.end,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: emphasize ? FontWeight.bold : FontWeight.w600,
-                color: emphasize ? Theme.of(context).colorScheme.primary : null,
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }
