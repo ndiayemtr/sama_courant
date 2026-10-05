@@ -28,7 +28,9 @@ import '../../domain/usecases/scan_appliance_label.dart';
 import '../widgets/appliance_type_selector.dart';
 
 class AppliancesPage extends ConsumerStatefulWidget {
-  const AppliancesPage({super.key});
+  const AppliancesPage({super.key, this.openAddOptionsOnStart = false});
+
+  final bool openAddOptionsOnStart;
 
   @override
   ConsumerState<AppliancesPage> createState() => _AppliancesPageState();
@@ -52,6 +54,12 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
   void initState() {
     super.initState();
 
+    if (widget.openAddOptionsOnStart) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _openAddApplianceOptions(context);
+      });
+    }
     Future.microtask(() {
       ref.read(appliancesProvider.notifier).loadAppliances();
     });
@@ -153,6 +161,7 @@ class _AppliancesPageState extends ConsumerState<AppliancesPage> {
   Future<void> _openAddApplianceOptions(BuildContext context) async {
     final mode = await showModalBottomSheet<_AddApplianceMode>(
       context: context,
+      isScrollControlled: true,
       showDragHandle: true,
       builder: (sheetContext) {
         return SafeArea(
